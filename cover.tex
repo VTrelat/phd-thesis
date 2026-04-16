@@ -1,0 +1,34 @@
+\begin{titlepage}
+\begin{tikzpicture}[remember picture, overlay]
+
+  % ==========================================================================
+  % (1) BACKGROUND — cover.png fills the entire page
+  % ==========================================================================
+  \node[anchor=center, inner sep=0pt]
+    at (current page.center) {%
+      \includegraphics[width=\paperwidth, height=\paperheight, keepaspectratio=false]{assets/cover.png}};
+
+  % ==========================================================================
+  % (2) TITLE
+  % ==========================================================================
+  \node[
+    anchor=south west, inner sep=0pt,
+    text width=0.80\paperwidth, align=left,
+  ] at ([xshift=0.10\paperwidth, yshift=0.18\paperheight] current page.south west) {%
+    {\fontsize{31}{40}\playfaircoverfamily\bfseries\selectfont\spaceskip=0.3em\color{cover-cream}
+     Enhancing B Language Reasoners\\with SMT Techniques\par}%
+  };
+
+  % ==========================================================================
+  % (3) AUTHOR
+  % ==========================================================================
+  \node[
+    anchor=south west, inner sep=0pt,
+    text width=0.80\paperwidth, align=left,
+  ] at ([xshift=0.10\paperwidth, yshift=0.10\paperheight] current page.south west) {%
+    {\fontsize{16}{20}\playfaircoverfamily\bfseries\spaceskip=0.3em\selectfont\color{cover-cream}
+     Vincent Trélat\par}%
+  };
+
+\end{tikzpicture}
+\end{titlepage}

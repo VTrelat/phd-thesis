@@ -1,0 +1,215 @@
+\tcbuselibrary{theorems, skins, breakable}
+
+% ---------------------------------------------------------------------------
+% Shared counter (theorems and lemmas share the same counter; definitions,
+% examples, notes and remarks each have their own, all subordinate to section)
+% ---------------------------------------------------------------------------
+% Single unified counter for all numbered environments, reset by section.
+% Theorems, lemmas, corollaries, definitions, examples and remarks all
+% draw from this one sequence, so numbering is global within each section.
+\newcounter{thmcounter}[section]
+\renewcommand{\thethmcounter}{\thesection.\arabic{thmcounter}}
+
+% ---------------------------------------------------------------------------
+% Internal helper: \envtitlesimple{AccentColor}{Label}{Counter}
+%   Typesets the title for note/remark: no Lean name, no horizontal rule.
+%   The label is rendered in the accent color for visual identity.
+% ---------------------------------------------------------------------------
+\newcommand{\envtitlesimple}[3]{%
+  % #1 = accent color, #2 = label word, #3 = counter macro
+  \noindent{\color{#1}\textbf{#2~#3.}}\quad
+}
+
+% ---------------------------------------------------------------------------
+% Base tcolorbox style shared by all environments
+% ---------------------------------------------------------------------------
+\tcbset{
+  envbase/.style={
+    enhanced,
+    breakable,
+    rounded corners,
+    boxrule=0pt,          % no outer border
+    frame hidden,
+    colback=white,
+    left=6pt, right=6pt, top=2pt, bottom=2pt,
+    before upper={\setlength{\parskip}{4pt}},
+    fontupper=\normalsize,
+  },
+  % Extra style for environments with a coloured title banner
+  envtitled/.style={
+    titlerule=0pt,        % no separator line between title and body
+    toptitle=1pt,
+    bottomtitle=1pt,
+  }
+}
+
+% ---------------------------------------------------------------------------
+% THEOREM  (accent: blue)
+% ---------------------------------------------------------------------------
+\NewTColorBox{theorem}{ O{} O{} }{%
+  envbase,
+  envtitled,
+  colback=pink!2,
+  colbacktitle=pink!70,
+  coltitle=pink!2,
+  title={%
+    \stepcounter{thmcounter}%
+    \textbf{Theorem~\thethmcounter}%
+    \if\relax\detokenize{#1}\relax\else~\textup{(#1)}\fi
+    \hfill
+    \if\relax\detokenize{#2}\relax\else{\small\texttt{#2}}\fi
+  },
+  borderline west={2pt}{0pt}{pink!70},
+}
+
+\NewTColorBox{corollary}{ O{} O{} }{%
+  envbase,
+  envtitled,
+  colback=pink!2,
+  colbacktitle=pink!70,
+  coltitle=pink!2,
+  title={%
+    \stepcounter{thmcounter}%
+    \textbf{Corollary~\thethmcounter}%
+    \if\relax\detokenize{#1}\relax\else~\textup{(#1)}\fi
+    \hfill
+    \if\relax\detokenize{#2}\relax\else{\small\texttt{#2}}\fi
+  },
+  borderline west={2pt}{0pt}{pink!70},
+}
+
+% ---------------------------------------------------------------------------
+% LEMMA  (accent: green)
+% ---------------------------------------------------------------------------
+\NewTColorBox{lemma}{ O{} O{} }{%
+  envbase,
+  envtitled,
+  colback=pink!2,
+  colbacktitle=pink!70,
+  coltitle=pink!2,
+  title={%
+    \stepcounter{thmcounter}%
+    \textbf{Lemma~\thethmcounter}%
+    \if\relax\detokenize{#1}\relax\else~\textup{(#1)}\fi
+    \hfill
+    \if\relax\detokenize{#2}\relax\else{\small\texttt{#2}}\fi
+  },
+  borderline west={2pt}{0pt}{pink!70},
+}
+
+% ---------------------------------------------------------------------------
+% DEFINITION  (accent: orange)
+% ---------------------------------------------------------------------------
+\NewTColorBox{definition}{ O{} O{} }{%
+  envbase,
+  envtitled,
+  colback=orange!2,
+  colbacktitle=orange!70,
+  coltitle=orange!2,
+  title={%
+    \stepcounter{thmcounter}%
+    \textbf{Definition~\thethmcounter}%
+    \if\relax\detokenize{#1}\relax\else~\textup{(#1)}\fi
+    \hfill
+    \if\relax\detokenize{#2}\relax\else{\small\texttt{#2}}\fi
+  },
+  borderline west={2pt}{0pt}{orange!70},
+}
+
+% ---------------------------------------------------------------------------
+% EXAMPLE  (accent: pink)
+% ---------------------------------------------------------------------------
+\NewTColorBox{example}{ O{} O{} }{%
+  envbase,
+  envtitled,
+  colback=green!2,
+  colbacktitle=green!60,
+  coltitle=green!2,
+  title={%
+    \stepcounter{thmcounter}%
+    \textbf{Example~\thethmcounter}%
+    \if\relax\detokenize{#1}\relax\else~\textup{(#1)}\fi
+    \hfill
+    \if\relax\detokenize{#2}\relax\else{\small\texttt{#2}}\fi
+  },
+  borderline west={2pt}{0pt}{green!60},
+}
+
+% ---------------------------------------------------------------------------
+% NOTE  (accent: dark-blue) — no arguments
+% ---------------------------------------------------------------------------
+\NewTColorBox{note}{ }{%
+  envbase,
+  colback=beige!20,
+  before upper={\setlength{\parskip}{4pt}\textcolor{beige!60!black}{\textbf{Note.}}\enspace},
+  borderline west={2pt}{0pt}{beige!98!black},
+}
+
+% ---------------------------------------------------------------------------
+% REMARK  (accent: dark-blue) — no arguments
+% ---------------------------------------------------------------------------
+\NewTColorBox{remark}{ }{%
+  envbase,
+  colback=blue!5,
+  before upper={\stepcounter{thmcounter}\setlength{\parskip}{4pt}\textcolor{blue}{\textbf{Remark~\thethmcounter.}}\enspace},
+  borderline west={2pt}{0pt}{blue!70},
+}
+
+% ---------------------------------------------------------------------------
+% RULE  (accent: dark-blue) — no arguments, to title
+% ---------------------------------------------------------------------------
+\NewTColorBox{grayenv}{ }{%
+  envbase,
+  envtitled,
+  colback=gray!5,
+  title={},
+}
+
+% ---------------------------------------------------------------------------
+% FACT — no title, no accent colour, just a vertical rule on the left
+% ---------------------------------------------------------------------------
+\NewTColorBox{fact}{ }{%
+  envbase,
+  notitle,
+  colback=blue!7,
+  before upper={\setlength{\parskip}{4pt}\textcolor{blue}{\textbf{Fact.}}\enspace},
+  borderline west={2pt}{0pt}{blue!70},
+}
+
+% ---------------------------------------------------------------------------
+% PROOF — "Proof." inline, QED square flush-right on the last line
+% ---------------------------------------------------------------------------
+\RenewTColorBox{proof}{ }{%
+  envbase,
+  notitle,
+  colback=blue!2,
+  before upper={\setlength{\parskip}{4pt}\textit{Proof.}\enspace},
+  after upper={\unskip\nobreak\hspace*{1em}\hfill\ensuremath{\square}},
+  borderline west={2pt}{0pt}{blue!70},
+}
+
+% ---------------------------------------------------------------------------
+% SUBPROOF — "Proof." inline, QED square flush-right on the last line.
+% ---------------------------------------------------------------------------
+\NewTColorBox{subproof}{ }{%
+  envbase,
+  notitle,
+  colback=blue!7,
+  before upper={\setlength{\parskip}{4pt}\textcolor{blue}{\textit{Proof.}}\enspace},
+  after upper={\unskip\nobreak\hspace*{1em}\hfill\ensuremath{\square}},
+  borderline west={2pt}{0pt}{blue!70},
+}
+
+% Wrap proof/subproof so that \footnote inside them goes to the page bottom.
+% \makesavenoteenv injects \if@endpe bookkeeping that adds spurious vertical
+% space, so we save the tcolorbox-defined commands directly and rewrap them
+% with plain \renewenvironment — \savenotes intercepts footnotes before the
+% box is built; \spewnotes flushes them to \footins after it is placed.
+% NB: \makeatletter/\makeatother are required because the internal names
+%     contain @, which has catcode 12 outside of package/class code.
+\makeatletter
+\let\tcb@proof\proof         \let\endtcb@proof\endproof
+\let\tcb@subproof\subproof   \let\endtcb@subproof\endsubproof
+\renewenvironment{proof}   {\savenotes\tcb@proof}   {\endtcb@proof\spewnotes}
+\renewenvironment{subproof}{\savenotes\tcb@subproof}{\endtcb@subproof\spewnotes}
+\makeatother

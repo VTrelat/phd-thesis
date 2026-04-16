@@ -1,0 +1,35 @@
+# LaTeX build artifacts
+*.aux
+*.bbl
+*.bcf
+*.blg
+*.brf
+*.dvi
+*.fdb_latexmk
+*.fls
+*.idx
+*.ilg
+*.ind
+*.lof
+*.log
+*.lot
+*.nav
+*.out
+*.run.xml
+*.snm
+*.synctex.gz
+*.toc
+*.vrb
+*.xdv
+
+# Generated document outputs at the project root
+/*.pdf
+
+# latexmk output directories
+_minted-*/
+build/
+
+# Editor and OS noise
+.DS_Store
+*.swp
+*~

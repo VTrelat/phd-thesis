@@ -1,0 +1,164 @@
+\usepackage[a4paper, inner=.8in, outer=1.4in, top=1.4in, bottom=1.4in]{geometry}
+\usepackage{lmodern}
+\usepackage{fancyhdr}
+\usepackage{microtype}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb, amsthm, mathtools, bbold, xspace}
+\usepackage[theorems]{tcolorbox}
+\usepackage{stmaryrd} % \llbracket, \rrbracket
+\usepackage{footnote}  % \savenotes/\spewnotes — must come before hyperref
+\usepackage{hyperref}
+\usepackage{mathpartir}
+\usepackage{tikz}
+\usepackage{cleveref}
+\usepackage{etoc}
+\usepackage{natbib}
+\usepackage{fontspec}
+% \newfontfamily\playfairfamily{Playfair Display}
+\newfontfamily\playfaircoverfamily{Playfair Display}[LetterSpace=-2.5]
+
+\usepackage{lettrine}
+
+\setcounter{tocdepth}{1}
+
+\definecolor{beige}{RGB}{254, 248, 236}
+\definecolor{cover-cream}{RGB}{125, 104, 86} % rgb(125, 104, 86)
+\definecolor{blue}{RGB}{0, 153, 173}
+\definecolor{dark-blue}{RGB}{0, 86, 97}
+\definecolor{pink}{RGB}{255, 87, 146}
+\definecolor{orange}{RGB}{250, 137, 0}
+\definecolor{green}{RGB}{0, 148, 86}
+
+\usetikzlibrary{arrows, arrows.meta, shapes, positioning, calc, fit, shadings}
+\tikzset{
+  node distance=1.8cm,
+  dot/.style={draw=none, fill=black, circle, inner sep=1pt},
+  relarr/.style={->, draw=gray, dash pattern=on 3pt off 1pt, >=stealth, shorten >=3pt, shorten <=3pt, line width=1pt},
+  funarr/.style={->, >=stealth, shorten >=3pt, shorten <=3pt, line width=1pt},
+}
+
+% --- Links ---
+\hypersetup{
+  colorlinks=true,
+  citecolor=pink,
+  linkcolor=blue,
+  urlcolor=dark-blue,
+}
+
+% --- Theorem environments ---
+\theoremstyle{definition}
+
+\input{environments.tex}
+
+% --- Chapter style ---
+\ChTitleVar{\raggedright\Huge\playfaircoverfamily\bfseries}
+\ChNumVar{\fontsize{76}{80}\playfaircoverfamily\itshape\bfseries}
+
+\newcommand{\colortitlechap}{\color{beige!25!cover-cream}}
+\newcommand{\colornumberchap}{\color{beige!25!cover-cream}}
+\newcommand{\colorbackchap}{\colorbox{beige!80}}
+
+\makeatletter
+
+\renewcommand{\DOCH}{%
+    \settowidth{\py}{\CNoV\thechapter}
+    \addtolength{\py}{-10pt}% 
+    \fboxsep=0pt%
+    \colorbackchap{\rule{0pt}{40pt}\parbox[b]{\textwidth}{\hfill}}%
+    \kern-\py\raise20pt%
+    \hbox{\colornumberchap\CNoV\thechapter}\\%
+}
+
+\renewcommand{\DOTI}[1]{%
+    \nointerlineskip\raggedright%
+    \fboxsep=\myhi%
+    \vskip-1ex%
+    \colorbackchap{\parbox[t]{\dimexpr\textwidth-2\myhi\relax}{\CTV\FmTi{\colortitlechap#1}}}\par\nobreak%
+    \vskip 40\p@%
+}
+
+\renewcommand{\DOTIS}[1]{%
+    \fboxsep=0pt%
+    \colorbackchap{\rule{0pt}{40pt}\parbox[b]{\textwidth}{\hfill}}\\%
+    \nointerlineskip\raggedright%
+    \fboxsep=\myhi%
+    \colorbackchap{\parbox[t]{\dimexpr\textwidth-2\myhi\relax}{\CTV\FmTi{\colortitlechap#1}}}\par\nobreak%
+    \vskip 40\p@%
+}
+
+% Each chapter title on its own page: wrap the fncychap-defined macros
+% and flush to a new page after the header is rendered.
+% \let\fncychap@makechapterhead\@makechapterhead
+% \renewcommand{\@makechapterhead}[1]{%
+%     \fncychap@makechapterhead{#1}%
+%     \clearpage%
+% }
+% \let\fncychap@makeschapterhead\@makeschapterhead
+% \renewcommand{\@makeschapterhead}[1]{%
+%     \fncychap@makeschapterhead{#1}%
+%     \clearpage%
+% }
+
+\makeatother
+
+% --- Page number tabs bleeding into the outer margin ---
+% Outer margin width: paperwidth minus the text block and its left offset.
+\newlength{\outermarginwidth}
+\newlength{\halfoutermarginwidth}
+\AtBeginDocument{%
+  \setlength{\outermarginwidth}{\dimexpr\paperwidth - \textwidth - \oddsidemargin - 1in\relax}%
+  \setlength{\halfoutermarginwidth}{0.5\outermarginwidth}%
+}
+
+% Odd pages (right-hand): used in [LO] slot.
+% \rlap starts at the LEFT text margin; \hspace* skips textwidth+halfoutermarginwidth
+% to reach the midpoint of the outer margin; the colorbox ends flush at the
+% right page edge.
+\newcommand{\pagenumboxR}[1]{%
+  \rlap{%
+    \hspace*{\dimexpr\textwidth + \halfoutermarginwidth\relax}%
+    {%
+      \setlength{\fboxsep}{10pt}%
+      \colorbox{gray!10}{%
+        \makebox[\dimexpr\halfoutermarginwidth - 20pt\relax][c]{%
+          \fontsize{14}{16}\usefont{OT1}{ppl}{b}{sl}\selectfont
+          \color{gray}#1%
+        }%
+      }%
+    }%
+  }%
+}
+
+% Even pages (left-hand): used in [LE] slot.
+% \llap right-anchors at the LEFT text margin (= outermarginwidth from page edge).
+% Content = colorbox(halfoutermarginwidth) + hspace*(halfoutermarginwidth)
+% = outermarginwidth total, so the colorbox's left edge lands at the page edge.
+\newcommand{\pagenumboxL}[1]{%
+  \llap{%
+    {%
+      \setlength{\fboxsep}{10pt}%
+      \colorbox{gray!10}{%
+        \makebox[\dimexpr\halfoutermarginwidth - 20pt\relax][c]{%
+          \fontsize{14}{16}\usefont{OT1}{ppl}{b}{sl}\selectfont
+          \color{gray}#1%
+        }%
+      }%
+    }%
+    \hspace*{\halfoutermarginwidth}%
+  }%
+}
+
+% --- Footer: page-number tab on the outer edge only, no rule ---
+\pagestyle{fancy}
+\fancyhf{}
+\fancyfoot[LO]{\pagenumboxR{\thepage}}
+\fancyfoot[LE]{\pagenumboxL{\thepage}}
+\renewcommand{\footrulewidth}{0pt}
+\renewcommand{\headrulewidth}{0pt}
+\fancypagestyle{plain}{%
+  \fancyhf{}
+  \fancyfoot[LO]{\pagenumboxR{\thepage}}
+  \fancyfoot[LE]{\pagenumboxL{\thepage}}
+  \renewcommand{\footrulewidth}{0pt}
+  \renewcommand{\headrulewidth}{0pt}
+}
