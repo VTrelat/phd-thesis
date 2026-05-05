@@ -1,4 +1,4 @@
-\documentclass{book}
+\documentclass[10pt]{book}
 \usepackage[Bjornstrup]{fncychap}
 
 
@@ -9,22 +9,28 @@
 \author{Vincent Tr\'{e}lat}
 
 \begin{document}
-\input{cover.tex}
+\include{cover.tex}
 
 \begingroup
 \hypersetup{linkcolor=black}
 \tableofcontents
 \endgroup
 
-\input{chapters/preface.tex}
+% \include{chapters/preface.tex}
 
-\input{chapters/b.tex}
+\include{chapters/b.tex}
 
-\input{chapters/smt.tex}
+% \include{chapters/smt.tex}
 
-\input{chapters/loosening.tex}
+\include{chapters/loosening.tex}
 
-\input{chapters/correctness.tex}
+% \include{chapters/correctness.tex}
+
+% \include{chapters/evaluation.tex}
+
+% \include{chapters/related-work.tex}
+
+% \include{chapters/conclusion.tex}
 
 
 \bibliographystyle{plain}

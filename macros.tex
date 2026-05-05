@@ -16,8 +16,33 @@
 \newcommand{\zop}[1]{\catop{#1}{Z}}
 
 \newcommand{\setB}{\bop{\mathsf{set}}\,}
-\newcommand{\cupB}{\mathbin{\bop{\cup}}}
-\newcommand{\capB}{\mathbin{\bop{\cap}}}
+\newcommand{\intB}{\bop{\mathsf{int}}}
+\newcommand{\boolB}{\bop{\mathsf{bool}}}
+\newcommand{\prodB}{\mathbin{\,\bop{\times}}}
+\newcommand{\powB}{\mathop{\bop{\mathcal{P}}}}
+\newcommand{\mapletB}{\mathbin{\,\bop{\mapsto}}}
+\newcommand{\addB}{\mathbin{\,\bop{+}}}
+\newcommand{\subB}{\mathbin{\,\bop{-}}}
+\newcommand{\mulB}{\mathbin{\,\bop{*}}}
+\newcommand{\inB}{\mathrel{\,\bop{\in}}}
+\newcommand{\leB}{\mathrel{\,\bop{\le}}}
+\newcommand{\eqB}{\mathrel{\,\bop{=}}}
+\newcommand{\neqB}{\mathrel{\,\bop{\neq}}}
+\newcommand{\andB}{\mathbin{\,\bop{\land}}}
+\newcommand{\orB}{\mathbin{\,\bop{\lor}}}
+\newcommand{\notB}{\mathop{\bop{\neg}}}
+\newcommand{\impB}{\mathrel{\,\bop{\Rightarrow}}}
+\newcommand{\iffB}{\mathrel{\,\bop{\Leftrightarrow}}}
+\newcommand{\pfunB}{\mathbin{\,\bop{⇸}}}
+\newcommand{\cupB}{\mathbin{\,\bop{\cup}}}
+\newcommand{\capB}{\mathbin{\,\bop{\cap}}}
+\newcommand{\appB}{\mathop{\bop{\mathtt{@}}}}
+\newcommand{\lambdaB}{\mathop{\bop{\lambda}}}
+\newcommand{\forallB}{\mathop{\bop{\forall}}}
+\newcommand{\existsB}{\mathop{\bop{\exists}}}
+\newcommand{\minB}{\mathop{\bop{{\min}}}}
+\newcommand{\maxB}{\mathop{\bop{{\max}}}}
+\newcommand{\cardB}[1]{\catop{\lvert #1 \rvert}{B}}
 % retraction  η_α : ⟦α^S⟧ᶻ → ⟦α⟧ᶻ
 \newcommand{\retr}[1]{\eta_{#1}}
 % canonical isomorphism  ζ_α : ⟦α⟧ᶻ → ⟦α^S⟧ᶻ
@@ -26,6 +51,12 @@
 \newcommand{\toSMT}[1]{{#1}^{\scalebox{0.45}{\textsf{S}}}}
 \newcommand{\stype}[3]{\ensuremath{#1 \sop{\vdash} #2 : #3}}
 \newcommand{\btype}[3]{\ensuremath{#1 \bop{\vdash} #2 : #3}}
+\newcommand{\blue}[1]{\textcolor{blue}{#1}}
+\newcommand{\darkblue}[1]{\textcolor{dark-blue}{#1}}
+\newcommand{\orange}[1]{\textcolor{orange}{#1}}
+\newcommand{\pink}[1]{\textcolor{pink}{#1}}
+\newcommand{\green}[1]{\textcolor{green}{#1}}
+
 \definecolor{vargray}{gray}{0.45}
 \definecolor{defbar}{rgb}{1,0.85,0.4}
 \definecolor{notebar}{rgb}{0.6,0.6,0.6}
@@ -59,7 +90,14 @@
 \newcommand{\optZ}{\zop{\mathsf{option}}}
 
 \newcommand{\eqZ}{\mathrel{\zop{=}}}
+\newcommand{\inZ}{\mathrel{\zop{\in}}}
 \newcommand{\andZ}{\mathbin{\zop{\land}}}
+\newcommand{\cupZ}{\mathbin{\zop{\cup}}}
+\newcommand{\capZ}{\mathbin{\zop{\cap}}}
+\newcommand{\timesZ}{\mathbin{\zop{\times}}}
+\newcommand{\powZ}{\mathop{\zop{\mathcal{P}}}}
+\newcommand{\Zint}{\zop{\mathbb{Z}}}
+\newcommand{\Zbool}{\zop{\mathbb{B}}}
 \newcommand{\appZ}{\mathop{\zop{@}}\mkern-4mu}
 \newcommand{\lamZ}{\zop{\lambda}}
 \newcommand{\lambdaZ}[4]{%
@@ -78,10 +116,13 @@
 }
 \newcommand{\topZ}{\zop{\top}}
 \newcommand{\botZ}{\zop{\bot}}
+\newcommand{\pairZ}[2]{\ensuremath{\langle #1, #2\rangle^{\scalebox{0.45}{\textsf{Z}}}}}
+\newcommand{\bigwedgeZ}{\mathop{\zop{\bigwedge}}}
 
-\newcommand{\aterm}[2]{\ensuremath{(\mkern-3.5mu\mid #1 \mid\mkern-3.5mu)_{#2}}}
-\newcommand{\interpS}[1]{\sop{\llbracket #1 \rrbracket}}
-\newcommand{\interpZ}[1]{\zop{\llbracket #1 \rrbracket}}
+\newcommand{\aterm}[2]{\ensuremath{\left\llparenthesis #1 \right\rrparenthesis{#2}}}
+\newcommand{\interpS}[1]{\sop{\lBrack #1 \rBrack}}
+\newcommand{\interpB}[1]{\bop{\lBrack #1 \rBrack}}
+\newcommand{\interpZ}[1]{\zop{\lBrack #1 \rBrack}}
 \newcommand{\pf}[2]{\mathfrak{pf}^{#1}_{#2}}
 \NewDocumentCommand{\denval}{m o o}{%
 \def\snd{\IfNoValueTF{#2}{\tau_{#1}}{#2}}%
@@ -100,5 +141,19 @@
 \newcommand{\lgf}[1]{\ensuremath{{#1}^{\bot}}}
 \newcommand{\mgf}[1]{\ensuremath{{#1}^{\top}}}
 
-\newcommand{\codexinlremark}[1]{\textcolor{blue!80!black}{[#1]}}
-\newcommand{\inlremark}[1]{\textcolor{red!80!black}{[#1]}}
+\newcommand{\leaninl}{\lstinline[language=lean]}
+\ExplSyntaxOn
+\NewDocumentCommand{\leancodeptr}{m m}{%
+  \tl_set:Nx \l_tmpa_tl { \tl_to_str:e {#2} }%
+  \href{\l_tmpa_tl}{\texttt{\tl_to_str:n {#1}}}%
+}
+\ExplSyntaxOff
+
+\NewDocumentCommand{\inlremark}{o m}{%
+  \IfNoValueTF{#1}{%
+    \textcolor{red!80!black}{[#2]}%
+  }{%
+    \highLight[red!12]{#1}%
+    \textcolor{red!80!black}{ [#2]}%
+  }%
+}

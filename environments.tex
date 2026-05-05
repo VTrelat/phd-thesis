@@ -1,212 +1,260 @@
 \tcbuselibrary{theorems, skins, breakable}
 
 % ---------------------------------------------------------------------------
-% Shared counter (theorems and lemmas share the same counter; definitions,
-% examples, notes and remarks each have their own, all subordinate to section)
+% Shared display counter, reset by section.
 % ---------------------------------------------------------------------------
-% Single unified counter for all numbered environments, reset by section.
-% Theorems, lemmas, corollaries, definitions, examples and remarks all
-% draw from this one sequence, so numbering is global within each section.
 \newcounter{thmcounter}[section]
 \renewcommand{\thethmcounter}{\thesection.\arabic{thmcounter}}
 
-% ---------------------------------------------------------------------------
-% Internal helper: \envtitlesimple{AccentColor}{Label}{Counter}
-%   Typesets the title for note/remark: no Lean name, no horizontal rule.
-%   The label is rendered in the accent color for visual identity.
-% ---------------------------------------------------------------------------
-\newcommand{\envtitlesimple}[3]{%
-  % #1 = accent color, #2 = label word, #3 = counter macro
-  \noindent{\color{#1}\textbf{#2~#3.}}\quad
+% Phantom counters: each env type gets its own counter whose \the* macro
+% delegates to \thethmcounter. \refstepcounter on the phantom sets
+% \@currentlabel so that \label inside the env body resolves to the right
+% type name in cleveref, without affecting the displayed number.
+\newcounter{thmtype}[section]  \renewcommand{\thethmtype}{\thethmcounter}
+\newcounter{lemtype}[section]  \renewcommand{\thelemtype}{\thethmcounter}
+\newcounter{cortype}[section]  \renewcommand{\thecortype}{\thethmcounter}
+\newcounter{deftype}[section]  \renewcommand{\thedeftype}{\thethmcounter}
+\newcounter{extype}[section]   \renewcommand{\theextype}{\thethmcounter}
+\newcounter{remtype}[section]  \renewcommand{\theremtype}{\thethmcounter}
+
+\crefname{thmtype}{Theorem}{Theorems}
+\crefname{lemtype}{Lemma}{Lemmas}
+\crefname{cortype}{Corollary}{Corollaries}
+\crefname{deftype}{Definition}{Definitions}
+\crefname{extype}{Example}{Examples}
+\crefname{remtype}{Remark}{Remarks}
+\Crefname{thmtype}{Theorem}{Theorems}
+\Crefname{lemtype}{Lemma}{Lemmas}
+\Crefname{cortype}{Corollary}{Corollaries}
+\Crefname{deftype}{Definition}{Definitions}
+\Crefname{extype}{Example}{Examples}
+\Crefname{remtype}{Remark}{Remarks}
+
+% Helper: top-left accent bar drawn inside an overlay (TikZ context only).
+\newcommand{\tcbenvtopbar}[1]{%
+  \draw[line width=2pt, color=#1, line cap=butt]
+    (frame.north west) -- ([xshift=6mm]frame.north west);
+}
+
+\newcommand{\tcbenvleanptr}[2]{%
+  \if\relax\detokenize{#1}\relax\else
+    \node[anchor=south east, inner sep=3pt]
+      at (frame.north east)
+      {%
+        \footnotesize
+        \if\relax\detokenize{#2}\relax
+          \ttfamily\color{beige!25!cover-cream}#1%
+        \else
+          \begingroup
+          \hypersetup{urlcolor=beige!25!cover-cream}%
+          \leancodeptr{#1}{#2}%
+          \endgroup
+        \fi
+      };%
+  \fi
 }
 
 % ---------------------------------------------------------------------------
-% Base tcolorbox style shared by all environments
+% Base style: beige background, no frame, matches leanlisting aesthetic.
 % ---------------------------------------------------------------------------
 \tcbset{
   envbase/.style={
     enhanced,
     breakable,
-    rounded corners,
-    boxrule=0pt,          % no outer border
+    arc=5pt,
+    sharp corners=west,
+    boxrule=0pt,
     frame hidden,
-    colback=white,
-    left=6pt, right=6pt, top=2pt, bottom=2pt,
+    colback=beige!30,
+    left=8pt, right=8pt, top=4pt, bottom=4pt,
     before upper={\setlength{\parskip}{4pt}},
-    fontupper=\normalsize,
   },
-  % Extra style for environments with a coloured title banner
-  envtitled/.style={
-    titlerule=0pt,        % no separator line between title and body
-    toptitle=1pt,
-    bottomtitle=1pt,
-  }
+  % envaccent={color}: tinted bg, left bar, floating title tab (solid color, white text).
+  % Top bar and Lean name are handled per-env in overlay unbroken and first.
+  envaccent/.style n args={1}{
+    colback=#1!5,
+    top=10pt,
+    borderline west={2pt}{0pt}{#1},
+    fonttitle=\small\sffamily\bfseries\color{white},
+    attach boxed title to top left={yshift={-\dimexpr\tcboxedtitleheight/2\relax}, xshift=6mm},
+    boxed title style={
+      enhanced,
+      colback=#1,
+      colframe=#1,
+      arc=2pt,
+      boxrule=0pt,
+      left=4pt, right=4pt, top=1pt, bottom=1pt,
+    },
+  },
 }
 
 % ---------------------------------------------------------------------------
-% THEOREM  (accent: blue)
+% THEOREM  (pink)
 % ---------------------------------------------------------------------------
-\NewTColorBox{theorem}{ O{} O{} }{%
-  envbase,
-  envtitled,
-  colback=pink!2,
-  colbacktitle=pink!70,
-  coltitle=pink!2,
+\NewTColorBox{theorembox}{ m m m }{%
+  envbase, envaccent={pink},
+  before upper={\refstepcounter{thmtype}\setlength{\parskip}{4pt}},
   title={%
     \stepcounter{thmcounter}%
-    \textbf{Theorem~\thethmcounter}%
+    Theorem~\thethmcounter%
     \if\relax\detokenize{#1}\relax\else~\textup{(#1)}\fi
-    \hfill
-    \if\relax\detokenize{#2}\relax\else{\small\texttt{#2}}\fi
   },
-  borderline west={2pt}{0pt}{pink!70},
+  overlay unbroken and first={%
+    \tcbenvtopbar{pink}%
+    \tcbenvleanptr{#2}{#3}%
+  },
 }
 
-\NewTColorBox{corollary}{ O{} O{} }{%
-  envbase,
-  envtitled,
-  colback=pink!2,
-  colbacktitle=pink!70,
-  coltitle=pink!2,
+\NewDocumentEnvironment{theorem}{O{} O{} O{}}{%
+  \edef\thesisleanurl{\detokenize{#3}}%
+  \theorembox{#1}{#2}{\thesisleanurl}%
+}{\endtheorembox}
+
+% ---------------------------------------------------------------------------
+% COROLLARY  (pink)
+% ---------------------------------------------------------------------------
+\NewTColorBox{corollarybox}{ m m m }{%
+  envbase, envaccent={pink},
+  before upper={\refstepcounter{cortype}\setlength{\parskip}{4pt}},
   title={%
     \stepcounter{thmcounter}%
-    \textbf{Corollary~\thethmcounter}%
+    Corollary~\thethmcounter%
     \if\relax\detokenize{#1}\relax\else~\textup{(#1)}\fi
-    \hfill
-    \if\relax\detokenize{#2}\relax\else{\small\texttt{#2}}\fi
   },
-  borderline west={2pt}{0pt}{pink!70},
+  overlay unbroken and first={%
+    \tcbenvtopbar{pink}%
+    \tcbenvleanptr{#2}{#3}%
+  },
 }
 
+\NewDocumentEnvironment{corollary}{O{} O{} O{}}{%
+  \edef\thesisleanurl{\detokenize{#3}}%
+  \corollarybox{#1}{#2}{\thesisleanurl}%
+}{\endcorollarybox}
+
 % ---------------------------------------------------------------------------
-% LEMMA  (accent: green)
+% LEMMA  (pink)
 % ---------------------------------------------------------------------------
-\NewTColorBox{lemma}{ O{} O{} }{%
-  envbase,
-  envtitled,
-  colback=pink!2,
-  colbacktitle=pink!70,
-  coltitle=pink!2,
+\NewTColorBox{lemmabox}{ m m m }{%
+  envbase, envaccent={pink},
+  before upper={\refstepcounter{lemtype}\setlength{\parskip}{4pt}},
   title={%
     \stepcounter{thmcounter}%
-    \textbf{Lemma~\thethmcounter}%
+    Lemma~\thethmcounter%
     \if\relax\detokenize{#1}\relax\else~\textup{(#1)}\fi
-    \hfill
-    \if\relax\detokenize{#2}\relax\else{\small\texttt{#2}}\fi
   },
-  borderline west={2pt}{0pt}{pink!70},
+  overlay unbroken and first={%
+    \tcbenvtopbar{pink}%
+    \tcbenvleanptr{#2}{#3}%
+  },
 }
 
+\NewDocumentEnvironment{lemma}{O{} O{} O{}}{%
+  \edef\thesisleanurl{\detokenize{#3}}%
+  \lemmabox{#1}{#2}{\thesisleanurl}%
+}{\endlemmabox}
+
 % ---------------------------------------------------------------------------
-% DEFINITION  (accent: orange)
+% DEFINITION  (orange)
 % ---------------------------------------------------------------------------
-\NewTColorBox{definition}{ O{} O{} }{%
-  envbase,
-  envtitled,
-  colback=orange!2,
-  colbacktitle=orange!70,
-  coltitle=orange!2,
+\NewTColorBox{definitionbox}{ m m m }{%
+  envbase, envaccent={orange},
+  before upper={\refstepcounter{deftype}\setlength{\parskip}{4pt}},
   title={%
     \stepcounter{thmcounter}%
-    \textbf{Definition~\thethmcounter}%
+    Definition~\thethmcounter%
     \if\relax\detokenize{#1}\relax\else~\textup{(#1)}\fi
-    \hfill
-    \if\relax\detokenize{#2}\relax\else{\small\texttt{#2}}\fi
   },
-  borderline west={2pt}{0pt}{orange!70},
+  overlay unbroken and first={%
+    \tcbenvtopbar{orange}%
+    \tcbenvleanptr{#2}{#3}%
+  },
 }
 
+\NewDocumentEnvironment{definition}{O{} O{} O{}}{%
+  \edef\thesisleanurl{\detokenize{#3}}%
+  \definitionbox{#1}{#2}{\thesisleanurl}%
+}{\enddefinitionbox}
+
 % ---------------------------------------------------------------------------
-% EXAMPLE  (accent: pink)
+% EXAMPLE  (green)
 % ---------------------------------------------------------------------------
-\NewTColorBox{example}{ O{} O{} }{%
+\NewTColorBox{examplebox}{ m m m }{%
   envbase,
-  envtitled,
-  colback=green!2,
-  colbacktitle=green!60,
-  coltitle=green!2,
-  title={%
-    \stepcounter{thmcounter}%
-    \textbf{Example~\thethmcounter}%
-    \if\relax\detokenize{#1}\relax\else~\textup{(#1)}\fi
-    \hfill
-    \if\relax\detokenize{#2}\relax\else{\small\texttt{#2}}\fi
-  },
-  borderline west={2pt}{0pt}{green!60},
+  colback=green!5,
+  borderline west={2pt}{0pt}{green},
+  before upper={\stepcounter{thmcounter}\refstepcounter{extype}\setlength{\parskip}{4pt}\textcolor{green}{\textbf{Example~\thethmcounter\if\relax\detokenize{#1}\relax\else~\textup{(#1)}\fi.}}\enspace},
+  overlay unbroken and first={\tcbenvleanptr{#2}{#3}},
 }
 
+\NewDocumentEnvironment{example}{O{} O{} O{}}{%
+  \edef\thesisleanurl{\detokenize{#3}}%
+  \examplebox{#1}{#2}{\thesisleanurl}%
+}{\endexamplebox}
+
 % ---------------------------------------------------------------------------
-% NOTE  (accent: dark-blue) — no arguments
+% NOTE — inline label, no counter
 % ---------------------------------------------------------------------------
 \NewTColorBox{note}{ }{%
   envbase,
   colback=beige!20,
+  borderline west={2pt}{0pt}{beige!80!black},
   before upper={\setlength{\parskip}{4pt}\textcolor{beige!60!black}{\textbf{Note.}}\enspace},
-  borderline west={2pt}{0pt}{beige!98!black},
 }
 
 % ---------------------------------------------------------------------------
-% REMARK  (accent: dark-blue) — no arguments
+% REMARK — inline label, shared counter
 % ---------------------------------------------------------------------------
 \NewTColorBox{remark}{ }{%
   envbase,
   colback=blue!5,
-  before upper={\stepcounter{thmcounter}\setlength{\parskip}{4pt}\textcolor{blue}{\textbf{Remark~\thethmcounter.}}\enspace},
   borderline west={2pt}{0pt}{blue!70},
+  fontupper={\color{dark-blue}},
+  before upper={\stepcounter{thmcounter}\refstepcounter{remtype}\setlength{\parskip}{4pt}\textcolor{blue!70}{\textbf{Remark~\thethmcounter.}}\enspace},
 }
 
 % ---------------------------------------------------------------------------
-% RULE  (accent: dark-blue) — no arguments, to title
-% ---------------------------------------------------------------------------
-\NewTColorBox{grayenv}{ }{%
-  envbase,
-  envtitled,
-  colback=gray!5,
-  title={},
-}
-
-% ---------------------------------------------------------------------------
-% FACT — no title, no accent colour, just a vertical rule on the left
+% FACT — inline label, no counter
 % ---------------------------------------------------------------------------
 \NewTColorBox{fact}{ }{%
   envbase,
-  notitle,
   colback=blue!7,
-  before upper={\setlength{\parskip}{4pt}\textcolor{blue}{\textbf{Fact.}}\enspace},
   borderline west={2pt}{0pt}{blue!70},
+  before upper={\setlength{\parskip}{4pt}\textcolor{blue!70}{\textbf{Fact.}}\enspace},
 }
 
 % ---------------------------------------------------------------------------
-% PROOF — "Proof." inline, QED square flush-right on the last line
+% GRAYENV — no label, gray accent
+% ---------------------------------------------------------------------------
+\NewTColorBox{grayenv}{ }{%
+  envbase,
+  colback=gray!5,
+  borderline west={2pt}{0pt}{gray!50},
+}
+
+% ---------------------------------------------------------------------------
+% PROOF — italic inline label, QED flush-right
 % ---------------------------------------------------------------------------
 \RenewTColorBox{proof}{ }{%
   envbase,
-  notitle,
   colback=blue!2,
+  borderline west={2pt}{0pt}{blue!70},
   before upper={\setlength{\parskip}{4pt}\textit{Proof.}\enspace},
   after upper={\unskip\nobreak\hspace*{1em}\hfill\ensuremath{\square}},
-  borderline west={2pt}{0pt}{blue!70},
 }
 
 % ---------------------------------------------------------------------------
-% SUBPROOF — "Proof." inline, QED square flush-right on the last line.
+% SUBPROOF — slightly darker beige to nest visually inside proof
 % ---------------------------------------------------------------------------
 \NewTColorBox{subproof}{ }{%
   envbase,
-  notitle,
   colback=blue!7,
-  before upper={\setlength{\parskip}{4pt}\textcolor{blue}{\textit{Proof.}}\enspace},
-  after upper={\unskip\nobreak\hspace*{1em}\hfill\ensuremath{\square}},
   borderline west={2pt}{0pt}{blue!70},
+  before upper={\setlength{\parskip}{4pt}\textcolor{blue!70}{\textit{Proof.}}\enspace},
+  after upper={\unskip\nobreak\hspace*{1em}\hfill\ensuremath{\square}},
 }
 
-% Wrap proof/subproof so that \footnote inside them goes to the page bottom.
-% \makesavenoteenv injects \if@endpe bookkeeping that adds spurious vertical
-% space, so we save the tcolorbox-defined commands directly and rewrap them
-% with plain \renewenvironment — \savenotes intercepts footnotes before the
-% box is built; \spewnotes flushes them to \footins after it is placed.
-% NB: \makeatletter/\makeatother are required because the internal names
-%     contain @, which has catcode 12 outside of package/class code.
+% Footnotes inside proof/subproof go to the page bottom, not the box bottom.
 \makeatletter
 \let\tcb@proof\proof         \let\endtcb@proof\endproof
 \let\tcb@subproof\subproof   \let\endtcb@subproof\endsubproof

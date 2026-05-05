@@ -1,0 +1,167 @@
+\section{Parametric Higher-Order Abstract Syntax}
+\label{sec:phoas}
+
+A recurring technical issue when formalizing languages is the treatment of variables and binders.
+When a language contains quantifiers, lambda abstractions, and contexts, a direct
+first-order representation of these constructs is useful at the parser boundary, because it mirrors
+the concrete syntax of the input artifacts.
+However, the same representation is inconvenient for proofs: substitution, freshness, alpha-renaming,
+and capture-avoidance quickly become a large part of the formal development.
+For this reason, \emph{parametric higher-order abstract syntax} (PHOAS) will be an important
+representation design in the following.
+
+\subsection{Deep and shallow embeddings}
+
+When formalizing a language in a theorem prover, one must first decide which parts of the object language are kept as syntax and which parts are identified directly with objects of the meta-language.
+This is the distinction between \emph{deep} and \emph{shallow} embedding.
+
+A representation is deep for a given construct when occurrences of that construct are retained as object-language syntax.
+For example, in a first-order abstract syntax (FOAS) representation with named variables, application, and lambda abstraction may be represented by constructors of the following respective shape:
+\[
+\begin{array}{rcl}
+  \mathsf{var} &:& \mathsf{Name} \to \mathsf{Term},\\
+  \mathsf{app} &:& \mathsf{Term} \to \mathsf{Term} \to \mathsf{Term},\\
+  \mathsf{lam} &:& \mathsf{Name} \to \mathsf{Term} \to \mathsf{Term}.
+\end{array}
+\]
+The body of a lambda is then an ordinary syntactic term containing explicit occurrences of the chosen name.
+One can avoid names by using de Bruijn indices, but the binding structure is still represented explicitly inside the syntax.
+Because variables, binders, and the other term constructors are represented as data, syntax-directed functions can recurse over them to type check, print, translate, or transform terms.
+The same retained syntax also supports syntactic theorems, such as preservation of typing by a transformation or exact characterization of the auxiliary terms introduced by an encoding.
+The cost is administrative: substitution, alpha-equivalence, freshness, and capture-avoidance have to be defined and proved correct.
+
+On the other hand, a representation is shallow for a given construct when that construct is represented directly by an object of the meta-language.
+For the variable layer, this means that variable occurrences are not necessarily names or de Bruijn indices stored in the syntax tree.
+They may instead be values of a host-level type supplied to the representation.
+This shallow treatment of variables does not imply that the whole object language has become shallow.
+A mixed representation can keep the term formers as deep, inspectable syntax while representing variables, or binder bodies, through host-level objects.
+Such a representation still supports syntax-directed algorithms over the constructors that remain in the syntax tree.
+What cannot be inspected syntactically is precisely the component that has been made shallow.
+
+\subsection{Higher Order Abstract Syntax}
+
+Higher-order abstract syntax (HOAS) changes the representation of binders by replacing the first-order body syntax with a meta-level function,
+therefore making the representation of binders shallow.
+Instead of storing a name and a body term as in FOAS, the binder constructor takes a function:
+\[
+  \mathsf{lam} : (\mathsf{Term} \to \mathsf{Term}) \to \mathsf{Term}.
+\]
+
+The difference with FOAS is therefore not only notational.
+In FOAS, the body is already a piece of syntax and the occurrence of the bound variable is represented by a name or index inside that syntax.
+In HOAS, the body is produced by applying a host-language function to a representation of the bound variable.
+Substitution and alpha-renaming are then delegated to the host logic's own function application and binding machinery.
+
+\begin{example}[FOAS and HOAS]
+The object-language identity abstraction \(\lambda x ↦ x\) can be contrasted as follows:
+\[
+\begin{array}{@{}c@{\qquad}c@{}}
+  \text{FOAS} & \text{HOAS} \\[0.3em]
+  \mathsf{lam}\ \mathtt{x}\ (\mathsf{var}\ \mathtt{x})
+    & \mathsf{lam}\ (\lambda x ↦ x)
+\end{array}
+\]
+On the left, the body is already a syntax tree and the bound occurrence is represented by the name \(\texttt{x} : \mathsf{Name}\).
+On the right, the displayed \(\lambda\) is a meta-language function: the body is obtained by applying that function to the syntactic representative \(x : \mathsf{Term}\) of the bound variable.
+\end{example}
+
+This direct representation is often not accepted as an ordinary inductive datatype.
+Many proof assistants and assisted theorem-proving systems that provide inductive datatypes enforce a strict-positivity condition on inductive definitions.
+Every recursive occurrence of the inductive type being defined must occur only in positive positions, meaning positions where constructors build new data rather than consume data of the type being defined.
+This restriction is what makes the generated induction and recursion principles sound: without it, an inductive declaration could encode circular or contravariant uses of itself that no longer describe well-founded syntax.
+
+There is also an adequacy issue.
+A source-language binder corresponds to a syntactic body that may use the bound variable.
+By contrast, the HOAS constructor above accepts any meta-language function of type \(\mathsf{Term} \to \mathsf{Term}\).
+Such a function might inspect the syntactic argument, branch on its shape, or otherwise build a result in a way that is not the representation of any source-language binder.
+These non-syntactic inhabitants are often called ``exotic'' terms.
+\begin{example}[An exotic HOAS term]
+One could define the following HOAS term:
+\[
+  \mathsf{lam}\,
+    \left(\lambda x ↦
+      \begin{cases}
+        f\ (\mathsf{lam}\ f) & \text{if } x = \mathsf{lam}\ f\\
+        x & \text{otherwise}
+      \end{cases}
+    \right).
+\]
+which does not correspond to any term in the object language.
+\end{example}
+Thus ordinary HOAS requires either a meta-language designed for HOAS, as in logical-framework presentations of HOAS~\cite{pfenning1988hoas}, or extra restrictions and adequacy arguments before it can be used as a faithful inductive representation of syntax.
+
+\subsection{Parametric Higher-Order Abstract Syntax}
+
+PHOAS avoids the strict-positivity problem by separating variables from terms.
+Instead of allowing a binder body to be a function from terms to terms, the syntax is parameterized by a type \(\mathcal V\) of variables:
+\[
+  \mathsf{Term} : \mathsf{Type} \to \mathsf{Type}.
+\]
+Variables are introduced by a constructor
+\[
+  \mathsf{var} : \mathcal V \to \mathsf{Term}\ \mathcal V.
+\]
+A binder body is then a function from variables to terms, not from terms to terms:
+\[
+  \mathsf{binder} :
+    (\mathcal V \to \mathsf{Term}\ \mathcal V)
+    \to \mathsf{Term}\ \mathcal V.
+\]
+The recursive occurrence \(\mathsf{Term}\ \mathcal V\) appears only as the result of the body function.
+The negative position contains \(\mathcal V\), the variable parameter, not the recursive type itself.
+This satisfies the strict-positivity requirements of systems that enforce them.
+
+The parameter \(\mathcal V\) also becomes an important part of the construction for what follows.
+It is not an auxiliary tag or a representation detail; it is the actual type used for the variables occurring in the term.
+The same syntax can therefore be instantiated with different choices of variables depending on the phase of the development.
+One may use names when relating the syntax to parsed input, abstract variables when proving structural properties, or semantic values when defining denotation.
+Definitions over PHOAS terms are consequently stated uniformly in \(\mathcal V\).
+This parametricity is what rules out the exotic functions that ordinary HOAS admits.
+
+\subsection{Using PHOAS for denotational semantics}
+
+In this work, PHOAS is not just prettier syntax for binders; parametricity is also used as a trick to define semantics. 
+If we consider a semantic domain \(\mathcal D\) for the object language, then \(\mathsf{Term}\ \mathcal D\) is the type of syntax whose variables already are semantic values, not names.
+It is a device for defining denotational semantics with much less environment bookkeeping.
+In a first-order syntax, the denotation of an open term usually has to carry an environment
+\[
+  ρ : \mathsf{Name} \to \mathcal D.
+\]
+mapping variable names to semantic values.
+The variable case performs a lookup in \(\rho\).
+The binder cases extend \(\rho\), and the proof must repeatedly show that the extension is fresh, that substitution agrees with lookup, and that renamed variables do not change meaning.
+
+In the PHOAS semantics, the variable type is chosen to be the semantic domain \(\mathcal{D}\) itself.
+The denotation has the schematic shape of a \emph{partial} function from syntax to semantics:
+\[
+  \lBrack \cdot \rBrack :
+    \mathsf{Term}\ \mathcal D \rightharpoonup \mathcal D.
+\]
+The variable case is immediate; there is no lookup and no external valuation:
+\[
+  \lBrack \mathsf{var}\ d \rBrack = d.
+\]
+
+The binder cases exploit the same idea.
+For an arbitrary binder \(\int\) whose body has type
+\[
+  P : \mathcal D \to \mathsf{Term}\ \mathcal D,
+\]
+the semantics of the term \(\int P \) ranges over the semantic values allowed by the binder.
+For each value \(d : \mathcal D\), \(\left\lBrack\int P\right\rBrack\) recursively denotes \(P(d) : \mathsf{Term}\ \mathcal{D}\), and the denotation is defined in terms of the meta-level function
+\(
+  λ d \mapsto \left\lBrack P(d) \right\rBrack.
+\)
+
+For an \(n\)-ary binder, the same idea is used with a tuple of semantic values rather than one value.
+The semantic content of bound variables is passed directly to the body function.
+
+Note that this does not make the semantics trivial.
+The denotation may still be partial, and the semantic clauses for each object-language constructor still have to be defined and proved correct.
+What PHOAS removes is the administrative layer around variables: lookup, freshness, renaming, capture-avoidance, and environment extension.
+The semantic clauses can focus on the mathematical meaning of the object-language constructors.
+
+This thesis therefore uses two complementary representations.
+First-order syntax is used where the development must stay close to concrete input artifacts.
+Higher-order syntax is used where reasoning would otherwise be obscured by administrative overhead about names.
+Later chapters make this split explicit for the source language formalization, and the correctness arguments rely on the cleaner semantic interface provided by the PHOAS layer.

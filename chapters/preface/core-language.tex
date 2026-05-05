@@ -1,0 +1,189 @@
+\section{A Core B Language}
+\label{sec:b-core-language}
+
+The core language used in this thesis is a typed expression and predicate language.
+Following the usual B presentation, predicates are expressions of boolean type.
+This keeps the syntax uniform: logical connectives, membership tests, equalities, and quantified formulas are all terms.
+
+\subsection{Types}
+
+The formalized type language is deliberately small:
+\[
+  \tau, \sigma ::= \intB
+  \mid \boolB
+  \mid \setB \tau
+  \mid \tau \prodB \sigma.
+\]
+The types \(\intB\) and \(\boolB\) classify integer and boolean values.
+The type \(\setB \tau\) classifies sets whose elements have type \(\tau\).
+The product type \(\tau \prodB \sigma\) classifies ordered pairs.
+There is no primitive function type in this B core.
+As in B, a partial function from a set \(S : \setB \tau\) to a set \(T : \setB \sigma\) is a set of pairs satisfying a functionality condition.
+Consequently, the expression \(S \pfunB T\) has type
+\[
+  \setB(\setB(\tau \prodB \sigma)).
+\]
+It denotes the set of all partial functions whose graph is included in \(S \times T\).
+
+This design is important for the SMT encoding.
+An SMT backend tends to offer native function types, but B functions are mathematical objects: they are sets of pairs, have domains and ranges, can be members of other sets, and can be compared as values.
+Later chapters explain why translating such objects directly to SMT functions is convenient but requires care.
+
+\subsection{Terms and predicates}
+
+The grammar below summarizes the core terms.
+The metavariables \(x,y,z\) range over variables, \(n\) over integers, \(b\) over booleans, and \(v_1,\ldots,v_k\) over a nonempty list of bound variables.
+\[
+\begin{array}{rcl}
+t,u &::=& x
+  \mid n
+  \mid b
+  \mid t \mapletB u
+  \mid t + u
+  \mid t - u
+  \mid t \cdot u
+  \mid t \leB u
+  \mid t \andB u
+  \mid \notB t
+  \mid t \eqB u
+  \\[0.2em]
+&& \mid \mathbb{Z}
+  \mid \mathbb{B}
+  \mid t \inB u
+  \mid \{v_1,\ldots,v_k \inB D \mid P\}
+  \mid \powB t
+  \mid t \prodB u
+  \mid t \cupB u
+  \mid t \capB u
+  \mid |t|
+  \\[0.2em]
+&& \mid t(u)
+  \mid \lambda v_1,\ldots,v_k \inB D.\,t
+  \mid t \pfunB u
+  \mid \min(t)
+  \mid \max(t)
+  \mid \forall v_1,\ldots,v_k \inB D.\,P.
+\end{array}
+\]
+The constants \(\mathbb{Z}\) and \(\mathbb{B}\) denote the sets of integers and booleans.
+The expression \(t \mapletB u\) denotes an ordered pair.
+The Cartesian product \(S \prodB T\) is a set of pairs; it should not be confused with the type product \(\tau \prodB \sigma\), although their roles are aligned.
+
+Several familiar B connectives are treated as derived forms in BEer.
+For example, disjunction, implication, equivalence, inequality, existential quantification, and binary relations can be defined from the primitive constructs:
+\[
+\begin{array}{rcl}
+P \lor Q &\triangleq& \notB(\notB P \andB \notB Q),\\
+P \Rightarrow Q &\triangleq& \notB P \lor Q,\\
+P \Leftrightarrow Q &\triangleq& (P \Rightarrow Q) \andB (Q \Rightarrow P),\\
+t \neq u &\triangleq& \notB(t \eqB u),\\
+\exists \vec v \inB D.\,P &\triangleq& \notB(\forall \vec v \inB D.\,\notB P),\\
+S \leftrightarrow T &\triangleq& (S \prodB T) \pfunB \mathbb{B}.
+\end{array}
+\]
+Keeping these forms derived reduces the number of primitive cases required in the encoding proof.
+
+\subsection{Typing discipline}
+
+Typing judgments have the form \(\btype{\Gamma}{t}{\tau}\), where \(\Gamma\) maps variables to B types.
+The rules below give representative cases.
+Variables are typed by lookup in \(\Gamma\), and literals have their expected types:
+\begin{mathpar}
+\infer*[right=var]{\Gamma(x)=\tau}{\btype{\Gamma}{x}{\tau}}
+\and
+\infer*[right=int]{ }{\btype{\Gamma}{n}{\intB}}
+\and
+\infer*[right=bool]{ }{\btype{\Gamma}{b}{\boolB}}
+\end{mathpar}
+
+Pairs and arithmetic are typed structurally:
+\begin{mathpar}
+\infer*[right=maplet]
+  {\btype{\Gamma}{t}{\tau} \quad \btype{\Gamma}{u}{\sigma}}
+  {\btype{\Gamma}{t \mapletB u}{\tau \prodB \sigma}}
+\and
+\infer*[right=add]
+  {\btype{\Gamma}{t}{\intB} \quad \btype{\Gamma}{u}{\intB}}
+  {\btype{\Gamma}{t+u}{\intB}}
+\and
+\infer*[right=le]
+  {\btype{\Gamma}{t}{\intB} \quad \btype{\Gamma}{u}{\intB}}
+  {\btype{\Gamma}{t \leB u}{\boolB}}
+\end{mathpar}
+
+The boolean and equality rules are similarly standard:
+\begin{mathpar}
+\infer*[right=and]
+  {\btype{\Gamma}{P}{\boolB} \quad \btype{\Gamma}{Q}{\boolB}}
+  {\btype{\Gamma}{P \andB Q}{\boolB}}
+\and
+\infer*[right=not]
+  {\btype{\Gamma}{P}{\boolB}}
+  {\btype{\Gamma}{\notB P}{\boolB}}
+\and
+\infer*[right=eq]
+  {\btype{\Gamma}{t}{\tau} \quad \btype{\Gamma}{u}{\tau}}
+  {\btype{\Gamma}{t \eqB u}{\boolB}}
+\end{mathpar}
+
+The set rules are the ones most relevant to the later encoding:
+\begin{mathpar}
+\infer*[right=int-set]{ }{\btype{\Gamma}{\mathbb{Z}}{\setB \intB}}
+\and
+\infer*[right=bool-set]{ }{\btype{\Gamma}{\mathbb{B}}{\setB \boolB}}
+\and
+\infer*[right=mem]
+  {\btype{\Gamma}{t}{\tau} \quad \btype{\Gamma}{S}{\setB \tau}}
+  {\btype{\Gamma}{t \inB S}{\boolB}}
+\and
+\infer*[right=pow]
+  {\btype{\Gamma}{S}{\setB \tau}}
+  {\btype{\Gamma}{\powB S}{\setB(\setB \tau)}}
+\and
+\infer*[right=prod]
+  {\btype{\Gamma}{S}{\setB \tau} \quad \btype{\Gamma}{T}{\setB \sigma}}
+  {\btype{\Gamma}{S \prodB T}{\setB(\tau \prodB \sigma)}}
+\and
+\infer*[right=union]
+  {\btype{\Gamma}{S}{\setB \tau} \quad \btype{\Gamma}{T}{\setB \tau}}
+  {\btype{\Gamma}{S \cupB T}{\setB \tau}}
+\and
+\infer*[right=inter]
+  {\btype{\Gamma}{S}{\setB \tau} \quad \btype{\Gamma}{T}{\setB \tau}}
+  {\btype{\Gamma}{S \capB T}{\setB \tau}}
+\end{mathpar}
+
+Function spaces and applications are expressed through sets of pairs:
+\begin{mathpar}
+\infer*[right=pfun]
+  {\btype{\Gamma}{S}{\setB \tau} \quad \btype{\Gamma}{T}{\setB \sigma}}
+  {\btype{\Gamma}{S \pfunB T}{\setB(\setB(\tau \prodB \sigma))}}
+\and
+\infer*[right=app]
+  {\btype{\Gamma}{f}{\setB(\tau \prodB \sigma)} \quad \btype{\Gamma}{t}{\tau}}
+  {\btype{\Gamma}{f(t)}{\sigma}}
+\end{mathpar}
+The application rule assigns a result type whenever \(f\) is typed as a set of pairs.
+Definedness is semantic: application succeeds only when that set of pairs is actually a partial function and when the argument belongs to its domain.
+
+Binders are typed by extending the context with the bound variables.
+In the formalization, a binder binds a nonempty list \(\vec v = v_1,\ldots,v_k\) whose declared types are \(\vec \tau = \tau_1,\ldots,\tau_k\).
+The domain \(D\) is the Cartesian product \(D_1 \prodB \cdots \prodB D_k\), where each \(D_i\) has type \(\setB \tau_i\), and the bound variables are required to be distinct and fresh for the surrounding context.
+Writing \(\Gamma[\vec v : \vec \tau]\) for the extended context and \(\vec \tau^\times\) for \(\tau_1 \prodB \cdots \prodB \tau_k\), the main binder rules are:
+\begin{mathpar}
+\infer*[right=all]
+  {\btype{\Gamma}{D_i}{\setB\tau_i}\; (1 \le i \le k)
+   \quad \btype{\Gamma[\vec v : \vec\tau]}{P}{\boolB}}
+  {\btype{\Gamma}{\forall \vec v \inB D.\,P}{\boolB}}
+\and
+\infer*[right=collect]
+  {\btype{\Gamma}{D_i}{\setB\tau_i}\; (1 \le i \le k)
+   \quad \btype{\Gamma[\vec v : \vec\tau]}{P}{\boolB}}
+  {\btype{\Gamma}{\{\vec v \inB D \mid P\}}{\setB\vec\tau^\times}}
+\and
+\infer*[right=lambda]
+  {\btype{\Gamma}{D_i}{\setB\tau_i}\; (1 \le i \le k)
+   \quad \btype{\Gamma[\vec v : \vec\tau]}{e}{\sigma}}
+  {\btype{\Gamma}{\lambda \vec v \inB D.\,e}{\setB(\vec\tau^\times \prodB \sigma)}}
+\end{mathpar}
+The lambda rule again returns a set of pairs: a B lambda expression denotes a graph, not a meta-level function.

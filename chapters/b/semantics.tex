@@ -1,0 +1,115 @@
+\section{Semantics}
+\label{sec:b-semantics}
+
+The denotational semantics is given for PHOAS terms.
+Concrete terms are interpreted after abstraction to PHOAS, so that binders are
+handled by Lean functions rather than by explicit capture-avoiding
+substitution.
+
+B types are interpreted as sets in the ZFC universe used by BEer:
+\[
+\begin{array}{rcl}
+\interpB{\intB} &=& \Zint,\\
+\interpB{\boolB} &=& \Zbool,\\
+\interpB{\setB\tau} &=& \powZ(\interpB{\tau}),\\
+\interpB{\tau \prodB \sigma} &=& \interpB{\tau} \timesZ \interpB{\sigma}.
+\end{array}
+\]
+In Lean this is the function \(\texttt{BType.toZFSet}\).
+The development proves that each type denotes a nonempty set.
+This fact is used when defining default values and when interpreting open
+terms under environments.
+
+The main PHOAS semantic domain is:
+\[
+  \mathsf{Dom} \;\triangleq\;
+  \sum_{x : \mathsf{ZFSet}} \sum_{\tau : \mathsf{BType}}
+  x \inZ \interpB{\tau}.
+\]
+An element of \(\mathsf{Dom}\) is a ZFC value equipped with its B type and a
+proof that the value belongs to the interpretation of that type.
+The term denotation has type
+\[
+  \interpB{\cdot} :
+  \mathsf{PHOAS.Term}\,\mathsf{Dom}
+  \to \mathsf{Option}\,\mathsf{Dom}.
+\]
+The result is optional because the B expression language contains partial
+constructs.
+For example, \(f(t)\) is defined only if \(f\) denotes a partial function and
+\(t\) lies in its domain.
+Likewise, \(\min(S)\) and \(\max(S)\) require \(S\) to denote a finite
+nonempty set of integers, and \(|S|\) requires \(S\) to denote a finite set.
+
+The semantic clauses follow the mathematical reading of B.
+Some representative cases are:
+\[
+\begin{array}{rcl}
+\interpB{n} &=& n \inZ \Zint,\\
+\interpB{b} &=& b \inZ \Zbool,\\
+\interpB{t \mapletB u} &=& \pairZ{\interpB{t}}{\interpB{u}},\\
+\interpB{S \prodB T} &=& \interpB{S} \timesZ \interpB{T},\\
+\interpB{S \cupB T} &=& \interpB{S} \cupZ \interpB{T},\\
+\interpB{S \capB T} &=& \interpB{S} \capZ \interpB{T},\\
+\interpB{\powB S} &=& \powZ(\interpB{S}).
+\end{array}
+\]
+The Lean code enforces type compatibility dynamically in the untyped recursive
+denotation.
+For instance, equality succeeds only when both subterms denote values of the
+same B type, and union succeeds only when both operands denote sets with the
+same element type.
+When the term is accompanied by a typing derivation, the typing lemmas justify
+that these compatibility checks are satisfied.
+
+Partial functions are interpreted as graphs:
+\[
+  \interpB{A \pfunB B}
+  =
+  \{ f \inZ \powZ(\interpB{A}\timesZ\interpB{B})
+     \mid f \text{ is a partial function from } \interpB{A}
+        \text{ to } \interpB{B} \}.
+\]
+Application then evaluates by graph lookup:
+\[
+  \interpB{f(x)} =
+  y
+  \quad\text{when}\quad
+  \interpB{f} \text{ is a partial function and }
+  \pairZ{\interpB{x}}{y} \inZ \interpB{f}.
+\]
+If either condition fails, the denotation is \(\mathsf{none}\).
+
+The binder cases use the PHOAS representation.
+For a set comprehension, the domain term \(D\) denotes a set of tuples.
+The body predicate is evaluated under an environment obtained by projecting
+each tuple component into a bound variable.
+The denotation is the subset of the domain for which the predicate evaluates
+to true:
+\[
+  \interpB{\{\vec x \inB D \mid P\}}
+  =
+  \{ z \inZ \interpB{D} \mid \interpB{P[z/\vec x]} \eqZ \topZ \}.
+\]
+For a lambda expression, the result is the graph of the function described by
+the body:
+\[
+  \interpB{\lambda \vec x \inB D.\,e}
+  =
+  \{\pairZ{z}{y} \mid z \inZ \interpB{D}
+      \text{ and }
+      \interpB{e[z/\vec x]} \eqZ y\}.
+\]
+Universal quantification is interpreted as the conjunction of the boolean
+values obtained over the domain:
+\[
+  \interpB{\forall \vec x \inB D.\,P}
+  =
+  \bigwedgeZ_{z \inZ \interpB{D}} \interpB{P[z/\vec x]}.
+\]
+In the Lean implementation, this conjunction is represented in the
+two-element ZFC boolean set.
+
+The syntax, typing, and semantics described in this chapter form the
+source-language contract used by the SMT translation and by the correctness
+arguments developed in the following chapters.
