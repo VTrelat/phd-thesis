@@ -2,7 +2,7 @@
 
 \subsection{Definitions}
 
-We define an inductive relation $\sqsubseteq$ and an inductive binary operator $\leadsto$ on $\mathsf{SMTType}$.
+We define an inductive relation $\sqsubseteq$ and an inductive binary operator $\castpath{}{}$ on $\mathsf{SMTType}$.
 
 \begin{definition}[Castable relation][castable]
 The castable relation $\sqsubseteq$ is defined inductively, as follows:
@@ -22,7 +22,7 @@ The castable relation $\sqsubseteq$ is defined inductively, as follows:
 \end{definition}
 
 \begin{definition}[Cast path][castPath]
-The cast path $\leadsto$ is defined inductively, as follows:
+The cast path $\castpath{}{}$ is defined inductively, as follows:
 \begin{mathpar}
 \infer*[right=\texttt{refl}]{\alpha = \mathsf{int} \lor \alpha = \mathsf{bool} \lor \alpha = \mathsf{unit}}{\castpath{\alpha}{\alpha}}
 \and
@@ -40,7 +40,7 @@ The cast path $\leadsto$ is defined inductively, as follows:
 
 \subsection{Basic properties}
 
-We prove some properties of $\sqsubseteq$ and $\leadsto$. Let $\alpha, \beta, \delta$ be arbitrary elements of type $\mathsf{SMTType}$.
+We prove some properties of $\sqsubseteq$ and $\castpath{}{}$. Let $\alpha, \beta, \delta$ be arbitrary elements of type $\mathsf{SMTType}$.
 
 \begin{theorem}[Reflexivity][castable.reflexive]
   $\castable{}{}$ is reflexive, i.e. $\castable{\alpha}{\alpha}$.
@@ -51,7 +51,7 @@ We prove some properties of $\sqsubseteq$ and $\leadsto$. Let $\alpha, \beta, \d
 \end{theorem}
 
 \begin{corollary}[Constructiveness][castable.toCastPath]
-  If $\castable{\alpha}{\beta}$, a witness $\mathbb{c} : \alpha \leadsto \beta$ can be constructed.
+  If $\castable{\alpha}{\beta}$, a witness $\mathbb{c} : castpath{}{}$ can be constructed.
 \end{corollary}
 
 \begin{corollary}[Convertibility][castPath.toCastable]
@@ -63,8 +63,8 @@ We prove some properties of $\sqsubseteq$ and $\leadsto$. Let $\alpha, \beta, \d
 \end{theorem}
 
 \begin{corollary}
-  From $\mathbb{c}_1 : \alpha \leadsto \beta$ and $\mathbb{c}_2 : \beta \leadsto \delta$, a witness $\mathbb{c} : \alpha \leadsto \delta$ can be constructed;
-  from $\mathbb{c}_1 : \alpha \leadsto \beta$ and $\mathbb{c}_2 : \beta \leadsto \alpha$, $\alpha = \beta$.
+  From $\mathbb{c}_1 : \castpath{\alpha}{\beta}$ and $\mathbb{c}_2 : \castpath{\beta}{\delta}$, a witness $\mathbb{c} : \castpath{\alpha}{\delta}$ can be constructed;
+  from $\mathbb{c}_1 : \castpath{\alpha}{\beta}$ and $\mathbb{c}_2 : \castpath{\beta}{\alpha}$, $\alpha = \beta$.
 \end{corollary}
 
 \subsection{Normal forms}
@@ -513,7 +513,7 @@ We then show expected properties of the join and meet operations, such as idempo
 
 \section{Loosening rules}
 
-Let $\Gamma$ be the current local context, $x$ be a term, $\alpha, \beta : \mathsf{SMTType}$ and $\mathbb{c} : \alpha \leadsto \beta$.
+Let $\Gamma$ be the current local context, $x$ be a term, $\alpha, \beta : \mathsf{SMTType}$ and $\mathbb{c} : \castpath{\alpha}{\beta}$.
 Loosening rules are defined structurally by recursing over $\mathbb{c}$. The cases are listed below.
 
 \subsection{Rule \texttt{refl}}\label{rule:refl}
@@ -567,9 +567,9 @@ where $\spec{\lvar{z}}$ casts the source pair $\var{z}$ to $\alpha' \timesS \bet
 \begin{itemize}
 \item obtain the pair cast
 \(
-(\mathbb{c}_\alpha,\mathbb{c}_\beta) : \alpha \timesS \beta \leadsto \alpha' \timesS \beta'
+(\mathbb{c}_\alpha,\mathbb{c}_\beta) : \alpha \timesS \castpath{\beta}{\alpha'} \timesS \beta'
 \)
-from $\mathbb{c}_\alpha : \alpha \leadsto \alpha'$ and $\mathbb{c}_\beta : \beta \leadsto \beta'$
+from $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$ and $\mathbb{c}_\beta : \castpath{\beta}{\beta'}$
 \item call \texttt{loosen} once on the fresh source pair $\var{z}$ with this pair cast, to obtain
 \[
 \langle \lvar{z}, \spec{\lvar{z}} \rangle
@@ -597,7 +597,7 @@ In all other cases, we define:
 
 where $\spec{\lvar{z}}$ casts the source variable $\var{z}$ to $\alpha'$ and is computed recursively as follows from a fresh source variable $\var{z}$:
 \begin{itemize}
-\item obtain $\alpha \sqsubseteq \alpha'$ from $\mathbb{c}_\alpha : \alpha \leadsto \alpha'$
+\item obtain $\alpha \sqsubseteq \alpha'$ from $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$
 \item call \texttt{loosen} on $\var{z}$ to obtain $\langle \lvar{z}, \spec{\lvar{z}} \rangle$
 \end{itemize}
 
@@ -728,7 +728,7 @@ In the case $\alpha \sqsubseteq \alpha'$ and $\beta \sqsubseteq \beta'$, we defi
 where $\langle \lvar{a}, \spec{\lvar{a}} \rangle$ and $\langle \lvar{b}, \spec{\lvar{b}} \rangle$ are obtained by loosening fresh source variables $\var{a} : \alpha$ and $\var{b} : \beta$ respectively.
 
 \section{Correctness of loosening}
-For a cast path $\mathbb{c} : \alpha \leadsto \beta$, let $\zop{\mathbb{c}}$ denote the ZFC (injective) cast function induced by $\mathbb{c}$ on ${\interpZ{\beta}}^{\interpZ{\alpha}}$.
+For a cast path $\mathbb{c} : \castpath{\alpha}{\beta}$, let $\zop{\mathbb{c}}$ denote the ZFC (injective) cast function induced by $\mathbb{c}$ on ${\interpZ{\beta}}^{\interpZ{\alpha}}$.
 We write its value $b \in \interpZ{\beta}$ at $a \in \interpZ{\alpha}$ either as $b = \appZ \zop{\mathbb{c}}(a)$ or as $(a, b) \in \zop{\mathbb{c}}$.
 Given $\stype{\Gamma}{x}{\alpha}$ and a fresh variable $\lvar{x}$, we write
 \[
@@ -937,9 +937,9 @@ Because $\zop{\mathbb{c}_\alpha}$ and $\zop{\mathbb{c}_\beta}$ are injective, th
 \begin{lemma}[Correctness of \texttt{graph}]
 Assume $\stype{\Gamma}{x}{\alpha \toS \mathsf{option}\ \beta}$ and let
 \[
-\mathbb{c}_\alpha : \alpha \leadsto \alpha',
+\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'},
 \qquad
-\mathbb{c}_\beta : \beta \leadsto \beta'.
+\mathbb{c}_\beta : \castpath{\beta}{\beta'}.
 \]
 Then the generic correctness theorem specializes to:
 \begin{enumerate}
@@ -1140,7 +1140,7 @@ Therefore the denotation of the specification $\spec{\lvar{z}}$ is defined on ev
 \subsection{Rule \texttt{chpred}}
 
 \begin{lemma}[Correctness of \texttt{chpred}]
-Assume $\stype{\Gamma}{x}{\alpha \toS \mathsf{bool}}$ and let $\mathbb{c} : \alpha \leadsto \alpha'$.
+Assume $\stype{\Gamma}{x}{\alpha \toS \mathsf{bool}}$ and let $\mathbb{c} : \castpath{\alpha}{\alpha'}$.
 Then the generic correctness theorem specializes to:
 \begin{enumerate}
 \item $\stype{\Gamma[\lvar{x} \mapsto \alpha' \toS \mathsf{bool}]}{\spec{\lvar{x}}}{\mathsf{bool}}$.
@@ -1270,7 +1270,7 @@ Hence the conjunction, the existential, the lambda, and finally the outer equali
 \subsection{Rule \texttt{opt}}
 
 \begin{lemma}[Correctness of \texttt{opt}]
-Assume $\stype{\Gamma}{x}{\mathsf{option}\ \alpha}$, and let $\mathbb{c} : \alpha \leadsto \alpha'$.
+Assume $\stype{\Gamma}{x}{\mathsf{option}\ \alpha}$, and let $\mathbb{c} : \castpath{\alpha}{\alpha'}$.
 Then the generic correctness theorem specializes to:
 \begin{enumerate}
 \item $\stype{\Gamma[\lvar{x} \mapsto \mathsf{option}\ \alpha']}{\spec{\lvar{x}}}{\mathsf{bool}}$.
@@ -1370,7 +1370,7 @@ Therefore every branch of the rule is defined on every typed target candidate, a
 \subsection{Rule \texttt{pair}}
 
 \begin{lemma}[Correctness of \texttt{pair}]
-Assume $\stype{\Gamma}{x}{\alpha \timesS \beta}$ and let $\mathbb{c}_\alpha : \alpha \leadsto \alpha'$ and $\mathbb{c}_\beta : \beta \leadsto \beta'$.
+Assume $\stype{\Gamma}{x}{\alpha \timesS \beta}$ and let $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$ and $\mathbb{c}_\beta : \castpath{\beta}{\beta'}$.
 Then the generic correctness theorem specializes to:
 \begin{enumerate}
 \item $\stype{\Gamma[\lvar{x} \mapsto \alpha' \timesS \beta']}{\spec{\lvar{x}}}{\mathsf{bool}}$.
@@ -1457,11 +1457,11 @@ Therefore the existential body is defined for every typed witness pair, and the 
 \begin{lemma}[Correctness of \texttt{fun}]
 Assume $\stype{\Gamma}{x}{\alpha \toS \beta}$, assume $\beta \neq \mathsf{bool}$, and let
 \[
-\mathbb{c}_\alpha : \alpha \leadsto \alpha',
+\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'},
 \qquad
-\mathbb{c}_\beta : \beta \leadsto \beta'.
+\mathbb{c}_\beta : \castpath{\beta}{\beta'}.
 \]
-Let $\mathbb{c} : (\alpha \toS \beta) \leadsto (\alpha' \toS \beta')$ be the induced function cast.
+Let $\mathbb{c} : \castpath{(\alpha \toS \beta)}{(\alpha' \toS \beta')}$ be the induced function cast.
 Then the generic correctness theorem specializes to:
 \begin{enumerate}
 \item $\stype{\Gamma[\lvar{x} \mapsto \alpha' \toS \beta']}{\spec{\lvar{x}}}{\mathsf{bool}}$.

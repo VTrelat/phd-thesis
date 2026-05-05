@@ -18,6 +18,7 @@
 *.out
 *.run.xml
 *.snm
+*.synctex(busy)
 *.synctex.gz
 *.toc
 *.vrb

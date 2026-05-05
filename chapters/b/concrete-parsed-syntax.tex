@@ -1,0 +1,109 @@
+\section{Concrete and Parsed Syntax}
+\label{sec:b-concrete-parsed-syntax}
+\label{sec:b-syntax}
+
+The formalization contains two representations of B terms.
+The concrete, first-order representation stays close to the syntax obtained
+from raw proof-obligation files, thus providing a deep embedding of the B language.
+The abstract representation uses parametric higher-order abstract syntax
+(PHOAS), as motivated in \Cref{sec:phoas}, and is the representation used for
+semantic reasoning.
+
+\subsection{Concrete syntax}
+\label{subsec:b-concrete-syntax}
+
+We first define a deep embedding of a curated subset of the B language in Lean, serving as the concrete layer of the formalization.
+The definition is straightforward: it provides an inductive type with one constructor per syntactic atom.
+
+
+\begin{definition}[Concrete syntax][B.Term][https://github.com/VTrelat/BEer/blob/7a82a062d36379f884e0952a35f109cab24af43c/B/Syntax/Basic.lean#L5]
+\label{def:b-concrete-syntax}
+Let \(\mathcal{V}\) be the type of variable names.
+The constructors of \leaninl{B.Term} are listed below, where \(v\) is a name in \(\mathcal{V}\), \(n\) is an integer, \(b\) is a boolean, and \(\vec{v}\) is a list of names.
+
+\begin{bnf}[colspec = {l@{}l@{\kern6pt}c@{\kern6pt}ll}]
+  \leaninl{B.Term} $\,∋\, t, s$ ::=
+  | $\mathsf{var}\ v$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ && $\mathbb{Z}$ && $\mathbb{B}$ // Atoms
+  | $t \mapletB s$ // Maplet
+  | $t \addB s$ && $t \subB s$ && $t \mulB s$ && $t \leB s$ // Arithmetic
+  | $t \andB s$ && $\notB t$ && $t \eqB s$ && $t \inB s$ && $\forallB \vec{v} \inB t \cdot s$ // Logic 
+  | $\powB t$ && $t \prodB s$ && $t \cupB s$ && $t \capB s$ && $\{\,\vec{v} \inB t \mid s\,\}$ // Set theory
+  | $t \pfunB s$ && $\appB t\ s$ && $\lambdaB \vec{v} \inB t \cdot\,s$ // Functions
+\end{bnf}
+\end{definition}
+
+In terms of grammar, the concrete syntax defined above is quasi-minimal: it has been reduced to a small set of primitive constructs that are sufficient to express a significant fragment of the B language. It is not minimal in the sense that some of the constructs could be defined as derived forms, but it is more convenient to have them as primitives for the later encoding.
+
+\begin{example}
+  For instance, universal quantification \( \forallB \vec{v} \inB D \cdot P \) can be obtained from the following equality:
+  \[
+    \lambdaB \vec{v} \inB D \cdot P \eqB \lambdaB \vec{v} \inB D \cdot \mathsf{bool}\ \mathsf{true}.
+  \]
+\end{example}
+
+As suggested by the previous remark, such minimization involves semantic considerations, which should not be a concern at the syntax level.
+We nevertheless define additional B connectives as derived forms, as listed below.
+
+\begin{definition}[Additional concrete syntax][B.Term][https://github.com/VTrelat/BEer/blob/main/B/Syntax/Extra.lean]
+The following B constructs are defined as derived forms in terms of the primitive syntax of \Cref{def:b-concrete-syntax}.
+\begin{align*}
+  x \orB y &\triangleq \notB((\notB x) \andB (\notB y)) \tag{disjunction} \\
+  x \impB y &\triangleq (\notB x) \orB y \tag{implication} \\
+  x \iffB y &\triangleq (x \impB y) \andB (y \impB x) \tag{bi-implication} \\
+  x \neqB y &\triangleq \notB(x \eqB y) \tag{negated equality} \\
+  \existsB \vec{v} \inB t \cdot s &\triangleq \notB(\forallB \vec{v} \inB t \cdot \notB s) \tag{existential quantification} \\
+  x \bop{\leftrightarrow} y &\triangleq (x \prodB y) \pfunB \mathbb{B} \tag{set of relations}
+\end{align*}
+\end{definition}
+
+\inlremark[]{Some constructs are missing: min, max, card, are concrete terms in the code but have no encoding rules, and some other constructs are not even defined as derived forms but are defined as monadic builtins and are still parsed. Some others are not even parsed (tree operators, sequence operators).}
+
+\subsection{\inlremark[Monadically encoded syntax]{Or "State-dependent syntax"?}}
+\label{subsec:b-monadically-encoded-syntax}
+
+\inlremark[]{
+  We would like to define further syntax, since B has many more operators, especially on relations.
+}
+
+\begin{example}
+  For instance, intersection \( t \capB s \) can be obtained from the bounded comprehension
+  \(
+    \{\,v \inB t \mid v \inB s\,\}.
+  \)
+  One should be easily convinced that this definition indeed captures the intended semantics of intersection, in particular that it is associative and commutative.
+\end{example}
+
+\subsection{Abstract syntax}
+\label{subsec:b-abstract-syntax}
+
+The abstract syntax is the inductive family
+\(\texttt{B.PHOAS.Term}\), parameterized by a type of variables
+\(\mathcal V\).
+The non-binding constructors are structurally the same as in
+\(\texttt{B.Term}\).
+The binding constructors use Lean functions to represent the scope of bound
+variables:
+\[
+\begin{array}{rcl}
+\mathsf{collect} &:&
+  \mathsf{Term}\,\mathcal V \to ((\mathsf{Fin}\,n \to \mathcal V) \to \mathsf{Term}\,\mathcal V) \to \mathsf{Term}\,\mathcal V,\\
+\mathsf{lambda} &:&
+  \mathsf{Term}\,\mathcal V \to ((\mathsf{Fin}\,n \to \mathcal V) \to \mathsf{Term}\,\mathcal V) \to \mathsf{Term}\,\mathcal V,\\
+\mathsf{all} &:&
+  \mathsf{Term}\,\mathcal V \to ((\mathsf{Fin}\,n \to \mathcal V) \to \mathsf{Term}\,\mathcal V) \to \mathsf{Term}\,\mathcal V.
+\end{array}
+\]
+The argument \(\mathsf{Fin}\,n \to \mathcal V\) represents the \(n\) variables
+bound by the construct.
+The domain of the binder is still a B term.
+When several variables are bound at once, the domain is represented as a
+Cartesian product of the individual domains, matching the concrete typing
+rules.
+
+The bridge between the two syntaxes is an abstraction function from concrete
+terms to PHOAS terms.
+For a closed or suitably interpreted concrete term, a map from string variables
+to PHOAS variables supplies the meaning of free variables, while bound
+variables are converted into the function arguments used by PHOAS.
+This keeps the parser-facing syntax close to Atelier B while allowing the
+semantic development to use Lean's own binding infrastructure.

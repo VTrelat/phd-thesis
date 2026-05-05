@@ -1,0 +1,91 @@
+\section{Mechanised Correctness}
+\label{sec:beer-mechanised-correctness}
+
+\subsection{Union case}
+\label{sec:union-case}
+
+Recall that a B set of type $\setB \alpha$ is encoded as a characteristic predicate of SMT type $\toSMT{\alpha} \toS \mathsf{bool}$, where $\toSMT{\alpha}$ denotes the SMT type image of $\alpha$.
+For any such predicate $F$, the retraction
+\[
+\retr{\setB \alpha}(F) \;=\; \bigl\{ x \in \interpZ{\alpha} \;\big|\; \appZ F\bigl(\canon{\alpha}(x)\bigr) \eqZ \topZ \bigr\}
+\]
+recovers the B-level set, where $\canon{\alpha} : \interpZ{\alpha} \to \interpZ{\toSMT{\alpha}}$ is the canonical isomorphism.
+
+\subsection{Encoding algorithm}
+
+Given two B terms $A, B$ of type $\setB \alpha$ with respective SMT encodings
+$S : \gamma \toS \mathsf{bool}$ and $T : \gamma \toS \mathsf{bool}$
+(where $\gamma = \toSMT{\alpha}$),
+the encoder produces the union $A \cupB B$ as follows.
+
+Since $S$ and $T$ share the same SMT type $\gamma \toS \mathsf{bool}$, the castable relation is reflexive: $\castable{(\gamma \toS \mathsf{bool})}{(\gamma \toS \mathsf{bool})}$.
+The encoder therefore takes the \texttt{chpred} branch of $\mathsf{castUnion}$:
+\begin{enumerate}
+  \item Loosen $S$ through the reflexive cast path $\castpath{(\gamma \toS \mathsf{bool})}{(\gamma \toS \mathsf{bool})}$, which introduces a fresh variable $\lvar{S}$ of type $\gamma \toS \mathsf{bool}$ together with a specification $\spec{\lvar{S}}$ asserting that $\lvar{S}$ and $S$ denote the same function.
+  \item Return the lambda term
+  \[
+    \lamS z : \gamma.\;\; \appS \lvar{S}(z) \orS \appS T(z).
+  \]
+\end{enumerate}
+
+\subsection{Correctness}
+
+\begin{theorem}[Union case][encodeTerm\_spec.union\_case]
+  Let $A, B$ be well-typed B terms with $\btype{\Gamma}{A}{\setB \alpha}$ and $\btype{\Gamma}{B}{\setB \alpha}$.
+  Suppose that the inductive hypotheses hold for $A$ and $B$, yielding SMT terms $S$ and $T$ of type $\gamma \toS \mathsf{bool}$ (with $\gamma = \toSMT{\alpha}$) and semantic triples
+  $\denval{A'}$ and $\denval{B'}$ such that
+  \[
+    \retr{\setB \alpha}(A') = \interpZ{A}
+    \qquad\text{and}\qquad
+    \retr{\setB \alpha}(B') = \interpZ{B},
+  \]
+  where $\interpZ{A}$ and $\interpZ{B}$ are the B-level denotations of $A$ and $B$ respectively.
+
+  Let $R$ denote the result of $\mathsf{castUnion}(S,T)$, i.e.\ the term $\lamS z.\; \lvar{S}(z) \orS T(z)$.
+  Then there exists a semantic triple $\denval{R'}$ with
+  \[
+    \retr{\setB \alpha}(R')
+    \;=\;
+    \retr{\setB \alpha}(A')
+    \;\cup\;
+    \retr{\setB \alpha}(B').
+  \]
+\end{theorem}
+
+\begin{proof}
+  By construction, $\lvar{S}$ denotes the same function as $S$, so
+  $\lvar{S}$ and $S$ have the same underlying ZFC set: $\lvar{S}^! = A'$, where $\lvar{S}^!$ is the value assigned to $\lvar{S}$ by the loosening specification.
+
+  The result term $R$ is the SMT lambda $\lamS z : \gamma.\; \lvar{S}(z) \orS T(z)$.
+  Its denotation $R'$ is therefore the ZFC function
+  \[
+    R' \;=\; \lambdaZ{\interpZ{\gamma}}{\mathbb{B}}{w}{\appZ \lvar{S}^!(w) \orS \appZ B'(w)}
+  \]
+  where $\orS$ is computed pointwise on booleans: for $a, b \in \mathbb{B}$, $a \orS b = \topZ$ if and only if $a = \topZ$ or $b = \topZ$.
+
+  We show $\retr{\setB \alpha}(R') = \retr{\setB \alpha}(A') \cup \retr{\setB \alpha}(B')$ by double inclusion.
+
+  \begin{subproof}
+  Fix $x \in \interpZ{\alpha}$ and let $c = \canon{\alpha}(x) \in \interpZ{\gamma}$.
+
+  \textbf{Forward direction.}
+  Suppose $x \in \retr{\setB \alpha}(R')$.
+  By definition of $\retr{}$, this means $\appZ R'(c) = \topZ$, i.e.\ $\appZ \lvar{S}^!(c) \orS \appZ B'(c) = \topZ$.
+  Since disjunction on $\mathbb{B}$ is true exactly when at least one disjunct is, we have
+  $\appZ \lvar{S}^!(c) = \topZ$ or $\appZ B'(c) = \topZ$.
+  Since $\lvar{S}^! = A'$, the first disjunct gives $\appZ A'(c) = \topZ$, hence $x \in \retr{\setB \alpha}(A')$.
+  The second gives $x \in \retr{\setB \alpha}(B')$.
+  In either case, $x \in \retr{\setB \alpha}(A') \cup \retr{\setB \alpha}(B')$.
+
+  \textbf{Backward direction.}
+  Suppose $x \in \retr{\setB \alpha}(A')$.
+  Then $\appZ A'(c) = \topZ$, so $\appZ \lvar{S}^!(c) = \topZ$, and therefore $\appZ R'(c) = \appZ \lvar{S}^!(c) \orS \appZ B'(c) = \topZ$, giving $x \in \retr{\setB \alpha}(R')$.
+  The case $x \in \retr{\setB \alpha}(B')$ is symmetric.
+  \end{subproof}
+\end{proof}
+
+\begin{note}
+  The four-way case split on boolean values of $\appZ \lvar{S}^!(c)$ and $\appZ B'(c)$---both in $\mathbb{B} = \{\topZ, \botZ\}$---is the core of the Lean proof.
+  In the formalization, SMT disjunction is encoded as $\lnot(\lnot a \land \lnot b)$, which requires unfolding the negation and conjunction denotation lemmas before reaching the boolean case analysis.
+  Mathematically, this reduces to the observation that $\orS$ on $\mathbb{B}$ is the standard boolean disjunction.
+\end{note}
