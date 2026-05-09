@@ -47,10 +47,10 @@ jobs:
         uses: avakar/tag-and-release@v1
         with:
           tag_name: pdf
-          release_name: Ph.D. thesis
+          release_name: thesis
           body: Prebuilt PDF of the thesis.
           prerelease: false
-          draft: true
+          draft: false
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         
