@@ -8,8 +8,13 @@
   \clearpage%
 }
 
+\newcommand\eg{\textit{e.g.\@}\xspace}
+\newcommand\ie{\textit{i.e.\@}\xspace}
+\newcommand\etc{\textit{etc.}\xspace}
+\newcommand\wrt{\textit{w.r.t.\@}\xspace}
+
 \newcommand{\irrelprf}{\ensuremath{\cdot\mkern-5mu\cdot\mkern-5mu\cdot}}
-\newcommand{\catop}[2]{\ensuremath{#1^{\scalebox{0.45}{\textsf{#2}}}}}
+\newcommand{\catop}[2]{\ensuremath{#1^{\scriptscriptstyle{\mathsf{#2}}}}}
 
 \newcommand{\sop}[1]{\catop{#1}{S}}
 \newcommand{\bop}[1]{\catop{#1}{B}}
@@ -19,13 +24,20 @@
 \newcommand{\intB}{\bop{\mathsf{int}}}
 \newcommand{\boolB}{\bop{\mathsf{bool}}}
 \newcommand{\prodB}{\mathbin{\,\bop{\times}}}
-\newcommand{\powB}{\mathop{\bop{\mathcal{P}}}}
+\newcommand{\powB}{\mathord{\bop{\mathcal{P}}}}
 \newcommand{\mapletB}{\mathbin{\,\bop{\mapsto}}}
 \newcommand{\addB}{\mathbin{\,\bop{+}}}
 \newcommand{\subB}{\mathbin{\,\bop{-}}}
 \newcommand{\mulB}{\mathbin{\,\bop{*}}}
 \newcommand{\inB}{\mathrel{\,\bop{\in}}}
+\newcommand{\ssubB}{\mathbin{\,\bop{\setminus}}}
+\newcommand{\subseteqB}{\mathbin{\,\bop{\subseteq}}}
+\newcommand{\notsubseteqB}{\mathbin{\,\bop{\not\subseteq}}}
+\newcommand{\notinB}{\mathrel{\,\bop{\notin}}}
 \newcommand{\leB}{\mathrel{\,\bop{\le}}}
+\newcommand{\ltB}{\mathrel{\,\bop{<}}}
+\newcommand{\geB}{\mathrel{\,\bop{\ge}}}
+\newcommand{\gtB}{\mathrel{\,\bop{>}}}
 \newcommand{\eqB}{\mathrel{\,\bop{=}}}
 \newcommand{\neqB}{\mathrel{\,\bop{\neq}}}
 \newcommand{\andB}{\mathbin{\,\bop{\land}}}
@@ -34,15 +46,30 @@
 \newcommand{\impB}{\mathrel{\,\bop{\Rightarrow}}}
 \newcommand{\iffB}{\mathrel{\,\bop{\Leftrightarrow}}}
 \newcommand{\pfunB}{\mathbin{\,\bop{⇸}}}
+\newcommand{\tfunB}{\mathbin{\,\bop{→}}}
+\newcommand{\injpfunB}{\mathbin{\,\bop{⤔}}}
+\newcommand{\injtfunB}{\mathbin{\,\bop{↣}}}
+\newcommand{\surjpfunB}{\mathbin{\,\bop{⤀}}}
+\newcommand{\surjtfunB}{\mathbin{\,\bop{↠}}}
 \newcommand{\cupB}{\mathbin{\,\bop{\cup}}}
 \newcommand{\capB}{\mathbin{\,\bop{\cap}}}
-\newcommand{\appB}{\mathop{\bop{\mathtt{@}}}}
-\newcommand{\lambdaB}{\mathop{\bop{\lambda}}}
-\newcommand{\forallB}{\mathop{\bop{\forall}}}
-\newcommand{\existsB}{\mathop{\bop{\exists}}}
+\newcommand{\appB}{\mathord{\bop{@}\mkern-1mu}}
+\newcommand{\lambdaB}{\mathord{\bop{\lambda}}}
+\newcommand{\forallB}{\mathord{\bop{\forall}}}
+\newcommand{\existsB}{\mathord{\bop{\exists}}}
 \newcommand{\minB}{\mathop{\bop{{\min}}}}
 \newcommand{\maxB}{\mathop{\bop{{\max}}}}
 \newcommand{\cardB}[1]{\catop{\lvert #1 \rvert}{B}}
+\newcommand{\domRestrB}{\mathbin{\bop{\triangleleft}}}
+\newcommand{\domSubtrB}{\mathbin{\bop{\dsub}}}
+\newcommand{\ranRestrB}{\mathbin{\bop{\triangleright}}}
+\newcommand{\ranSubtrB}{\mathbin{\bop{\rsub}}}
+\NewDocumentCommand{\domB}{o}{\bop{\mathsf{dom}}\IfNoValueTF{#1}{}{_{#1}}}
+\NewDocumentCommand{\ranB}{o}{\bop{\mathsf{ran}}\IfNoValueTF{#1}{}{_{#1}}}
+\NewDocumentCommand{\overloadB}{o}{\mathbin{\bop{\triangleleft\mkern-7.5mu{-}}\IfNoValueTF{#1}{}{_{#1}}}}
+\NewDocumentCommand{\dirprodB}{o}{\mathbin{\,\bop{\otimes}\IfNoValueTF{#1}{}{_{#1}}}}
+\newcommand{\intrangeB}[2]{#1\mathbin{\bop{..}}#2}
+\newcommand{\lift}[1]{{#1}^\uparrow}
 % retraction  η_α : ⟦α^S⟧ᶻ → ⟦α⟧ᶻ
 \newcommand{\retr}[1]{\eta_{#1}}
 % canonical isomorphism  ζ_α : ⟦α⟧ᶻ → ⟦α^S⟧ᶻ
@@ -119,7 +146,7 @@
 \newcommand{\pairZ}[2]{\ensuremath{\langle #1, #2\rangle^{\scalebox{0.45}{\textsf{Z}}}}}
 \newcommand{\bigwedgeZ}{\mathop{\zop{\bigwedge}}}
 
-\newcommand{\aterm}[2]{\ensuremath{\left\llparenthesis #1 \right\rrparenthesis{#2}}}
+\newcommand{\aterm}[2]{\ensuremath{\left\llparenthesis #1 \right\rrparenthesis_{#2}}}
 \newcommand{\interpS}[1]{\sop{\lBrack #1 \rBrack}}
 \newcommand{\interpB}[1]{\bop{\lBrack #1 \rBrack}}
 \newcommand{\interpZ}[1]{\zop{\lBrack #1 \rBrack}}
@@ -142,12 +169,14 @@
 \newcommand{\mgf}[1]{\ensuremath{{#1}^{\top}}}
 
 \newcommand{\leaninl}{\lstinline[language=lean]}
-\ExplSyntaxOn
+
+\newcommand{\BEerBase}{https://vtrelat.github.io/BEer/docs/}
+\newcommand{\beerref}[1]{\BEerBase#1}
+
 \NewDocumentCommand{\leancodeptr}{m m}{%
-  \tl_set:Nx \l_tmpa_tl { \tl_to_str:e {#2} }%
-  \href{\l_tmpa_tl}{\texttt{\tl_to_str:n {#1}}}%
+\href{\beerref{#2}}{\texttt{#1}}%
 }
-\ExplSyntaxOff
+
 
 \NewDocumentCommand{\inlremark}{o m}{%
   \IfNoValueTF{#1}{%

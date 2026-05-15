@@ -38,10 +38,10 @@
 
 \newcommand{\tcbenvleanptr}[2]{%
   \if\relax\detokenize{#1}\relax\else
-    \node[anchor=south east, inner sep=3pt]
+    \node[anchor=south east, inner sep=3pt, yshift=-4pt]
       at (frame.north east)
       {%
-        \footnotesize
+        \scriptsize
         \if\relax\detokenize{#2}\relax
           \ttfamily\color{beige!25!cover-cream}#1%
         \else
@@ -53,6 +53,49 @@
       };%
   \fi
 }
+
+% Render lean pointer pairs stacked in top-right corner.
+% #1 = comma-separated lean names, #2 = comma-separated URLs (same count, or empty).
+% Empty #1 = nothing rendered. Single entry = backward compatible with \tcbenvleanptr.
+\ExplSyntaxOn
+\seq_new:N \l__leanptr_names_seq
+\seq_new:N \l__leanptr_urls_seq
+\tl_new:N  \l__leanptr_name_tl
+\tl_new:N  \l__leanptr_url_tl
+\int_new:N \l__leanptr_n_int
+\int_new:N \l__leanptr_i_int
+
+\cs_new_protected:Nn \__leanptr_render_pair:nn {
+  \tl_if_blank:nTF { #2 } {
+    \ttfamily\color{beige!25!cover-cream}#1%
+  }{
+    \begingroup\hypersetup{urlcolor=beige!25!cover-cream}%
+    \leancodeptr{#1}{#2}%
+    \endgroup
+  }
+}
+\cs_generate_variant:Nn \__leanptr_render_pair:nn { VV }
+\cs_generate_variant:Nn \seq_set_split:Nnn { Nne }
+
+\NewDocumentCommand \tcbenvleanptrlist { m m } {
+  \tl_if_blank:nF { #1 } {
+    \seq_set_split:Nnn \l__leanptr_names_seq { , } { #1 }
+    \seq_set_split:Nne \l__leanptr_urls_seq  { , } { #2 }
+    \int_set:Nn \l__leanptr_n_int { \seq_count:N \l__leanptr_names_seq }
+    \node[anchor=south~east, inner~sep=3pt, yshift=-3pt] at (frame.north~east) {%
+      \scriptsize
+      \int_step_inline:nn { \l__leanptr_n_int } {
+        \int_compare:nNnT { ##1 } > { 1 } { \textcolor{beige!25!cover-cream}{,}~ }
+        \tl_set:Nx \l__leanptr_name_tl { \seq_item:Nn \l__leanptr_names_seq { ##1 } }
+        \tl_set:Nx \l__leanptr_url_tl  { \seq_item:Nn \l__leanptr_urls_seq  { ##1 } }
+        \tl_trim_spaces:N \l__leanptr_name_tl
+        \tl_trim_spaces:N \l__leanptr_url_tl
+        \__leanptr_render_pair:VV \l__leanptr_name_tl \l__leanptr_url_tl
+      }%
+    };%
+  }
+}
+\ExplSyntaxOff
 
 % ---------------------------------------------------------------------------
 % Base style: beige background, no frame, matches leanlisting aesthetic.
@@ -101,13 +144,13 @@
   },
   overlay unbroken and first={%
     \tcbenvtopbar{pink}%
-    \tcbenvleanptr{#2}{#3}%
+    \tcbenvleanptrlist{#2}{#3}%
   },
 }
 
 \NewDocumentEnvironment{theorem}{O{} O{} O{}}{%
-  \edef\thesisleanurl{\detokenize{#3}}%
-  \theorembox{#1}{#2}{\thesisleanurl}%
+  \def\thesisleanurls{#3}%
+  \theorembox{#1}{#2}{\thesisleanurls}%
 }{\endtheorembox}
 
 % ---------------------------------------------------------------------------
@@ -123,13 +166,13 @@
   },
   overlay unbroken and first={%
     \tcbenvtopbar{pink}%
-    \tcbenvleanptr{#2}{#3}%
+    \tcbenvleanptrlist{#2}{#3}%
   },
 }
 
 \NewDocumentEnvironment{corollary}{O{} O{} O{}}{%
-  \edef\thesisleanurl{\detokenize{#3}}%
-  \corollarybox{#1}{#2}{\thesisleanurl}%
+  \def\thesisleanurls{#3}%
+  \corollarybox{#1}{#2}{\thesisleanurls}%
 }{\endcorollarybox}
 
 % ---------------------------------------------------------------------------
@@ -145,13 +188,13 @@
   },
   overlay unbroken and first={%
     \tcbenvtopbar{pink}%
-    \tcbenvleanptr{#2}{#3}%
+    \tcbenvleanptrlist{#2}{#3}%
   },
 }
 
 \NewDocumentEnvironment{lemma}{O{} O{} O{}}{%
-  \edef\thesisleanurl{\detokenize{#3}}%
-  \lemmabox{#1}{#2}{\thesisleanurl}%
+  \def\thesisleanurls{#3}%
+  \lemmabox{#1}{#2}{\thesisleanurls}%
 }{\endlemmabox}
 
 % ---------------------------------------------------------------------------
@@ -167,13 +210,13 @@
   },
   overlay unbroken and first={%
     \tcbenvtopbar{orange}%
-    \tcbenvleanptr{#2}{#3}%
+    \tcbenvleanptrlist{#2}{#3}%
   },
 }
 
 \NewDocumentEnvironment{definition}{O{} O{} O{}}{%
-  \edef\thesisleanurl{\detokenize{#3}}%
-  \definitionbox{#1}{#2}{\thesisleanurl}%
+  \def\thesisleanurls{#3}%
+  \definitionbox{#1}{#2}{\thesisleanurls}%
 }{\enddefinitionbox}
 
 % ---------------------------------------------------------------------------
@@ -184,12 +227,12 @@
   colback=green!5,
   borderline west={2pt}{0pt}{green},
   before upper={\stepcounter{thmcounter}\refstepcounter{extype}\setlength{\parskip}{4pt}\textcolor{green}{\textbf{Example~\thethmcounter\if\relax\detokenize{#1}\relax\else~\textup{(#1)}\fi.}}\enspace},
-  overlay unbroken and first={\tcbenvleanptr{#2}{#3}},
+  overlay unbroken and first={\tcbenvleanptrlist{#2}{#3}},
 }
 
 \NewDocumentEnvironment{example}{O{} O{} O{}}{%
-  \edef\thesisleanurl{\detokenize{#3}}%
-  \examplebox{#1}{#2}{\thesisleanurl}%
+  \def\thesisleanurls{#3}%
+  \examplebox{#1}{#2}{\thesisleanurls}%
 }{\endexamplebox}
 
 % ---------------------------------------------------------------------------
@@ -197,9 +240,10 @@
 % ---------------------------------------------------------------------------
 \NewTColorBox{note}{ }{%
   envbase,
-  colback=beige!20,
-  borderline west={2pt}{0pt}{beige!80!black},
-  before upper={\setlength{\parskip}{4pt}\textcolor{beige!60!black}{\textbf{Note.}}\enspace},
+  colback=beige!30,
+  borderline west={2pt}{0pt}{beige!70!black},
+  fontupper={\color{beige!50!black}},
+  before upper={\setlength{\parskip}{4pt}\textcolor{beige!70!black}{\textbf{Note.}}\enspace},
 }
 
 % ---------------------------------------------------------------------------

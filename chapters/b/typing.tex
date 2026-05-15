@@ -1,0 +1,231 @@
+\section{Typing Rules}
+\label{sec:b-typing}
+
+As mentioned in \Cref{subsec:b-type-system}, the B mathematical language does not include an
+intrinsic type system, but describes a relation constraining the shapes of expressions.
+The purpose of our type system is twofold: proof obligations articulate upon an inner representation
+of B types that we want to check at runtime, and the semantics of B terms is easier to define and
+reason about when terms are annotated with their types, thus avoiding type inference computations
+and usual technicalities of untyped semantics.
+
+This section describes the typing rules for concrete and abstract B syntax.
+We consider the basic type system defined in \Cref{def:b-types}.
+
+
+\subsection{Concrete Typing}
+\label{subsec:b-concrete-typing}
+
+Concrete typing is defined for the first-order syntax defined in \Cref{def:b-basic-syntax}.
+The rules are syntax-directed and form judgments denoted by \(\btype{\Gamma}{t}{\tau}\),
+where \(\Gamma\) is a typing context, \(t\) is a concrete B term, and \(\tau\) is a B type.
+
+\begin{definition}[Typing context][B.TypeContext][B/Typing/Basic.html\#B.TypeContext]
+A concrete typing context \(\Gamma\) is a map from concrete variables to B types:
+\[
+  \Gamma : \mathcal{V} \rightharpoonup \mathsf{BType}
+\]
+\end{definition}
+
+Typing judgments are defined inductively, but we present them as inference
+rules, as is standard in type theory, in the definition below.
+\begin{definition}[Concrete typing rules][B.Typing][B/Typing/Rules.html\#B.Typing]
+\label{def:b-concrete-typing}
+Let \(\Gamma\) be a typing context. The inductive typing predicate \(\btype{\Gamma}{t}{\tau}\) is defined structurally on the term \(t\) by the following rules.
+\paragraph{Base rules.}
+\begin{mathpar}
+\infer*[right=\texttt{var}]
+  {\Gamma(v)=\tau}
+  {\btype{\Gamma}{\mathsf{var}\ v}{\tau}}
+\and
+\infer*[right=\texttt{int}]
+  { }
+  {\btype{\Gamma}{\mathsf{int}\ n}{\intB}}
+\and
+\infer*[right=\texttt{bool}]
+  { }
+  {\btype{\Gamma}{\mathsf{bool}\ b}{\boolB}}
+\and
+\infer*[right=\(\mathbb{Z}\)]
+  { }
+  {\btype{\Gamma}{\mathbb{Z}}{\setB\intB}}
+\and
+\infer*[right=\(\mathbb{B}\)]
+  { }
+  {\btype{\Gamma}{\mathbb{B}}{\setB\boolB}}
+\and
+\infer*[right=\texttt{maplet}]
+  {\btype{\Gamma}{x}{\alpha} \quad \btype{\Gamma}{y}{\beta}}
+  {\btype{\Gamma}{x \mapletB y}{\alpha \prodB \beta}}
+\end{mathpar}
+\paragraph{Arithmetic rules.}
+\begin{mathpar}
+\infer*[right=\texttt{add}]
+  {\btype{\Gamma}{x}{\intB} \quad \btype{\Gamma}{y}{\intB}}
+  {\btype{\Gamma}{x \addB y}{\intB}}
+\and
+\infer*[right=\texttt{sub}]
+  {\btype{\Gamma}{x}{\intB} \quad \btype{\Gamma}{y}{\intB}}
+  {\btype{\Gamma}{x \subB y}{\intB}}
+\and
+\infer*[right=\texttt{mul}]
+  {\btype{\Gamma}{x}{\intB} \quad \btype{\Gamma}{y}{\intB}}
+  {\btype{\Gamma}{x \mulB y}{\intB}}
+\end{mathpar}
+\paragraph{Boolean rules.}
+\begin{mathpar}
+\infer*[right=\texttt{and}]
+  {\btype{\Gamma}{x}{\boolB} \quad \btype{\Gamma}{y}{\boolB}}
+  {\btype{\Gamma}{x \andB y}{\boolB}}
+\and
+\infer*[right=\texttt{not}]
+  {\btype{\Gamma}{x}{\boolB}}
+  {\btype{\Gamma}{\notB x}{\boolB}}
+\and
+\infer*[right=\texttt{eq}]
+  {\btype{\Gamma}{x}{\alpha} \quad \btype{\Gamma}{y}{\alpha}}
+  {\btype{\Gamma}{x \eqB y}{\boolB}}
+\and
+\infer*[right=\texttt{le}]
+  {\btype{\Gamma}{x}{\intB} \quad \btype{\Gamma}{y}{\intB}}
+  {\btype{\Gamma}{x \leB y}{\boolB}}
+\end{mathpar}
+
+\begin{mathpar}
+\infer*[right=\texttt{mem}]
+  {\btype{\Gamma}{x}{\alpha} \quad \btype{\Gamma}{S}{\setB\alpha}}
+  {\btype{\Gamma}{x \inB S}{\boolB}}
+\and
+\infer*[right=\texttt{collect}]
+  {\mathsf{Bind}(\Gamma,\vec v,\vec\alpha,\vec D)
+   \quad \btype{\Gamma[\vec v:\vec\alpha]}{P}{\boolB}}
+  {\btype{\Gamma}{\{\,\vec v \inB D^\times \mid P\,\}}{\setB\alpha^\times}}
+\and
+\infer*[right=\texttt{pow}]
+  {\btype{\Gamma}{S}{\setB\alpha}}
+  {\btype{\Gamma}{\powB(S)}{\setB(\setB\alpha)}}
+\and
+\infer*[right=\texttt{cprod}]
+  {\btype{\Gamma}{S}{\setB\alpha} \quad \btype{\Gamma}{T}{\setB\beta}}
+  {\btype{\Gamma}{S \prodB T}{\setB(\alpha \prodB \beta)}}
+\and
+\infer*[right=\texttt{union}]
+  {\btype{\Gamma}{S}{\setB\alpha} \quad \btype{\Gamma}{T}{\setB\alpha}}
+  {\btype{\Gamma}{S \cupB T}{\setB\alpha}}
+\and
+\infer*[right=\texttt{inter}]
+  {\btype{\Gamma}{S}{\setB\alpha} \quad \btype{\Gamma}{T}{\setB\alpha}}
+  {\btype{\Gamma}{S \capB T}{\setB\alpha}}
+\end{mathpar}
+For binder rules, let \(\vec v = v_1,\ldots,v_k\),
+\(\vec\alpha = \alpha_1,\ldots,\alpha_k\), and
+\(\vec D = D_1,\ldots,D_k\).
+We write
+\[
+  D^\times \triangleq D_1 \prodB \cdots \prodB D_k,
+  \qquad
+  \alpha^\times \triangleq \alpha_1 \prodB \cdots \prodB \alpha_k,
+\]
+and \(\Gamma[\vec v : \vec\alpha]\) for the left-biased extension of
+\(\Gamma\) mapping each \(v_i\) to \(\alpha_i\).
+The common binder side condition is abbreviated as follows:
+\[
+\begin{aligned}
+  \mathsf{Bind}(\Gamma,\vec v,\vec\alpha,\vec D) \triangleq{}&
+  k > 0
+  \land \mathsf{NoDup}(\vec v)
+  \land \{v_1,\ldots,v_k\} \cap \mathsf{dom}(\Gamma)=\varnothing\\
+  &{}\land |\vec v| = |\vec\alpha|
+  \land |\vec v| = |\vec D|
+  \land \forall i \in \{1,\ldots,k\},\ \btype{\Gamma}{D_i}{\setB\alpha_i}.
+\end{aligned}
+\]
+\begin{mathpar}
+\infer*[right=\texttt{pfun}]
+  {\btype{\Gamma}{S}{\setB\alpha} \quad \btype{\Gamma}{T}{\setB\beta}}
+  {\btype{\Gamma}{S \pfunB T}{\setB(\setB(\alpha \prodB \beta))}}
+\and
+\infer*[right=\texttt{all}]
+  {\mathsf{Bind}(\Gamma,\vec v,\vec\alpha,\vec D)
+   \quad \btype{\Gamma[\vec v:\vec\alpha]}{P}{\boolB}}
+  {\btype{\Gamma}{\forallB \vec v \inB D^\times \cdot P}{\boolB}}
+\and
+\infer*[right=\texttt{lambda}]
+  {\mathsf{Bind}(\Gamma,\vec v,\vec\alpha,\vec D)
+   \quad \btype{\Gamma[\vec v:\vec\alpha]}{e}{\beta}}
+  {\btype{\Gamma}{\lambdaB \vec v \inB D^\times \cdot e}{\setB(\alpha^\times \prodB \beta)}}
+\and
+\infer*[right=\texttt{app}]
+  {\btype{\Gamma}{f}{\setB(\alpha \prodB \beta)} \quad \btype{\Gamma}{x}{\alpha}}
+  {\btype{\Gamma}{\appB f\ x}{\beta}}
+\and
+\infer*[right=\texttt{card}]
+  {\btype{\Gamma}{S}{\setB\alpha}}
+  {\btype{\Gamma}{\cardB{S}}{\intB}}
+\and
+\infer*[right=\texttt{min}]
+  {\btype{\Gamma}{S}{\setB\intB}}
+  {\btype{\Gamma}{\minB(S)}{\intB}}
+\and
+\infer*[right=\texttt{max}]
+  {\btype{\Gamma}{S}{\setB\intB}}
+  {\btype{\Gamma}{\maxB(S)}{\intB}}
+\end{mathpar}
+\end{definition}
+
+For each concrete constructor, the corresponding constructor of
+\(\mathsf{Typing}\) stores exactly the premises needed to establish the result
+type.
+For example, \(\texttt{Typing.union}\) requires both operands to have the same
+set type, while \(\texttt{Typing.app}\) requires the function expression to
+have type \(\setB(\tau \prodB \sigma)\) and the argument to have type \(\tau\).
+The binder rules carry the side conditions that are implicit in informal
+presentations: the binder must bind at least one variable, the variable list
+must not contain duplicates, the bound variables must be fresh for the
+surrounding context, and the lists of variables, domains, and types must have
+the same length.
+
+Several structural facts are proved alongside the concrete rules.
+The most important for later chapters is type determinism:
+\[
+  \btype{\Gamma}{t}{\tau}
+  \quad\land\quad
+  \btype{\Gamma}{t}{\sigma}
+  \quad\Longrightarrow\quad
+  \tau = \sigma.
+\]
+The first-order development proves this as \(\texttt{Typing.det}\).
+The development also proves inversion lemmas for each constructor, such as
+extracting the operand types from a typing derivation of a union, application,
+lambda, or comprehension.
+These lemmas turn a typing derivation into the precise type information needed
+by later recursive arguments.
+
+\subsection{Abstract Typing}
+\label{subsec:b-abstract-typing}
+
+Abstract typing is defined over the PHOAS syntax.
+Its context is a function
+\(\mathcal V \to \mathsf{Option}\,\mathsf{BType}\), where
+\(\mathsf{none}\) represents absence from the context, and
+\(\mathsf{some}\,\tau\) represents a successful lookup.
+The PHOAS judgment has the form
+\[
+  \mathsf{Typing} : (\mathcal V \to \mathsf{Option}\,\mathsf{BType})
+  \to \mathsf{Term}\,\mathcal V \to \mathsf{BType} \to \mathsf{Prop},
+\]
+written \(\Gamma \vdash^{B'} t : \tau\).
+
+The non-binding rules mirror the concrete typing rules.
+The binder rules differ in how they expose the bound variables: instead of
+checking a list of names and extending a finite association list, the rule
+receives a family of fresh PHOAS variables and types the body under the
+corresponding functional context extension.
+Thus, freshness and substitution bookkeeping are delegated to Lean's own
+function space, while the B-specific typing premises remain explicit.
+
+The PHOAS development contains the analogues of the concrete structural lemmas,
+including type determinism under the expected nonemptiness assumption for
+variable families.
+These results are used by the semantics and by the SMT encoding proof, where
+recursive calls require precise information about the type assigned to each
+subterm.

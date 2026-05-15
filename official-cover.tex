@@ -1,87 +1,111 @@
-% Official academic cover — Université de Lorraine / thesul format
-\clearpage
-\newgeometry{left=30mm, right=20mm, top=20mm, bottom=15mm}
-\thispagestyle{empty}
+%% chapters/titlepage.tex
+%% Title page inspired by the thesul.cls layout (D. Roegel, LORIA).
+%% Adapted for the thesis's scrbook + thesis-style.sty setup.
+%%
+%% Layout summary (top → bottom):
+%%   [Header]   UL logo (left) | Doctoral school (right) + rule
+%%   [Body]     Title · Kind · Defense date · Diploma · Author
+%%   [Jury]     Composition du jury (tabular)
+%%   [Footer]   Rule + Lab name
 
-%--- Header: UL logo + doctoral school + rule ---%
-\noindent
-\includegraphics[scale=1]{assets/tulul}%
-\hfill
-{\fontsize{10}{14}\bfseries\selectfont École doctorale IAEM Lorraine}%
-\par\vskip1mm\noindent\rule{\linewidth}{0.4pt}\par
+\begin{titlepage}
+  \newgeometry{top=20mm, bottom=20mm, inner=20mm, outer=20mm}%
+  \setstretch{1.0}%
 
-\vfill
+  % ── Utility lengths ──────────────────────────────────────────────────────
+  \newlength{\TPrule}%
+  \setlength{\TPrule}{0.5pt}%
 
-%--- Title ---%
-\begin{center}
-  {\fontsize{25}{30}\bfseries\selectfont
-    Enhancing B Language Reasoners\\[2mm]with SMT Techniques\par}
-\end{center}
+  % ── Page body ────────────────────────────────────────────────────────────
+  \begin{minipage}[t][\textheight][s]{\textwidth}
 
-\vfill
+    % ── Header: UL logo + doctoral school + rule ────────────────────────────
+    \noindent
+    \begin{minipage}[c]{0.45\textwidth}
+      \includegraphics[height=18mm]{assets/tulul}%
+    \end{minipage}%
+    \hfill
+    \begin{minipage}[c]{0.50\textwidth}
+      \raggedleft
+      {\small\bfseries École doctorale IAEM Lorraine}
+    \end{minipage}
 
-%--- Kind ---%
-\begin{center}
-  {\fontsize{20.74}{25}\bfseries\selectfont THÈSE\par}
-\end{center}
+    \vspace{2mm}
+    {\rule{\textwidth}{\TPrule}}
 
-\vfill
+    \vfill
 
-%--- Presentation, diploma, author ---%
-\begin{center}
-  {\fontsize{10.95}{13}\selectfont
-    présentée et soutenue publiquement le \textbf{\ThesisDefenseDate}\par}
+    % ── Title ───────────────────────────────────────────────────────────────
+    \begin{center}
+      {\fontsize{22}{28}\bfseries\selectfont\ThesisTitle\par}
+    \end{center}
 
-  \vskip5mm
+    \vfill
 
-  {\fontsize{10.95}{13}\selectfont pour l'obtention du\par}
+    % ── Kind ────────────────────────────────────────────────────────────────
+    \begin{center}
+      {\fontsize{18}{22}\bfseries\selectfont THÈSE\par}
+    \end{center}
 
-  \vskip8mm
+    \vspace{4mm}
 
-  {\fontsize{14}{18}\bfseries\selectfont
-    Doctorat de l'Université de Lorraine\\[3mm]%
-    {\fontsize{10.95}{13}\bfseries\selectfont (mention informatique)}\par}
+    % ── Presented / defended ────────────────────────────────────────────────
+    \begin{center}
+      {\normalsize présentée et soutenue publiquement le \ThesisDate\par}
+    \end{center}
 
-  \vskip5mm
+    \vspace{4mm}
 
-  {\fontsize{10.95}{13}\selectfont par\par}
+    % ── Degree ──────────────────────────────────────────────────────────────
+    \begin{center}
+      {\normalsize pour l'obtention du\par}
+      \vspace{2mm}
+      {\large\bfseries
+        Doctorat de l'Université de Lorraine\par}
+      \vspace{1mm}
+      {\normalsize (mention informatique)\par}
+    \end{center}
 
-  \vskip5mm
+    \vspace{4mm}
 
-  {\fontsize{14}{18}\selectfont Vincent Trélat\par}
-\end{center}
+    % ── Author ──────────────────────────────────────────────────────────────
+    \begin{center}
+      {\normalsize par\par}
+      \vspace{2mm}
+      {\large \ThesisAuthor\par}
+    \end{center}
 
-\vfill\vfill
+    \vfill
 
-%--- Jury ---%
-\noindent\hspace{1cm}%
-{\fontsize{10.95}{13}\bfseries\selectfont Composition du jury}
+    % ── Jury ────────────────────────────────────────────────────────────────
+    {\small\bfseries Composition du jury}
 
-\begin{center}
-  \fontsize{10.95}{13}\selectfont
-  \begin{tabular}{ll}
-    \textit{Président :}    & \ThesisPresident \\[3mm]
-    \textit{Rapporteurs :}  & \ThesisRapporteurI \\
-                            & \ThesisRapporteurII \\[3mm]
-    \textit{Examinateurs :} & \ThesisExaminateurI \\[3mm]
-    \textit{Encadrants :}   & \ThesisEncadrantI \\
-                            & \ThesisEncadrantII \\
-  \end{tabular}
-\end{center}
+    \vspace{2mm}
+    \begin{center}
+    {\small
+    \begin{tabular}{@{}lll@{}}
+      \textit{Rapporteurs :}    & Prénom Nom  & Titre, Établissement \\[2mm]
+                                & Prénom Nom  & Titre, Établissement \\[4mm]
+      \textit{Examinateurs :}   & Prénom Nom  & Titre, Établissement \\[2mm]
+                                & Prénom Nom  & Titre, Établissement \\[4mm]
+      \textit{Encadrants :}     & Stephan Merz     & Directeur de recherche, Inria Nancy \\ [2mm]
+                                & Sophie Tourret   & Chargée de recherche, Inria Nancy
+    \end{tabular}
+    }
+    \end{center}
 
-\vfill
+    \vfill
 
-%--- Footer: rule + lab name + LORIA logo ---%
-\noindent\rule{\linewidth}{0.4pt}
-\vskip2mm
-\begin{center}
-  {\fontsize{10}{14}\bfseries\selectfont
-    Laboratoire Lorrain de Recherche en Informatique et ses Applications --- UMR 7503}\\[3mm]
-  \includegraphics[scale=0.2]{assets/tulloria}
-\end{center}
+    % ── Footer: rule + lab name ──────────────────────────────────────────────
+    {\rule{\textwidth}{\TPrule}}
+    \vspace{2mm}
+    \begin{center}
+      {\small\bfseries
+        Laboratoire Lorrain de Recherche en Informatique et ses
+        Applications --- UMR 7503\par}
+    \end{center}
 
-\clearpage
-\restoregeometry
-\thispagestyle{empty}
-\hbox{}
-\clearpage
+  \end{minipage}% end page body
+
+  \restoregeometry
+\end{titlepage}
