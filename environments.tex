@@ -30,6 +30,23 @@
 \Crefname{extype}{Example}{Examples}
 \Crefname{remtype}{Remark}{Remarks}
 
+\crefname{equation}{equation}{equations}
+\Crefname{equation}{Equation}{Equations}
+
+\newcounter{typrule}
+\crefname{typrule}{rule}{Rules}
+\Crefname{typrule}{Rule}{Rules}
+\newcommand{\rulelabel}[2]{%
+  \renewcommand{\thetyprule}{#2}%
+  \refstepcounter{typrule}%
+  \label{rule:#1-#2}%
+}
+\NewDocumentCommand{\typingrule}{ o m m m m }{%
+  \infer*[right={\IfNoValueTF{#1}{\texttt{#3}}{#1}}]
+    {#4}
+    {#5\text{\rulelabel{#2}{#3}}}%
+}
+
 % Helper: top-left accent bar drawn inside an overlay (TikZ context only).
 \newcommand{\tcbenvtopbar}[1]{%
   \draw[line width=2pt, color=#1, line cap=butt]
@@ -240,7 +257,7 @@
 % ---------------------------------------------------------------------------
 \NewTColorBox{note}{ }{%
   envbase,
-  colback=beige!30,
+  colback=beige!50,
   borderline west={2pt}{0pt}{beige!70!black},
   fontupper={\color{beige!50!black}},
   before upper={\setlength{\parskip}{4pt}\textcolor{beige!70!black}{\textbf{Note.}}\enspace},
@@ -262,9 +279,9 @@
 % ---------------------------------------------------------------------------
 \NewTColorBox{fact}{ }{%
   envbase,
-  colback=blue!7,
+  colback=blue!10,
   borderline west={2pt}{0pt}{blue!70},
-  before upper={\setlength{\parskip}{4pt}\textcolor{blue!70}{\textbf{Fact.}}\enspace},
+  before upper={\setlength{\parskip}{4pt}\textcolor{blue}{\textbf{Fact.}}\enspace},
 }
 
 % ---------------------------------------------------------------------------
@@ -281,10 +298,10 @@
 % ---------------------------------------------------------------------------
 \RenewTColorBox{proof}{ }{%
   envbase,
-  colback=blue!2,
+  colback=blue!5,
   borderline west={2pt}{0pt}{blue!70},
-  before upper={\setlength{\parskip}{4pt}\textit{Proof.}\enspace},
-  after upper={\unskip\nobreak\hspace*{1em}\hfill\ensuremath{\square}},
+  before upper={\setlength{\parskip}{4pt}\textbf{Proof.}\enspace},
+  after upper={\unskip\nobreak\hspace*{1em}\hfill\small\ensuremath{\qed}},
 }
 
 % ---------------------------------------------------------------------------
@@ -292,10 +309,11 @@
 % ---------------------------------------------------------------------------
 \NewTColorBox{subproof}{ }{%
   envbase,
-  colback=blue!7,
+  colback=blue!10,
+  fontupper={\color{dark-blue}},
   borderline west={2pt}{0pt}{blue!70},
-  before upper={\setlength{\parskip}{4pt}\textcolor{blue!70}{\textit{Proof.}}\enspace},
-  after upper={\unskip\nobreak\hspace*{1em}\hfill\ensuremath{\square}},
+  before upper={\setlength{\parskip}{4pt}\textcolor{blue}{\textbf{Proof.}}\enspace},
+  after upper={\unskip\nobreak\hspace*{1em}\hfill\small\ensuremath{\mathcolor{blue!70}{\qed}}},
 }
 
 % Footnotes inside proof/subproof go to the page bottom, not the box bottom.

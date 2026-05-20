@@ -1,21 +1,21 @@
-\section{Typing Rules}
+\section{Type System}
 \label{sec:b-typing}
 
 As mentioned in \Cref{subsec:b-type-system}, the B mathematical language does not include an
-intrinsic type system, but describes a relation constraining the shapes of expressions.
-The purpose of our type system is twofold: proof obligations articulate upon an inner representation
-of B types that we want to check at runtime, and the semantics of B terms is easier to define and
-reason about when terms are annotated with their types, thus avoiding type inference computations
-and usual technicalities of untyped semantics.
+intrinsic type system; rather, it describes a typing relation that constrains the form of expressions.
+The purpose of our type system is twofold: proof obligations rely on an internal representation
+of B types that we check at runtime, and the semantics of B terms is more readily defined and
+analysed when terms are annotated with their types, thereby avoiding type inference
+computations and the usual technicalities of untyped semantics.
 
 This section describes the typing rules for concrete and abstract B syntax.
 We consider the basic type system defined in \Cref{def:b-types}.
 
 
-\subsection{Concrete Typing}
+\subsection{Concrete typing rules}
 \label{subsec:b-concrete-typing}
 
-Concrete typing is defined for the first-order syntax defined in \Cref{def:b-basic-syntax}.
+Concrete typing is defined over the first-order syntax introduced in \Cref{def:b-basic-syntax}.
 The rules are syntax-directed and form judgments denoted by \(\btype{\Gamma}{t}{\tau}\),
 where \(\Gamma\) is a typing context, \(t\) is a concrete B term, and \(\tau\) is a B type.
 
@@ -26,111 +26,115 @@ A concrete typing context \(\Gamma\) is a map from concrete variables to B types
 \]
 \end{definition}
 
-Typing judgments are defined inductively, but we present them as inference
-rules, as is standard in type theory, in the definition below.
+\begin{remark}
+  In the implementation, we use association lists---in Lean, the type \leaninl{AList} guarantees the uniqueness of keys---to represent typing contexts, since they are meant to be manipulated at runtime, in contrast to bare partial functions.
+\end{remark}
+
+Typing judgments are defined inductively; they are presented below as inference
+rules, as is standard in type theory.
 \begin{definition}[Concrete typing rules][B.Typing][B/Typing/Rules.html\#B.Typing]
 \label{def:b-concrete-typing}
 Let \(\Gamma\) be a typing context. The inductive typing predicate \(\btype{\Gamma}{t}{\tau}\) is defined structurally on the term \(t\) by the following rules.
 \paragraph{Base rules.}
 \begin{mathpar}
-\infer*[right=\texttt{var}]
+\typingrule{b-concrete-typing}{var}
   {\Gamma(v)=\tau}
   {\btype{\Gamma}{\mathsf{var}\ v}{\tau}}
 \and
-\infer*[right=\texttt{int}]
+\typingrule{b-concrete-typing}{int}
   { }
   {\btype{\Gamma}{\mathsf{int}\ n}{\intB}}
 \and
-\infer*[right=\texttt{bool}]
+\typingrule{b-concrete-typing}{bool}
   { }
   {\btype{\Gamma}{\mathsf{bool}\ b}{\boolB}}
 \and
-\infer*[right=\(\mathbb{Z}\)]
+\typingrule[\(\mathbb{Z}\)]{b-concrete-typing}{Z}
   { }
   {\btype{\Gamma}{\mathbb{Z}}{\setB\intB}}
 \and
-\infer*[right=\(\mathbb{B}\)]
+\typingrule[\(\mathbb{B}\)]{b-concrete-typing}{Bool}
   { }
   {\btype{\Gamma}{\mathbb{B}}{\setB\boolB}}
 \and
-\infer*[right=\texttt{maplet}]
+\typingrule{b-concrete-typing}{maplet}
   {\btype{\Gamma}{x}{\alpha} \quad \btype{\Gamma}{y}{\beta}}
   {\btype{\Gamma}{x \mapletB y}{\alpha \prodB \beta}}
 \end{mathpar}
 \paragraph{Arithmetic rules.}
 \begin{mathpar}
-\infer*[right=\texttt{add}]
+\typingrule{b-concrete-typing}{add}
   {\btype{\Gamma}{x}{\intB} \quad \btype{\Gamma}{y}{\intB}}
   {\btype{\Gamma}{x \addB y}{\intB}}
 \and
-\infer*[right=\texttt{sub}]
+\typingrule{b-concrete-typing}{sub}
   {\btype{\Gamma}{x}{\intB} \quad \btype{\Gamma}{y}{\intB}}
   {\btype{\Gamma}{x \subB y}{\intB}}
 \and
-\infer*[right=\texttt{mul}]
+\typingrule{b-concrete-typing}{mul}
   {\btype{\Gamma}{x}{\intB} \quad \btype{\Gamma}{y}{\intB}}
   {\btype{\Gamma}{x \mulB y}{\intB}}
 \end{mathpar}
 \paragraph{Boolean rules.}
 \begin{mathpar}
-\infer*[right=\texttt{and}]
+\typingrule{b-concrete-typing}{and}
   {\btype{\Gamma}{x}{\boolB} \quad \btype{\Gamma}{y}{\boolB}}
   {\btype{\Gamma}{x \andB y}{\boolB}}
 \and
-\infer*[right=\texttt{not}]
+\typingrule{b-concrete-typing}{not}
   {\btype{\Gamma}{x}{\boolB}}
   {\btype{\Gamma}{\notB x}{\boolB}}
 \and
-\infer*[right=\texttt{eq}]
+\typingrule{b-concrete-typing}{eq}
   {\btype{\Gamma}{x}{\alpha} \quad \btype{\Gamma}{y}{\alpha}}
   {\btype{\Gamma}{x \eqB y}{\boolB}}
 \and
-\infer*[right=\texttt{le}]
+\typingrule{b-concrete-typing}{le}
   {\btype{\Gamma}{x}{\intB} \quad \btype{\Gamma}{y}{\intB}}
   {\btype{\Gamma}{x \leB y}{\boolB}}
 \and
-\infer*[right=\texttt{mem}]
+\typingrule{b-concrete-typing}{mem}
   {\btype{\Gamma}{x}{\alpha} \quad \btype{\Gamma}{S}{\setB\alpha}}
   {\btype{\Gamma}{x \inB S}{\boolB}}
 \end{mathpar}
 \paragraph{Set rules.}
 \begin{mathpar}
-\infer*[right=\texttt{pow}]
+\typingrule{b-concrete-typing}{pow}
   {\btype{\Gamma}{S}{\setB\alpha}}
   {\btype{\Gamma}{\powB(S)}{\setB(\setB\alpha)}}
 \and
-\infer*[right=\texttt{cprod}]
+\typingrule{b-concrete-typing}{cprod}
   {\btype{\Gamma}{S}{\setB\alpha} \quad \btype{\Gamma}{T}{\setB\beta}}
   {\btype{\Gamma}{S \prodB T}{\setB(\alpha \prodB \beta)}}
 \and
-\infer*[right=\texttt{union}]
+\typingrule{b-concrete-typing}{union}
   {\btype{\Gamma}{S}{\setB\alpha} \quad \btype{\Gamma}{T}{\setB\alpha}}
   {\btype{\Gamma}{S \cupB T}{\setB\alpha}}
 \and
-\infer*[right=\texttt{inter}]
+\typingrule{b-concrete-typing}{inter}
   {\btype{\Gamma}{S}{\setB\alpha} \quad \btype{\Gamma}{T}{\setB\alpha}}
   {\btype{\Gamma}{S \capB T}{\setB\alpha}}
 \end{mathpar}
 
 \paragraph{Function rules.}
 \begin{mathpar}
-  \infer*[right=\texttt{pfun}]
+\typingrule{b-concrete-typing}{pfun}
   {\btype{\Gamma}{S}{\setB\alpha} \quad \btype{\Gamma}{T}{\setB\beta}}
   {\btype{\Gamma}{S \pfunB T}{\setB(\setB(\alpha \prodB \beta))}}
 \and
-\infer*[right=\texttt{app}]
+\typingrule{b-concrete-typing}{app}
   {\btype{\Gamma}{f}{\setB(\alpha \prodB \beta)} \quad \btype{\Gamma}{x}{\alpha}}
   {\btype{\Gamma}{\appB f\ x}{\beta}}
 \and
-\infer*[right=\texttt{card}]
+\typingrule{b-concrete-typing}{card}
   {\btype{\Gamma}{S}{\setB\alpha}}
   {\btype{\Gamma}{\cardB{S}}{\intB}}
 \and
-\infer*[right=\texttt{min}]
+\typingrule{b-concrete-typing}{min}
   {\btype{\Gamma}{S}{\setB\intB}}
   {\btype{\Gamma}{\minB(S)}{\intB}}
 \and
-\infer*[right=\texttt{max}]
+\typingrule{b-concrete-typing}{max}
   {\btype{\Gamma}{S}{\setB\intB}}
   {\btype{\Gamma}{\maxB(S)}{\intB}}
 \end{mathpar}
@@ -147,7 +151,7 @@ We write
 and \(\Gamma[\vec v : \vec\alpha]\) for the left-biased extension of
 \(\Gamma\) mapping each \(v_i\) to \(\alpha_i\).
 The common binder side condition is abbreviated as follows:
-\[
+\begin{equation}
 \begin{aligned}
   \mathsf{Bind}(\Gamma,\vec v,\vec\alpha,\vec D) \coloneq
     &\underbrace{k > 0 \land \mathsf{NoDup}(\vec v)
@@ -158,80 +162,276 @@ The common binder side condition is abbreviated as follows:
   \land{} &\underbrace{\forall 1 \leq i \leq k,\, \btype{\Gamma}{D_i}{\setB\alpha_i}}
       _{\text{each domain locally has the expected set type}}
 \end{aligned}
-\]
+\tag{Bind def.}
+\label{eq:def-bind}
+\end{equation}
 The binder rules are as follows.
 \begin{mathpar}
-\infer*[right=\texttt{collect}]
+\typingrule{b-concrete-typing}{collect}
   {\mathsf{Bind}(\Gamma,\vec v,\vec\alpha,\vec D)
    \quad \btype{\Gamma[\vec v:\vec\alpha]}{P}{\boolB}}
   {\btype{\Gamma}{\{\,\vec v \inB D^\times \mid P\,\}}{\setB\alpha^\times}}
 \and
-\infer*[right=\texttt{all}]
+\typingrule{b-concrete-typing}{all}
   {\mathsf{Bind}(\Gamma,\vec v,\vec\alpha,\vec D)
    \quad \btype{\Gamma[\vec v:\vec\alpha]}{P}{\boolB}}
   {\btype{\Gamma}{\forallB \vec v \inB D^\times \cdot P}{\boolB}}
 \and
-\infer*[right=\texttt{lambda}]
+\typingrule{b-concrete-typing}{lambda}
   {\mathsf{Bind}(\Gamma,\vec v,\vec\alpha,\vec D)
    \quad \btype{\Gamma[\vec v:\vec\alpha]}{e}{\beta}}
   {\btype{\Gamma}{\lambdaB \vec v \inB D^\times \cdot e}{\setB(\alpha^\times \prodB \beta)}}
 \end{mathpar}
 \end{definition}
 
-Several structural facts are proved alongside the concrete rules, such
-as inversion lemmas, from which one can retrieve typing information of subterms from a typing derivation of a larger term. We give an example of such a lemma for the union operator.
+\subsection{Properties of the concrete type system}
+
+We prove the standard structural properties of the concrete type system, including determinism, weakening, strengthening, \etc
+
+\paragraph{Rule inversion.}
+First, we prove all expected inversion lemmas---one per typing rule---from which typing information about subterms can be extracted. Although not strictly necessary in theory---inversion can always be performed manually---they are extremely useful in practice: they allow typing derivations to be decomposed directly into their premises, which are then propagated through induction hypotheses, a recurring pattern in backward reasoning.
+
+They are available under the names {\small\leancodeptr{B.Typing.varE}{B/Typing/Rules.html\#B.Typing.varE}}, {\small\leancodeptr{B.Typing.addE}{B/Typing/Rules.html\#B.Typing.addE}}, {\small\leancodeptr{B.Typing.setE}{B/Typing/Rules.html\#B.Typing.setE}}, \etc and their proofs are straightforward, proceeding by case analysis on the typing derivation of the term, which in each case reduces to a single branch. For example, the inversion lemma for union is as follows.
 
 \begin{lemma}[Union typing inversion][B.Typing.unionE][B/Typing/Rules.html\#B.Typing.unionE]
-  Let \(\Gamma\) be a typing context, \(S\) and \(T\) be concrete B terms, and \(\tau\) be a B type. If \(\btype{\Gamma}{S \cupB T}{\tau}\), then both \(S\) and \(T\) are typed as sets of the same type in \(\Gamma\), and \(\tau\) is a set of that type:
+  Let \(\Gamma\) be a typing context, \(S\) and \(T\) be concrete B terms, and \(\tau\) be a B type. If \(\btype{\Gamma}{S \cupB T}{\tau}\), then both \(S\) and \(T\) are typed as sets over a common element type under \(\Gamma\), and \(\tau\) is a set of that element type:
   \[
     \exists\alpha,\, \btype{\Gamma}{S}{\setB\alpha} \quad \land \quad \btype{\Gamma}{T}{\setB\alpha}
   \]
 \end{lemma}
 \begin{proof}
-  The proof is straightforward by case analysis on the typing derivation of \(S \cupB T\).
+  The proof is carried out by case analysis on the typing derivation of \(S \cupB T\);
+  there is only one rule that can apply---\cref{rule:b-concrete-typing-union}---which requires the premises of the lemma to hold.
 \end{proof}
 
-The most important for later chapters is type determinism:
-\[
-  \btype{\Gamma}{t}{\tau}
-  \quad\land\quad
-  \btype{\Gamma}{t}{\sigma}
-  \quad\Longrightarrow\quad
-  \tau = \sigma.
-\]
-The first-order development proves this as \(\texttt{Typing.det}\).
-The development also proves inversion lemmas for each constructor, such as
-extracting the operand types from a typing derivation of a union, application,
-lambda, or comprehension.
-These lemmas turn a typing derivation into the precise type information needed
-by later recursive arguments.
+\paragraph{Structural properties.}
 
-\subsection{Abstract Typing}
+One important property is determinism, namely that a term cannot be assigned two different types in the same context.
+This is a standard property of type systems and will prove useful later when defining the semantics.
+
+\begin{theorem}[Typing determinism][B.Typing.det][B/Typing/Rules.html\#B.Typing.det]
+  Let \(\Gamma\) be a concrete typing context, \(t\) be a concrete B term, and \(\alpha, \beta\) be B types. If \(\btype{\Gamma}{t}{\alpha}\) and \(\btype{\Gamma}{t}{\beta}\), then \(\alpha = \beta\).
+\end{theorem}
+\begin{proof}
+  By induction on the term \(t\). Non-binder cases are straightforward: apply rule inversion to both typing derivations and use the induction hypothesis on the subterms. We sketch the proof for the lambda case; the other binder cases are analogous.
+  
+  The assumptions are the following, keeping the same notation as in the typing rules:
+  \[
+    \btype{\Gamma}{\lambdaB \vec v \inB D \cdot e}{\alpha} \quad\text{and}\quad
+    \btype{\Gamma}{\lambdaB \vec v \inB D \cdot e}{\beta}
+  \]
+  Induction hypotheses state that typing is deterministic on \(D\) under \(\Gamma\), and on \(e\) under any extension of \(\Gamma\).
+  By rule inversion on both typing derivations, we obtain:
+  \[
+  \begin{aligned}
+    \vec\alpha &\coloneq \alpha_1, \ldots, \alpha_n \text{ and } \gamma_\alpha, \quad &\text{ with }\quad &\alpha^\times \coloneq \alpha_1 \prodB \cdots \prodB \alpha_n,\\
+    \vec{A} &\coloneq A_1, \ldots, A_n,\quad &\text{ with }\quad &A^\times \coloneq A_1 \prodB \cdots \prodB A_n,\\
+    \vec\beta &\coloneq \beta_1, \ldots, \beta_m \text{ and } \gamma_\beta,\quad &\text{ with }\quad &\beta^\times \coloneq \beta_1 \prodB \cdots \prodB \beta_m,\\
+    \vec{B} &\coloneq B_1, \ldots, B_m,\quad &\text{ with }\quad &B^\times \coloneq B_1 \prodB \cdots \prodB B_m,
+  \end{aligned}
+  \]
+  such that:
+  \[
+  \begin{aligned}
+    &\mathsf{Bind}(\Gamma,\vec v,\vec\alpha,\vec A),\quad &D = A^\times,\quad &\btype{\Gamma[\vec v:\vec\alpha]}{e}{\gamma_\alpha},\quad & \alpha = \setB(\alpha^\times \prodB \gamma_\alpha) \\
+    &\mathsf{Bind}(\Gamma,\vec v,\vec\beta,\vec B),\quad &D = B^\times,\quad &\btype{\Gamma[\vec v:\vec\beta]}{e}{\gamma_\beta},\quad & \beta = \setB(\beta^\times \prodB \gamma_\beta)
+  \end{aligned}
+  \]
+  
+  Using \cref{eq:def-bind}, we obtain that \(n = m\), namely that both derivations bind the same number of variables.
+  Using the equalities on \(D\), we obtain that \(\vec{A} = \vec{B}\), and consequently, using induction hypothesis on \(D\), that \(\vec\alpha = \vec\beta\), hence \(\alpha^\times = \beta^\times\).
+  
+  Thus, \(\Gamma[\vec v:\vec\alpha] = \Gamma[\vec v:\vec\beta]\), and we can then apply the induction hypothesis to the typing of \(e\) to obtain \(\gamma_\alpha = \gamma_\beta\).
+\end{proof}
+
+The following structural properties state that a typing derivation depends only on the bindings of the variables that occur in the term. Because concrete binders use names, weakening must also preserve the freshness of bound variables.
+
+\begin{theorem}[Context weakening][B.Typing.context\_weakening'][B/Typing/Rules.html\#B.Typing.context_weakening']
+  Let \(\Gamma\) be a concrete typing context, \(e\) be a concrete B term, \(\vec y\) be a list of variables, and \(\vec\beta\) be a list of B types of the same length. If \(\btype{\Gamma}{e}{\alpha}\), every variable in \(\vec y\) is fresh for \(\Gamma\), and no variable in \(\vec y\) is bound in \(e\), then
+  \[
+    \btype{\Gamma[\vec y:\vec\beta]}{e}{\alpha}.
+  \]
+\end{theorem}
+\begin{proof}
+  By induction on \(e\). In the variable case, say \(e = \mathsf{var}\ x\), the typing derivation gives \(x \in \Gamma\). Since every variable in \(\vec y\) is fresh for \(\Gamma\), \(x\) does not belong to \(\vec y\), so its lookup is unchanged by the extension. Constants are immediate.
+
+  For every non-binding compound term, rule inversion gives typing derivations for the immediate subterms.
+  The induction hypotheses weaken their typings, and the same typing rule reconstructs the original term under \(\Gamma[\vec y:\vec\beta]\).
+
+  We detail the binder case for \(\lambdaB\); the cases for set comprehension and universal quantification are similar. Assume:
+  \[
+    \btype{\Gamma}{\lambdaB \vec v \inB D \cdot e}{\tau}.
+  \]
+  By rule inversion, we obtain \(\vec D\), \(\vec\sigma\), and \(\rho\), with \(D = D^\times\) and \(\tau = \setB(\sigma^\times \prodB \rho)\), such that \(\mathsf{Bind}(\Gamma,\vec v,\vec\sigma,\vec D)\) and \(\btype{\Gamma[\vec v:\vec\sigma]}{e}{\rho}\). From the fact that no variable in \(\vec y\) is bound in \(\lambdaB \vec v \inB D \cdot e\), we get that \(\vec y\) is disjoint from the bound variables \(\vec v\), is not bound in the domains \(\vec D\), and is not bound in the body \(e\).
+
+  The induction hypothesis weakens the typings of the domains \(\vec D\) to \(\Gamma[\vec y:\vec\beta]\), \ie
+  \[
+    \forall i,\, \btype{\Gamma[\vec y:\vec\beta]}{D_i}{\setB\sigma_i}.
+  \]
+  Moreover, because \(\vec y\) is fresh for \(\Gamma\) and disjoint from \(\vec v\), it is fresh for the extended context \(\Gamma[\vec v:\vec\sigma]\). Therefore, applying the induction hypothesis to \(\btype{\Gamma[\vec v:\vec\sigma]}{e}{\rho}\) gives a typing under
+  \(
+    \Gamma[\vec v:\vec\sigma][\vec y:\vec\beta].
+  \)
+
+  The lambda rule after weakening the outer context expects the body under \(\Gamma[\vec y:\vec\beta][\vec v:\vec\sigma]\).
+  \begin{fact}
+    Since \(\vec y\) is disjoint from \(\vec v\) and fresh for \(\Gamma\), the two extensions commute:
+    \[
+      \Gamma[\vec v:\vec\sigma][\vec y:\vec\beta] = \Gamma[\vec y:\vec\beta][\vec v:\vec\sigma].
+    \]
+  \end{fact}
+  \begin{subproof}
+    See proof of {\small\leancodeptr{TypeContext.union\_swap\_find?}{B/Typing/Basic.html\#B.TypeContext.union_swap_find?}}.
+  \end{subproof}
+  Hence the body premise has the expected context. Finally, since \(\vec v\) is fresh for \(\Gamma\) and disjoint from \(\vec y\), the binder side condition \(\mathsf{Bind}(\Gamma[\vec y:\vec\beta],\vec v,\vec\sigma,\vec D)\) also holds, and the lambda rule concludes.
+\end{proof}
+
+\begin{theorem}[Context strengthening][B.Typing.context\_strengthening'][B/Typing/Rules.html\#B.Typing.context_strengthening']
+  Let \(\Gamma\) be a concrete typing context, \(e\) be a concrete B term, \(\vec y\) be a list of variables, and \(\vec\beta\) be a list of B types of the same length. If \(\btype{\Gamma[\vec y:\vec\beta]}{e}{\alpha}\) and no variable in \(\vec y\) is free in \(e\), then
+  \[
+    \btype{\Gamma}{e}{\alpha}.
+  \]
+\end{theorem}
+\begin{proof}
+  We first prove the one-variable case.
+  \begin{fact}
+    If \(\btype{\Gamma[y:\beta]}{e}{\alpha}\) and \(y\) is not a free variable in \(e\), then \(\btype{\Gamma}{e}{\alpha}\).
+  \end{fact}
+  \begin{subproof}
+    By induction on \(e\). Variables and constants are immediate. Non-binding compound terms follow by rule inversion, applying the induction hypotheses to the immediate subterms, and rebuilding the same rule.
+
+    Binder cases are mechanical and involve {\small\leancodeptr{TypeContext.union\_swap\_find?}{B/Typing/Basic.html\#B.TypeContext.union_swap_find?}}.
+  \end{subproof}
+
+  The general statement follows from this fact by induction on the list \(\vec y\).
+  If \(\vec y\) is empty, there is no binding to remove. Otherwise, consider \(y_0,\vec y\) and \(\beta_0,\vec\beta\).
+  The extended context is then \(\Gamma[\vec y:\vec\beta][y_0:\beta_0]\).
+  The one-variable strengthening just proved removes \(y_0:\beta_0\), using that \(y_0\) is not free in \(e\).
+  The induction hypothesis then removes the remaining block \(\vec y:\vec\beta\).
+\end{proof}
+
+\subsection{Abstract typing rules}
 \label{subsec:b-abstract-typing}
 
 Abstract typing is defined over the PHOAS syntax.
-Its context is a function
-\(\mathcal V \to \mathsf{Option}\,\mathsf{BType}\), where
-\(\mathsf{none}\) represents absence from the context, and
-\(\mathsf{some}\,\tau\) represents a successful lookup.
-The PHOAS judgment has the form
+Abstract typing contexts are higher-order structures than their concrete counterparts:
+they are partial functions \(\mathcal V \rightharpoonup \mathsf{BType}\). Partiality is
+implemented in Lean using the \(\mathsf{Option}\) type.
+Abstract typing judgments are written \(\batype{\Gamma}{t}{\tau}\) and are available as the
+inductive predicate {\small\leancodeptr{B.PHOAS.Typing}{B/HOTyping/Rules.html\#B.PHOAS.Typing}}.
+
+The non-binding rules are identical to their concrete counterparts.
+The binder rules differ in how they expose the bound variables: instead of dealing with explicit
+names, variable management is handled at the meta-level of Lean---which takes care of freshness
+and substitution---and the body of the binder is typed under any extension of the context with
+arbitrary families of variables. We illustrate this with the lambda rule below; the other binder rules are analogous.
+
+Given a family of B types \(\vec\alpha\) with \(|\vec\alpha| > 0\) and a family of domains \(\vec D\) of the same length, a B type \(\beta\), and a scoped term \(e : (\mathsf{Fin}\ |\vec\alpha| → \mathcal{V}) → \mathsf{Term}\ \mathcal{V}\), the abstract typing rule for lambda is as follows:
+
+\begin{mathpar}
+  \typingrule{b-abstract-typing}{lambda}
+  {
+    \forall i,\, \batype{\Gamma}{D_i}{\alpha_i} \qquad
+    \forall \vec v,\, \batype{\Gamma[\vec v : \vec \alpha]}{e(\vec v)}{\beta}
+  }
+  {\batype{\Gamma}{\lambdaB' {D^{\times}} \cdot e}{\setB(\alpha^\times \prodB \beta)}}
+\end{mathpar}
+
+\begin{remark}
+  In the actual implementation of abstract typing, we impose two constraints on the type \(\mathcal{V}\).
+  First, equality on \(\mathcal{V}\) must be decidable, which is a mild assumption.
+  Second, we require that \(\mathcal{V}\) be equipped with a type-assignment function \(\mathcal{V} \to \mathsf{BType}\)---a mild requirement satisfied by any semantically meaningful variable domain. This will prove useful later when reasoning about the semantics.
+\end{remark}
+
+As for the concrete type system, we prove inversion lemmas for every abstract typing rule, with the same names as their concrete counterparts, \eg\ 
+{\small\leancodeptr{B.PHOAS.Typing.varE}{B/HOTyping/Rules.html\#B.PHOAS.Typing.varE}},
+{\small\leancodeptr{B.PHOAS.Typing.addE}{B/HOTyping/Rules.html\#B.PHOAS.Typing.addE}},
+{\small\leancodeptr{B.PHOAS.Typing.unionE}{B/HOTyping/Rules.html\#B.PHOAS.Typing.unionE}}, \etc
+
+\subsection{Abstracting concrete typing}
+\label{subsec:b-typing-abstraction}
+
+The two type systems are connected by a context abstraction map that lifts concrete
+typing derivations to the PHOAS setting.
+In this section, we once more work with a constrained type \(\mathcal{V}\) for variables in which elements
+carry their B type intrinsically.
+
+Recall from \Cref{subsec:b-syntax-change-repr} that a \emph{variable renaming} is a partial map \(\Delta : \mathsf{String} \rightharpoonup \mathcal{V}\) from concrete B variable names to PHOAS names.
+\begin{remark}
+  In practice, we consider the instantiation \(\mathcal{V} = \mathsf{Dom}\), defined later in \Cref{sec:b-semantics}, which satisfies the constraint.
+\end{remark} 
+
+We define an abstraction function that builds abstract contexts from concrete contexts
+and a given variable renaming.
+
+\begin{definition}[Context abstraction][TypeContext.abstract][B/SemanticsPHOAS.html\#B.TypeContext.abstract]
+\label{def:b-context-abstraction}
+Let \(\Gamma\) be a concrete typing context and \(\Delta : \mathsf{String} \rightharpoonup \mathcal{V}\)
+a variable renaming context. The abstract context
+\(\aterm{\Gamma}{\Delta} : \mathcal{V} \rightharpoonup \mathsf{BType}\) is defined for \(v : \mathcal{V}\) whenever
+\begin{enumerate}[label=(\roman*)]
+  \item there exists a concrete name \(k\) with \(\Delta(k) = v \land k \in \Gamma\), and 
+  \item the intrinsic B type \(\tau\) carried by \(v\) is \(\Gamma(k) = \tau\).
+\end{enumerate}
+When both conditions hold, the abstract context maps \(v\) to \(\tau\):
 \[
-  \mathsf{Typing} : (\mathcal V \to \mathsf{Option}\,\mathsf{BType})
-  \to \mathsf{Term}\,\mathcal V \to \mathsf{BType} \to \mathsf{Prop},
+  \aterm{\Gamma}{\Delta}(v) \coloneq \tau
 \]
-written \(\Gamma \vdash^{B'} t : \tau\).
+\end{definition}
 
-The non-binding rules mirror the concrete typing rules.
-The binder rules differ in how they expose the bound variables: instead of
-checking a list of names and extending a finite association list, the rule
-receives a family of fresh PHOAS variables and types the body under the
-corresponding functional context extension.
-Thus, freshness and substitution bookkeeping are delegated to Lean's own
-function space, while the B-specific typing premises remain explicit.
+The condition \(\Gamma(k) = \tau\) strengthens mere membership \(k \in \Gamma\):
+it requires the type declared in \(\Gamma\) for the preimage \(k\) to coincide with the
+intrinsic type \(\tau\) of the domain element \(v\).
+This coherence check is baked into the definition itself, and it is what makes
+\(\aterm{\Gamma}{\Delta}\) well-typed by construction (see \Cref{lem:b-wftc-of-abstract} below).
+For the main typing-preservation result, we additionally require coherence to hold
+globally for \(\Delta\), not merely for the specific domain elements appearing in a given term:
 
-The PHOAS development contains the analogues of the concrete structural lemmas,
-including type determinism under the expected nonemptiness assumption for
-variable families.
-These results are used by the semantics and by the SMT encoding proof, where
-recursive calls require precise information about the type assigned to each
-subterm.
+\begin{definition}[Renaming well-formedness][B.RenWF][B/Reasoning/Lemmas.html\#B.RenWF]
+\label{def:b-ren-wf}
+A renaming \(\Delta : \mathsf{String} \rightharpoonup \mathcal{V}\) is \emph{well-formed} with
+respect to a typing context \(\Gamma\), if for any concrete name \(k\) and any domain element \(v : \mathcal{V}\),
+\[
+  \Delta(k) = v \land k \in \Gamma \implies \Gamma(k) = \tau,
+\]
+where \(\tau\) is the intrinsic B type carried by \(v\).
+\end{definition}
+
+The abstracted context automatically satisfies the fact that every domain element
+is assigned its own intrinsic type.
+The main result is that concrete typing is preserved by abstraction.
+
+\begin{theorem}[\(\,\bop{\vdash} \implies \baop{\vdash}\,\)][Typing.of\_abstract][B/Reasoning/Lemmas.html\#Typing.of_abstract]
+\label{thm:b-typing-of-abstract}
+Let \(\Gamma\) be a concrete typing context, \(t\) a concrete B term, \(\tau\) a B type,
+and \(\Delta\) a renaming context such that:
+\begin{enumerate}[label=(\roman*)]
+  \item \(\Delta\) covers all free variables of \(t\), and
+  \item \(\Delta\) is well-formed with respect to \(\Gamma\).
+\end{enumerate}
+
+Then, abstract typing is preserved by abstraction:
+\[
+  \btype{\Gamma}{t}{\tau} \implies \batype{\aterm{\Gamma}{\Delta}}{\aterm{t}{\Delta}}{\tau}
+\]
+\end{theorem}
+
+\begin{proof}
+By induction on the typing derivation \(\btype{\Gamma}{t}{\tau}\).
+
+In the variable case, say \(t = \mathsf{var}\, v\), inversion of \cref{rule:b-concrete-typing-var} provides \(\Gamma(v) = \tau\).
+Moreover, well-formedness of \(\Delta\) gives \(\aterm{\Gamma}{\Delta}(v) = \Gamma(v) = \tau\).
+Since \(\aterm{t}{\Delta} = \aterm{\mathsf{var}\ v}{\Delta} \triangleq \Delta(v)\), the abstract typing rule for variables applies and concludes.
+Constant cases are immediate since they carry no free variables.
+
+For compound non-binder terms, rule inversion decomposes the typing into premises
+on the immediate subterms; the induction hypothesis applies to each subterm,
+and the corresponding abstract typing rule reconstructs the derivation.
+
+Binder cases extend both the context and the renaming with fresh bindings for the bound
+variables, and invoke the induction hypothesis on the body under the extended context.
+\end{proof}
+
+This result is used throughout the correctness proofs of the B semantics:
+it allows a typing derivation on a concrete B term to be transferred to
+the PHOAS representation in which the denotational semantics is defined.
