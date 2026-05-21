@@ -10,57 +10,97 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    name: "Release"
-    runs-on: "ubuntu-latest"
+  build:
+    name: "Build (${{ matrix.variant }})"
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - variant: proofs
+            pdf: thesis.pdf
+          - variant: noproofs
+            args: -noproofs
+            pdf: thesis-noproofs.pdf
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      
+
       - name: Build PDF
         uses: xu-cheng/latex-action@v3
         with:
           root_file: main.tex
           latexmk_use_lualatex: true
-          
+          args: ${{ matrix.args || '' }}
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.pdf }}
+          path: ${{ matrix.pdf }}
+
+  release:
+    name: "Release"
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download thesis.pdf
+        uses: actions/download-artifact@v4
+        with:
+          name: thesis.pdf
+
+      - name: Download thesis-noproofs.pdf
+        uses: actions/download-artifact@v4
+        with:
+          name: thesis-noproofs.pdf
+
       - name: Fetch release by tag
         id: fetch-release
         uses: pdamianik/release-tag-to-upload-url-action@v1.0.1
-        env: 
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag: pdf
           token: ${{ github.token }}
         continue-on-error: true
-        
-      - uses: dev-drprasad/delete-tag-and-release@v1.1
-        name: Delete release if already existing
+
+      - name: Delete release if already existing
+        uses: dev-drprasad/delete-tag-and-release@v1.1
         with:
-          delete_release: true 
+          delete_release: true
           tag_name: pdf
           github_token: ${{ secrets.GITHUB_TOKEN }}
         if: steps.fetch-release.outcome == 'success'
-                    
+
       - name: Create release
         id: create-release
         uses: avakar/tag-and-release@v1
         with:
           tag_name: pdf
           release_name: thesis
-          body: Prebuilt PDF of the thesis.
+          body: Prebuilt PDF of the thesis, built from the latest commit on the main branch. A variant with all proofs skipped is also included.
           prerelease: false
           draft: false
-        env: 
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-      - name: Upload pdf book
-        id: upload-release-asset 
+
+      - name: Upload thesis.pdf
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }} 
-          asset_path: main.pdf
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: thesis.pdf
           asset_name: thesis.pdf
+          asset_content_type: application/pdf
+
+      - name: Upload thesis-noproofs.pdf
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: thesis-noproofs.pdf
+          asset_name: thesis-noproofs.pdf
           asset_content_type: application/pdf
