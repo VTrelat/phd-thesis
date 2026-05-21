@@ -1,115 +1,295 @@
 \section{Semantics}
 \label{sec:b-semantics}
 
-The \inlremark[denotational]{Explain why we went for denotational compared to other approaches (operational, axiomatic)} semantics is given for PHOAS terms.
-Concrete terms are interpreted after abstraction to PHOAS, so that binders are
-handled by Lean functions rather than by explicit capture-avoiding
-substitution.
+The semantics of B developed in this work is \emph{denotational}:
+each term is assigned a value in a set-theoretic domain using the ZFLean framework
+developed in \Cref{ch:zflean}.
+Denotational semantics provides the compositional mathematical objects required
+to assign meanings to B terms, which is the central concern of the following chapters;
+the emphasis is on \emph{what} a B expression computes, not on \emph{how} it is
+evaluated---compared to, say, an operational semantics.
+Concrete terms are interpreted after abstraction to PHOAS, as described in \Cref{sec:b-syntax}.
 
-B types are interpreted as sets in the ZFC universe used by BEer:
+\subsection{Interpretation of B types}
+\label{subsec:b-type-interp}
+
+We first define the interpretation of B types as ZFC sets, denoted \(\interpZ{\cdot}\).
+
+\begin{definition}[Type interpretation][B.BType.toZFSet][B/SemanticsPHOAS.html\#B.BType.toZFSet]
+\label{def:b-type-interp}
+The function $\interpZ{\cdot} : \mathsf{BType} \to \mathsf{ZFSet}$ is defined by:
 \[
 \begin{array}{rcl}
-\interpB{\intB} &=& \Zint,\\
-\interpB{\boolB} &=& \Zbool,\\
-\interpB{\setB\tau} &=& \powZ(\interpB{\tau}),\\
-\interpB{\tau \prodB \sigma} &=& \interpB{\tau} \timesZ \interpB{\sigma}.
+\interpZ{\intB} &=& \Zint,\\
+\interpZ{\boolB} &=& \Zbool,\\
+\interpZ{\setB\tau} &=& \powZ(\interpZ{\tau}),\\
+\interpZ{\tau \prodB \sigma} &=& \interpZ{\tau} \timesZ \interpZ{\sigma}.
 \end{array}
 \]
-In Lean this is the function \(\texttt{BType.toZFSet}\).
-The development proves that each type denotes a nonempty set.
-This fact is used when defining default values and when interpreting open
-terms under environments.
+\end{definition}
 
-The main PHOAS semantic domain is:
+Agreeing on the fact that this set-theoretic interpretation is appropriate, we can show
+that B types are inhabited.
+
+\begin{lemma}[Nonemptiness][B.BType.toZFSet\_nonempty][B/SemanticsPHOAS.html\#B.BType.toZFSet_nonempty]
+\label{thm:b-type-nonempty}
+Interpretations of B types are nonempty, \ie
+\[\forall \tau,\, \interpZ{\tau} \neq \emptyset\]
+\end{lemma}
+\begin{proof}
+By structural induction on \(\tau\).
+The sets \(\Zint\) and \(\Zbool\) are nonempty by construction;
+\(\emptyset \in \powZ(S)\) for any \(S\);
+the Cartesian product of two nonempty sets is nonempty.
+\end{proof}
+
+Nonemptiness ensures that open terms can be given canonical default values, and
+that the semantic domain is inhabited at every type.
+
+\subsection{Semantic domain}
+\label{subsec:b-sem-domain}
+
+We now define the semantic domain of B terms, \ie the type of interpretations of B terms.
+As mentioned already, the B mathematical language is rooted in set theory, so the semantic domain
+is naturally expressed over set-theoretic constructions.
+Our interpretation of B terms slightly diverges from the standard description given in the
+B-Book~\cite{abrial1996bbook} in that we constrain the semantic domain to carry intrinsic B types,
+as motivated earlier in \Cref{rem:b-constraint-on-V}, so that we achieve that denotations are only
+defined for \emph{well-typed} values with respect to our type system.
+The reason for this design choice is to avoid set-theoretic pathologies related to ill-typed terms,
+and provide baked-in typing constraints directly in the semantics, thus circumventing some
+well-definedness side conditions---actually, all conditions related to type-correctness---in the
+denotation clauses.
+This is highly motivated by the idea of obtaining a \emph{correct-by-construction} design.
+
+\begin{remark}
+  This design choice only removes case analysis on type-correctness from the denotation clauses, but does not eliminate the need for semantic well-definedness side conditions related to partial operations, like in domain-application or cardinality, which are still present in the semantics and are discussed below.
+\end{remark}
+
+\begin{definition}[Semantic domain][B.Dom][B/SemanticsPHOAS.html\#B.Dom]
+\label{def:b-dom}
+The semantic domain is the following dependent sum type:
 \[
-  \mathsf{Dom} \;\triangleq\;
-  \sum_{x : \mathsf{ZFSet}} \sum_{\tau : \mathsf{BType}}
-  x \inZ \interpB{\tau}.
+  \mathsf{Dom} \triangleq
+  \sum_{X : \mathsf{ZFSet}}\sum_{\tau : \mathsf{BType}}\,
+  X \in \interpZ{\tau}
 \]
-An element of \(\mathsf{Dom}\) is a ZFC value equipped with its B type and a
-proof that the value belongs to the interpretation of that type.
-The term denotation has type
+\end{definition}
+
+Elements in \(\mathsf{Dom}\) are therefore dependent triples, denoted \(\denval{X}[\tau]\),
+containing a ZFC set \(X\), a B type \(\tau\) and a proof \(\pf{\tau}{X} : X \in \interpZ{\tau}\).
+
+\begin{note}
+  When the proof is unused or irrelevant in a given context, we simply write ``\(\irrelprf\)'' in
+  such triples, mimicking Lean notations.
+\end{note}
+
+As motivated in \Cref{subsec:phoas-for-semantics}, we now use PHOAS representation as a trick to define the semantics of B.
+The denotation function is therefore a partial function---due to B containing partial constructs requiring well-definedness side conditions---over PHOAS terms parameterized by the semantic domain:
 \[
   \interpB{\cdot} :
   \mathsf{PHOAS.Term}\,\mathsf{Dom}
-  \to \mathsf{Option}\,\mathsf{Dom}.
+  \rightharpoonup \mathsf{Option}\,\mathsf{Dom}
 \]
-The result is optional because the B expression language contains partial
-constructs.
-For example, \(f(t)\) is defined only if \(f\) denotes a partial function and
-\(t\) lies in its domain.
-Likewise, \(\min(S)\) and \(\max(S)\) require \(S\) to denote a finite
-nonempty set of integers, and \(|S|\) requires \(S\) to denote a finite set.
+The immediate consequence of this device is that variables denote themselves.
 
-The semantic clauses follow the mathematical reading of B.
-Some representative cases are:
+\subsection{Denotation}
+\label{subsec:b-denote}
+
+The denotation function is defined by structural recursion over PHOAS terms, as described in the following definition.
+In the clauses below, \(\throw\) is used when denotation cannot be defined due to a failure of a well-definedness side condition.
+
+\begin{definition}[Denotation][B.denote][B/Reasoning/Lemmas.html\#B.denote]
+\label{def:b-denote}
+
+\paragraph{Literals and constants.}
 \[
-\begin{array}{rcl}
-\interpB{n} &=& n \inZ \Zint,\\
-\interpB{b} &=& b \inZ \Zbool,\\
-\interpB{t \mapletB u} &=& \pairZ{\interpB{t}}{\interpB{u}},\\
-\interpB{S \prodB T} &=& \interpB{S} \timesZ \interpB{T},\\
-\interpB{S \cupB T} &=& \interpB{S} \cupZ \interpB{T},\\
-\interpB{S \capB T} &=& \interpB{S} \capZ \interpB{T},\\
-\interpB{\powB S} &=& \powZ(\interpB{S}).
+\begin{array}{rcll}
+\interpB{v}               &=& v                    & (v : \mathsf{Dom}),\\[2pt]
+\interpB{n}               &=& \overline{n} : \intB  & (n \in \mathbb{Z}),\\[2pt]
+\interpB{b}               &=& \overline{b} : \boolB & (b \in \mathbb{B}),\\[2pt]
+\interpB{\ZintB}          &=& \Zint   : \setB\intB, \\[2pt]
+\interpB{\ZboolB}         &=& \Zbool  : \setB\boolB,
 \end{array}
 \]
-The Lean code enforces type compatibility dynamically in the untyped recursive
-denotation.
-For instance, equality succeeds only when both subterms denote values of the
-same B type, and union succeeds only when both operands denote sets with the
-same element type.
-When the term is accompanied by a typing derivation, the typing lemmas justify
-that these compatibility checks are satisfied.
+where $\overline{n}$ and $\overline{b}$ are the ZFC encodings of integers and
+Booleans (Chapter~\ref{ch:zflean}), $\ZintB$ and $\ZboolB$ are the B universe
+constants for integers and Booleans.
 
-Partial functions are interpreted as graphs:
+\paragraph{Pair and arithmetic.}
+\[
+\begin{array}{rcll}
+\interpB{t \mapletB u} &=& \pairZ{X}{Y} : \tau \prodB \sigma
+  & \text{if } \interpB{t} = X : \tau,\; \interpB{u} = Y : \sigma,\\[2pt]
+\interpB{t \addB u}    &=& X \addZ Y : \intB
+  & \text{if } \interpB{t} = X : \intB,\; \interpB{u} = Y : \intB;\;\throw\text{ otherwise},\\[2pt]
+\interpB{t \subB u}    &=& X \subZ Y : \intB & \text{(idem)},\\[2pt]
+\interpB{t \mulB u}    &=& X \mulZ Y : \intB & \text{(idem)}.
+\end{array}
+\]
+
+\paragraph{Comparisons and Boolean operations.}
+\[
+\begin{array}{rcll}
+\interpB{t \leB u}   &=& X \leqZ Y   : \boolB
+  & \text{if } \interpB{t} = X : \intB,\; \interpB{u} = Y : \intB;\;\throw\text{ otherwise},\\[2pt]
+\interpB{\notB t}    &=& \negZ X : \boolB
+  & \text{if } \interpB{t} = X : \boolB;\;\throw\text{ otherwise},\\[2pt]
+\interpB{t \andB u}  &=& X \andZ Y : \boolB
+  & \text{if } \interpB{t} = X : \boolB,\; \interpB{u} = Y : \boolB;\;\throw\text{ otherwise},\\[2pt]
+\interpB{t \eqB u}   &=& X \eqZ Y  : \boolB
+  & \text{if } \interpB{t} = X : \tau,\; \interpB{u} = Y : \tau \text{ for some } \tau;\;\throw\text{ otherwise},\\[2pt]
+\interpB{t \inB S}   &=& (X \in S') : \boolB
+  & \text{if } \interpB{t} = X : \tau,\; \interpB{S} = S' : \setB\tau;\;\throw\text{ otherwise}.
+\end{array}
+\]
+Equality and membership require both operands to carry the same B-type tag.
+
+\paragraph{Set-theoretic constructors.}
+\[
+\begin{array}{rcll}
+\interpB{S \cupB T} &=& S' \cupZ T' : \setB\tau
+  & \text{if } \interpB{S} = S' : \setB\tau,\; \interpB{T} = T' : \setB\tau;\;\throw\text{ otherwise},\\[2pt]
+\interpB{S \capB T} &=& S' \capZ T' : \setB\tau & \text{(idem)},\\[2pt]
+\interpB{S \prodB T} &=& S' \timesZ T' : \setB(\tau \prodB \sigma)
+  & \text{if } \interpB{S} = S' : \setB\tau,\; \interpB{T} = T' : \setB\sigma,\\[2pt]
+\interpB{\powB S}   &=& \powZ(S') : \setB(\setB\tau)
+  & \text{if } \interpB{S} = S' : \setB\tau.
+\end{array}
+\]
+Union and intersection require a common element type; failing this, the
+denotation is $\bot$.
+
+\paragraph{Partial function type.}
+
+Partial function types are interpreted as sets of relation graphs:
 \[
   \interpB{A \pfunB B}
   =
-  \{ f \inZ \powZ(\interpB{A}\timesZ\interpB{B})
-     \mid f \text{ is a partial function from } \interpB{A}
-        \text{ to } \interpB{B} \}.
+  \bigl\{ f \in \powZ(A' \timesZ B') \bigm| f \text{ is a partial function} \bigr\}
+  : \setB\bigl(\setB(\tau \prodB \sigma)\bigr),
 \]
-Application then evaluates by graph lookup:
-\[
-  \interpB{f(x)} =
-  y
-  \quad\text{when}\quad
-  \interpB{f} \text{ is a partial function and }
-  \pairZ{\interpB{x}}{y} \inZ \interpB{f}.
-\]
-If either condition fails, the denotation is \(\mathsf{none}\).
+where $\interpB{A} = A' : \setB\tau$ and $\interpB{B} = B' : \setB\sigma$.
 
-The binder cases use the PHOAS representation.
-For a set comprehension, the domain term \(D\) denotes a set of tuples.
-The body predicate is evaluated under an environment obtained by projecting
-each tuple component into a bound variable.
-The denotation is the subset of the domain for which the predicate evaluates
-to true:
+\paragraph{Partial operations.}
+
+Function application evaluates by graph lookup:
+\[
+  \interpB{f(x)} = y : \sigma
+  \quad\text{when}\quad
+  \interpB{f} = F : \setB(\tau \prodB \sigma),\;
+  \interpB{x} = X : \tau,\;
+  F\text{ is a partial function, and }X \in \mathrm{dom}(F),
+\]
+where $y$ is the unique value such that $\pairZ{X}{y} \in F$.
+If $F$ is not a partial function, or $X \notin \mathrm{dom}(F)$, the
+denotation is $\bot$.
+
+Cardinality, minimum, and maximum are defined under finiteness conditions:
+\[
+\begin{array}{rcll}
+\interpB{\cardB{S}} &=& \cardZ{S'} : \intB
+  & \text{if } \interpB{S} = S' : \setB\tau \text{ and } S' \text{ is finite};\;\bot\text{ otherwise},\\[2pt]
+\interpB{\minB(S)} &=& \min(S') : \intB
+  & \text{if } \interpB{S} = S' : \setB\intB,\; S' \text{ finite and nonempty};\;\bot\text{ otherwise},\\[2pt]
+\interpB{\maxB(S)} &=& \maxZ(S') : \intB & \text{(idem)}.
+\end{array}
+\]
+
+\paragraph{Binders.}
+
+Binder constructs use the PHOAS representation: bound variables are Lean
+functions, so substitution is meta-level function application.
+
+For set comprehension, the domain $D$ denotes a set of tuples of type $\tau$.
+The body predicate is evaluated at each tuple, and the denotation is the subset
+for which the predicate holds:
 \[
   \interpB{\{\vec x \inB D \mid P\}}
   =
-  \{ z \inZ \interpB{D} \mid \interpB{P[z/\vec x]} \eqZ \topZ \}.
+  \{ z \in \interpB{D} \mid \interpB{P[z/\vec x]} \eqZ \topZ \} : \setB\tau.
 \]
-For a lambda expression, the result is the graph of the function described by
+
+For lambda abstraction, the result is the graph of the function described by
 the body:
 \[
-  \interpB{\lambda \vec x \inB D.\,e}
+  \interpB{\lambdaB \vec x \inB D.\,E}
   =
-  \{\pairZ{z}{y} \mid z \inZ \interpB{D}
+  \bigl\{\pairZ{z}{y} \bigm| z \in \interpB{D}
       \text{ and }
-      \interpB{e[z/\vec x]} \eqZ y\}.
+      \interpB{E[z/\vec x]} \eqZ y\bigr\} : \setB(\tau \prodB \gamma),
 \]
-Universal quantification is interpreted as the conjunction of the boolean
-values obtained over the domain:
+where $\gamma$ is the return type of $E$, inferred from a representative element
+of $\interpB{D}$.
+
+Universal quantification is interpreted as the bounded infimum of the Boolean
+values obtained over the domain, taken in the two-element ZFC Boolean
+algebra $\Zbool$:
 \[
-  \interpB{\forall \vec x \inB D.\,P}
+  \interpB{\forallB \vec x \inB D.\,P}
   =
-  \bigwedgeZ_{z \inZ \interpB{D}} \interpB{P[z/\vec x]}.
+  \bigwedgeZ_{z \in \interpB{D}} \interpB{P[z/\vec x]}.
 \]
-In the Lean implementation, this conjunction is represented in the
-two-element ZFC boolean set.
+The empty infimum is $\topZ$ (vacuous truth), consistent with the standard
+semantics of universal quantification.
+In Lean, this is computed as
+$\mathsf{sInter}\bigl(\{\interpB{P[z/\vec x]} \mid z \in \interpB{D}\}
+\cap \Zbool\bigr)$, returning $\topZ$ when the domain is empty.
+
+\paragraph{Type-compatibility conditions.}
+
+Several denotation clauses require subterms to carry a common B-type tag:
+this is checked on the $\mathsf{BType}$ component of the $\mathsf{Dom}$ elements
+returned by the recursive calls.
+For equality, union, intersection, set membership, and function application,
+the denotation is $\bot$ if this check fails.
+When a term is accompanied by a typing derivation, these checks always succeed,
+as guaranteed by the semantic soundness theorem
+(Theorem~\ref{thm:b-denote-sound} below).
+
+\end{definition}
+
+\subsection{Basic properties}
+\label{subsec:b-sem-properties}
+
+The two fundamental properties of the denotation are type determinacy and
+soundness.
+
+\begin{theorem}[Type determinacy, \leancodeptr{denote\_welltyped\_eq}{}]
+\label{thm:b-denote-type-det}
+If $t$ is a well-typed PHOAS term and $\interpB{t} = \denval{V}[\tau]$, then
+$\tau$ equals the B type assigned to $t$ by its typing derivation.
+\end{theorem}
+
+In other words, if a term has a denotation, its B-type tag is uniquely
+determined by the static type: a term of type $\tau$ cannot denote a value
+of type $\sigma \neq \tau$.
+
+The soundness theorem states that well-typed terms, under a suitable environment,
+always have a denotation of the correct type, provided the partial operations
+they contain are well-defined.
+
+\begin{theorem}[Denotation soundness, \leancodeptr{denote\_exists\_of\_typing}{}]
+\label{thm:b-denote-sound}
+Let $\btype{\Gamma}{t}{\tau}$ be a concrete B typing derivation, let
+$\Delta : \mathsf{B}.\mathcal{V} \to \mathsf{Option}\,\mathsf{Dom}$ be a
+renaming covering all free variables of $t$, and let $t^*$ denote the
+abstracted PHOAS term.
+If $\aterm{\Gamma}{\Delta}$ is a well-typed context and $t^*$ is
+well-defined, then
+\[
+  \exists\, V \in \interpB{\tau},\quad
+  \interpB{t^*} = \denval{V}[\tau].
+\]
+\end{theorem}
+
+The \emph{well-definedness} predicate \leancodeptr{WellDefined}{} formalises the
+semantic side conditions for partial operations:
+for each subterm of the form $f(x)$, it requires $\interpB{f}$ to be a partial
+function and $\interpB{x} \in \mathrm{dom}(\interpB{f})$;
+for each subterm $\cardB{S}$, $\minB(S)$, or $\maxB(S)$, it requires
+$\interpB{S}$ to be finite (and nonempty for $\minB$ and $\maxB$).
 
 The syntax, typing, and semantics described in this chapter form the
 source-language contract used by the SMT translation and by the correctness
-arguments developed in the following chapters.
+arguments in the following chapters.

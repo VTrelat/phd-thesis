@@ -13,7 +13,7 @@
 \newcommand\etc{\textit{etc.}\xspace}
 \newcommand\wrt{\textit{w.r.t.\@}\xspace}
 
-\newcommand{\irrelprf}{\ensuremath{\cdot\mkern-5mu\cdot\mkern-5mu\cdot}}
+\newcommand{\irrelprf}{\ensuremath{\cdot\mkern-3mu\cdot\mkern-3mu\cdot}}
 \newcommand{\catop}[2]{\ensuremath{#1^{\scriptscriptstyle{\mathsf{#2}}}}}
 
 \newcommand{\sop}[1]{\catop{#1}{S}}
@@ -121,7 +121,7 @@
 \newcommand{\optZ}{\zop{\mathsf{option}}}
 
 \newcommand{\eqZ}{\mathrel{\zop{=}}}
-\newcommand{\inZ}{\mathrel{\zop{\in}}}
+% \newcommand{\inZ}{\mathrel{\zop{\in}}}
 \newcommand{\andZ}{\mathbin{\zop{\land}}}
 \newcommand{\cupZ}{\mathbin{\zop{\cup}}}
 \newcommand{\capZ}{\mathbin{\zop{\cap}}}
@@ -149,12 +149,22 @@
 \newcommand{\botZ}{\zop{\bot}}
 \newcommand{\pairZ}[2]{\ensuremath{\langle #1, #2\rangle^{\scalebox{0.45}{\textsf{Z}}}}}
 \newcommand{\bigwedgeZ}{\mathop{\zop{\bigwedge}}}
+\newcommand{\addZ}{\mathbin{\zop{+}}}
+\newcommand{\subZ}{\mathbin{\zop{-}}}
+\newcommand{\mulZ}{\mathbin{\zop{\cdot}}}
+\newcommand{\leqZ}{\mathrel{\zop{\le}}}
+\newcommand{\negZ}{\mathop{\zop{\lnot}}}
+\newcommand{\minZ}{\mathop{\zop{\min}}}
+\newcommand{\maxZ}{\mathop{\zop{\max}}}
+\newcommand{\cardZ}[1]{\catop{\lvert #1\rvert}{Z}}
+\newcommand{\ZintB}{\bop{\mathbb{Z}}}
+\newcommand{\ZboolB}{\bop{\mathbb{B}}}
 
 \newcommand{\aterm}[2]{\ensuremath{\left\llparenthesis #1 \right\rrparenthesis_{#2}}}
 \newcommand{\interpS}[1]{\sop{\lBrack #1 \rBrack}}
 \newcommand{\interpB}[1]{\bop{\lBrack #1 \rBrack}}
 \newcommand{\interpZ}[1]{\zop{\lBrack #1 \rBrack}}
-\newcommand{\pf}[2]{\mathfrak{pf}^{#1}_{#2}}
+\newcommand{\pf}[2]{{\mathcolor{cover-cream}{\wp}}^{#1}_{#2}}
 \NewDocumentCommand{\denval}{m o o}{%
 \def\snd{\IfNoValueTF{#2}{\tau_{#1}}{#2}}%
 \langle%
@@ -169,6 +179,7 @@
 \newcommand{\theterm}{\sterm{the}}
 \newcommand{\castable}[2]{\ensuremath{#1 \sqsubseteq #2}}
 \newcommand{\castpath}[2]{\ensuremath{#1 \rightsquigarrow #2}}
+\newcommand{\throw}{\ensuremath{\;\downzigzagarrow}}
 
 \newcommand{\lgf}[1]{\ensuremath{{#1}^{\bot}}}
 \newcommand{\mgf}[1]{\ensuremath{{#1}^{\top}}}

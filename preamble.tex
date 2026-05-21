@@ -10,6 +10,7 @@
 \usepackage[theorems]{tcolorbox}
 \tcbuselibrary{listings, skins, breakable}
 \usepackage{footnote}  % \savenotes/\spewnotes — must come before hyperref
+\usepackage{environ}   % \RenewEnviron — used for proof-skipping mode
 \usepackage{hyperref}
 \usepackage{mathpartir}
 \usepackage{simplebnf}
@@ -24,7 +25,7 @@
 \setmainfont{Fira Sans}
 \setsansfont{Fira Sans}
 \setmathfont{Lete Sans Math}
-\setmathfont{STIX Two Math}[range={\mathcal,\mathbfcal,"1D4AB,"1D4B1},Scale=MatchUppercase] % override mathcal, 𝒱, 𝒫
+\setmathfont{STIX Two Math}[range={\mathcal,\mathbfcal,"1D4AB,"1D4B1, "2118},Scale=MatchUppercase] % override mathcal, 𝒱, 𝒫, ℘
 \setmonofont{JetBrains Mono}
 % \newfontfamily\playfairfamily{Playfair Display}
 \newfontfamily\playfaircoverfamily{Playfair Display}[LetterSpace=-2.5]
@@ -42,7 +43,7 @@
 \definecolor{dark-blue}{RGB}{0, 86, 97}
 \definecolor{pink}{RGB}{255, 87, 146}
 \definecolor{orange}{RGB}{250, 137, 0}
-\definecolor{green}{RGB}{0, 148, 86}
+\definecolor{green}{RGB}{0, 142, 90} % rgb(0, 142, 90)
 
 \colorlet{identifiercolor}{black}
 \colorlet{keywordcolor}{pink}
@@ -130,6 +131,12 @@
   linkcolor=blue,
   urlcolor=dark-blue,
 }
+
+% --- Proof-skipping mode ---
+% Define \skipproofs externally to suppress proof bodies, e.g.:
+%   latexmk -usepretex="\def\skipproofs{}" main.tex
+% or uncomment the line below to always skip proofs:
+% \def\skipproofs{}
 
 % --- Theorem environments ---
 \theoremstyle{definition}

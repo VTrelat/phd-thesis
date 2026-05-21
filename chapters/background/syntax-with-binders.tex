@@ -1,5 +1,4 @@
 \section{Syntax with Binders}
-\label{sec:syntax-with-binders}
 \label{sec:phoas}
 
 A recurring technical issue when formalizing languages is the treatment of variables and binders.
@@ -120,6 +119,7 @@ Definitions over PHOAS terms are consequently stated uniformly in \(\mathcal V\)
 This parametricity is what rules out the exotic functions that ordinary HOAS admits.
 
 \subsection{Using PHOAS for denotational semantics}
+\label{subsec:phoas-for-semantics}
 
 In this work, PHOAS is not just prettier syntax for binders; parametricity is also used as a trick to define semantics. 
 If we consider a semantic domain \(\mathcal D\) for the object language, then \(\mathsf{Term}\ \mathcal D\) is the type of syntax whose variables already are semantic values, not names.

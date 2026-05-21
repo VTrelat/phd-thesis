@@ -323,3 +323,24 @@
 \renewenvironment{proof}   {\savenotes\tcb@proof}   {\endtcb@proof\spewnotes}
 \renewenvironment{subproof}{\savenotes\tcb@subproof}{\endtcb@subproof\spewnotes}
 \makeatother
+
+% ---------------------------------------------------------------------------
+% PROOF-SKIPPING MODE
+% When \ifskipproofs is true (set via the Makefile noproofs target), the
+% proof environment is replaced by a fixed "Proof. Skipped." box; the body
+% is collected by \RenewEnviron and silently discarded.  Subproofs are not
+% affected because they only ever appear inside proofs.
+% ---------------------------------------------------------------------------
+\ifdefined\skipproofs
+  \RenewEnviron{proof}{%
+    \begin{tcolorbox}[
+      enhanced, breakable, arc=5pt, sharp corners=west,
+      boxrule=0pt, frame hidden,
+      colback=blue!5,
+      left=8pt, right=8pt, top=4pt, bottom=4pt,
+      borderline west={2pt}{0pt}{blue!70},
+    ]%
+    \textbf{Proof.}\enspace\textit{Skipped}.%
+    \end{tcolorbox}%
+  }
+\fi
