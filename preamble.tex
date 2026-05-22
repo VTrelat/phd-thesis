@@ -25,7 +25,7 @@
 \setmainfont{Fira Sans}
 \setsansfont{Fira Sans}
 \setmathfont{Lete Sans Math}
-\setmathfont{STIX Two Math}[range={\mathcal,\mathbfcal,"1D4AB,"1D4B1, "2118},Scale=MatchUppercase] % override mathcal, 𝒱, 𝒫, ℘
+\setmathfont{STIX Two Math}[range={\mathcal,\mathbfcal,"2118},Scale=MatchUppercase] % override mathcal/mathbfcal (covers 𝒫 𝒱) + ℘. Do NOT list codepoints inside \mathcal here: an in-range codepoint cancels the alphabet expansion, leaving the rest (e.g. 𝒟) in Lete Sans Math.
 \setmonofont{JetBrains Mono}
 % \newfontfamily\playfairfamily{Playfair Display}
 \newfontfamily\playfaircoverfamily{Playfair Display}[LetterSpace=-2.5]

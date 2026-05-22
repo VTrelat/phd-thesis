@@ -147,15 +147,15 @@
 }
 \newcommand{\topZ}{\zop{\top}}
 \newcommand{\botZ}{\zop{\bot}}
-\newcommand{\pairZ}[2]{\ensuremath{\langle #1, #2\rangle^{\scalebox{0.45}{\textsf{Z}}}}}
-\newcommand{\bigwedgeZ}{\mathop{\zop{\bigwedge}}}
+\newcommand{\pairZ}[2]{\ensuremath{\zop{\lparen #1, #2\rparen}}}
+\newcommand{\bigandZ}{\mathop{\zop{\mathord{\bigwedgeop}\mkern-3mu}}}
 \newcommand{\addZ}{\mathbin{\zop{+}}}
 \newcommand{\subZ}{\mathbin{\zop{-}}}
-\newcommand{\mulZ}{\mathbin{\zop{\cdot}}}
+\newcommand{\mulZ}{\mathbin{\zop{*}}}
 \newcommand{\leqZ}{\mathrel{\zop{\le}}}
 \newcommand{\negZ}{\mathop{\zop{\lnot}}}
-\newcommand{\minZ}{\mathop{\zop{\min}}}
-\newcommand{\maxZ}{\mathop{\zop{\max}}}
+\newcommand{\minZ}{\mathop{\zop{\mathsf{min}}}}
+\newcommand{\maxZ}{\mathop{\zop{\mathsf{max}}}}
 \newcommand{\cardZ}[1]{\catop{\lvert #1\rvert}{Z}}
 \newcommand{\ZintB}{\bop{\mathbb{Z}}}
 \newcommand{\ZboolB}{\bop{\mathbb{B}}}
@@ -201,4 +201,9 @@
     \highLight[red!12]{#1}%
     \textcolor{red!80!black}{ [#2]}%
   }%
+}
+
+% Underset with underbrace in math mode
+\NewDocumentCommand{\undernote}{m m}{%
+  \ensuremath{\underset{#2}{\underbrace{#1}}}
 }

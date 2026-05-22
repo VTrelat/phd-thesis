@@ -49,13 +49,13 @@ Let \(\Gamma\) be a typing context. The inductive typing predicate \(\btype{\Gam
   { }
   {\btype{\Gamma}{\mathsf{bool}\ b}{\boolB}}
 \and
-\typingrule[\(\mathbb{Z}\)]{b-concrete-typing}{Z}
+\typingrule[\(\ZintB\)]{b-concrete-typing}{Z}
   { }
-  {\btype{\Gamma}{\mathbb{Z}}{\setB\intB}}
+  {\btype{\Gamma}{\ZintB}{\setB\intB}}
 \and
-\typingrule[\(\mathbb{B}\)]{b-concrete-typing}{Bool}
+\typingrule[\(\ZboolB\)]{b-concrete-typing}{Bool}
   { }
-  {\btype{\Gamma}{\mathbb{B}}{\setB\boolB}}
+  {\btype{\Gamma}{\ZboolB}{\setB\boolB}}
 \and
 \typingrule{b-concrete-typing}{maplet}
   {\btype{\Gamma}{x}{\alpha} \quad \btype{\Gamma}{y}{\beta}}

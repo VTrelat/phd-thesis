@@ -28,7 +28,7 @@ The constructors of \leaninl{B.Term} are listed below, where \(v\) is a name in
 
 \begin{bnf}[colspec = {l@{}l@{\kern6pt}c@{\kern6pt}ll}]
   \leaninl{B.Term} $\,∋\, t, s$ ::=
-  | $\mathsf{var}\ v$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ && $\mathbb{Z}$ && $\mathbb{B}$ // Atoms
+  | $\mathsf{var}\ v$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ && $\ZintB$ && $\ZboolB$ // Atoms
   | $t \mapletB s$ // Maplet
   | $t \addB s$ && $t \subB s$ && $t \mulB s$ && $t \leB s$ // Arithmetic
   | $t \andB s$ && $\notB t$ && $t \eqB s$ && $t \inB s$ && $\forallB \vec{v} \inB t \cdot s$ // Logic 
@@ -133,8 +133,8 @@ associated with a B type \(\tau\) by \(\lift{\tau}\).
   The embedding of B types into concrete B terms is defined by structural
   recursion as follows:
 \begin{equation*}
-  \lift{\intB} \triangleq \mathbb{Z},\quad
-  \lift{\boolB} \triangleq \mathbb{B},\quad
+  \lift{\intB} \triangleq \ZintB,\quad
+  \lift{\boolB} \triangleq \ZboolB,\quad
   \lift{\setB\tau} \triangleq \powB(\lift{\tau}),\quad
   \lift{(α \prodB β)} \triangleq \powB(\lift{α} \prodB \lift{β})
 \end{equation*}
@@ -216,7 +216,7 @@ A subset \(S\) of a set \(A\) is finite when there exists an injection from
   \label{def:b-syntax-finite}
   Let \(A\) be a B term, and let \(\tau\) be a B type.
 \begin{align*}
-  \mathsf{FIN}(A) &\triangleq \{\, S \inB \powB(A) \mid \existsB n \inB \mathbb{Z} \cdot \existsB f \inB S \injtfunB \mathbb{Z} \cdot \forallB x, y \inB S \prodB \mathbb{Z} \cdot \\
+  \mathsf{FIN}(A) &\triangleq \{\, S \inB \powB(A) \mid \existsB n \inB \ZintB \cdot \existsB f \inB S \injtfunB \ZintB \cdot \forallB x, y \inB S \prodB \ZintB \cdot \\
   &\hspace{1cm}(x \mapletB y \inB f) \impB ((\mathsf{int}\ 0 \leB y) \andB (y \leB n)) \,\}\\
   {\mathsf{FIN}_1}_{\tau}(A) &\triangleq \{\, S \inB \mathsf{FIN}(A) \mid S \neqB \varnothing_{\tau} \,\}
 \end{align*}
@@ -235,8 +235,8 @@ subset of the integers.}, integer intervals, and comparison operators.
   \label{def:b-syntax-arithmetic}
   Let \(i, j, x, y\) be B terms.
 \begin{align*}
-  \mathbb{N} &\triangleq \{\, n \inB \mathbb{Z} \mid \mathsf{int}\ 0 \leB \mathsf{int}\ n \,\}\\
-  \intrangeB{i}{j} &\triangleq \{\, n \inB \mathbb{Z} \mid i \leB n \andB n \leB j \,\}\\
+  \mathbb{N} &\triangleq \{\, n \inB \ZintB \mid \mathsf{int}\ 0 \leB \mathsf{int}\ n \,\}\\
+  \intrangeB{i}{j} &\triangleq \{\, n \inB \ZintB \mid i \leB n \andB n \leB j \,\}\\
   x \geB y &\triangleq y \leB x \\
   x \gtB y &\triangleq \notB(x \leB y) \\
   x \ltB y &\triangleq \notB(y \leB x)
@@ -402,8 +402,8 @@ interval of natural numbers.
   \label{def:b-syntax-sequences}
 Let \(A\) be a B term, and let \(\tau\) be a B type.
 \begin{align*}
-  \mathsf{seq}(A) &\triangleq \{\, s \inB \mathbb{N} \pfunB A \mid \existsB n \inB \mathbb{Z} \cdot \existsB f \inB s \tfunB \intrangeB{\mathsf{int}\ 0}{n} \,\} \\
-  \mathsf{seq}_1(A) &\triangleq \{\, s \inB \mathbb{N} \pfunB A \mid \left(\existsB n \inB \mathbb{Z} \cdot \existsB f \inB s \tfunB \intrangeB{\mathsf{int}\ 0}{n}\right) \andB\\
+  \mathsf{seq}(A) &\triangleq \{\, s \inB \mathbb{N} \pfunB A \mid \existsB n \inB \ZintB \cdot \existsB f \inB s \tfunB \intrangeB{\mathsf{int}\ 0}{n} \,\} \\
+  \mathsf{seq}_1(A) &\triangleq \{\, s \inB \mathbb{N} \pfunB A \mid \left(\existsB n \inB \ZintB \cdot \existsB f \inB s \tfunB \intrangeB{\mathsf{int}\ 0}{n}\right) \andB\\
   &\hspace{1cm} \existsB x, y \inB \mathbb{N} \prodB A \cdot \appB f\ x \eqB y \,\} \tag{non-empty}\\
   \mathsf{iseq}(A) &\triangleq \mathsf{seq}(A) \capB (\mathbb{N} \injpfunB A) \tag{injective}\\
   \mathsf{iseq}_1(A) &\triangleq \mathsf{seq}_1(A) \capB (\mathbb{N} \injpfunB A) \tag{non-empty injective}\\
@@ -455,7 +455,7 @@ The constructors for abstract terms are listed below, where \(v\) is a variable 
 
 \begin{bnf}[colspec = {l@{}l@{\kern6pt}c@{\kern6pt}ll}]
   \leaninl{B.PHOAS.Term} $\,∋\, t, s$ ::=
-  | $\mathsf{var}\ v$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ && $\mathbb{Z}$ && $\mathbb{B}$ // Atoms
+  | $\mathsf{var}\ v$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ && $\ZintB$ && $\ZboolB$ // Atoms
   | $t \mapletB' s$ // Maplet
   | $t \addB' s$ && $t \subB' s$ && $t \mulB' s$ && $t \leB' s$ // Arithmetic
   | $t \andB' s$ && $\notB' t$ && $t \eqB' s$ && $t \inB' s$ && $\forallB' t \cdot e$ // Logic 
