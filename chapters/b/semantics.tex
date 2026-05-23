@@ -347,38 +347,47 @@ We define the following scoped denotation \(\mathcal{E} : \mathsf{ZFSet} \to \ma
   Similar to the set comprehension case.
 \end{proof}
 
-Universal quantification is interpreted as the bounded infimum of the Boolean
+Universal quantification is interpreted as the bounded infimum of the
 values obtained over the domain, taken in the two-element ZFC Boolean
-algebra $\Zbool$:
+algebra $\Zbool$.
+The assumptions are again similar to the previous cases:
+\begin{itemize}
+  \item \(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^{\times}]\), with \(\tau^\times = \tau_1 \times \cdots \times \tau_n\) as before;
+  \item For any family of variables \(\vec x = (x_i)_{1 \leq i \leq n}\) of the binder's arity such that each of the \(x_i\) carries the B type \(\tau_i\), and such that \(\pairZ{x_1}{\cdots, x_n} \in \mathcal{D}\), \(P(\vec x)\) has a denotation.
+\end{itemize}
+The scoped denotation \(\mathbb{P}\) of the body \(P\) is defined exactly as in the set comprehension case.
+The intuition is the following: when the domain \(D\) is finite, so is its denotation \(\mathcal{D} = \{e_1, \cdots, e_k\}\). Universal quantification over that domain is then naturally expressed as the following enumerated conjunction:
 \[
-  \interpB{\forallB \vec x \inB D.\,P}
-  \triangleq
-  \bigandZ_{z \in \interpB{D}} \interpB{P[z/\vec x]}.
+  \interpB{\forallB' D \cdot\,P} = \mathbb{P}(e_1) \andZ \cdots \andZ \mathbb{P}(e_k) = \bigandZ_{i = 1}^k \mathbb{P}(e_i) = \bigandZ_{e \in \mathcal{D}} \mathbb{P}(e)
 \]
-The empty infimum is $\topZ$ (vacuous truth), consistent with the standard
-semantics of universal quantification.
-In Lean, this is computed as
-$\mathsf{sInter}\bigl(\{\interpB{P[z/\vec x]} \mid z \in \interpB{D}\}
-\cap \Zbool\bigr)$, returning $\topZ$ when the domain is empty.
 
-\paragraph{Type-compatibility conditions.}
+The implementation differs from this equation in two negligible technicalities.
+When the domain is empty, \ie \(\mathcal{D} = \emptyset\), the infimum should be the top element in the algebra, namely \(\topZ\), also expressing vacuous truth; however in Lean, this infimum is defined as quantified intersection, which is defined, in standard set theory, over non-empty families of sets. In our model, quantified intersection over the empty set is defined as the empty set ({\small\leancodeptr{ZFSet.sInter\_empty}{Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.sInter_empty}}).
+In order to circumvent this first technicality, we distinguish the empty domain case and return
+\(\denval{\topZ}[\boolB][{\small\leancodeptr{zftrue\_mem\_𝔹}{ZFLean/Booleans.html\#ZFSet.ZFBool.zftrue_mem_𝔹}}]\)
+directly in that case.
+The second technicality is that our model of ZFC does not offer generalized comprehension, so we write the following quantified intersection over a separation instead: 
+\[
+\bigandZ_{\mathcal{D}} \mathbb{P} = \bigcap \{z \in \ZboolB \mid \exists x \in \mathcal{D},\, y = \mathbb{P}(x) \}
+\]
+Overall, the denotation of the whole quantification is then given by
+\[
+  \interpB{\forallB' D \cdot\,P}
+  \triangleq
+  \denval{\bigcap \{z \in \ZboolB \mid \exists x \in \mathcal{D},\, y = \mathbb{P}(x) \}}[\boolB][\pf{}{}]
+\]
 
-Several denotation clauses require subterms to carry a common B-type tag:
-this is checked on the $\mathsf{BType}$ component of the $\mathsf{Dom}$ elements
-returned by the recursive calls.
-For equality, union, intersection, set membership, and function application,
-the denotation is $\bot$ if this check fails.
-When a term is accompanied by a typing derivation, these checks always succeed,
-as guaranteed by the semantic soundness theorem
-(Theorem~\ref{thm:b-denote-sound} below).
+\begin{proof}
+  The proof \(\pf{}{} : \bigcap \{z \in \ZboolB \mid \exists x \in \mathcal{D},\, y = \mathbb{P}(x) \} \in \interpZ{\boolB}\) naturally follows from the algebra being structurally closed under conjunction.
+\end{proof}
 
 \subsection{Basic properties}
 \label{subsec:b-sem-properties}
 
-The two fundamental properties of the denotation are type determinacy and
+The two fundamental properties of the denotation are type adequacy and
 soundness.
 
-\begin{theorem}[Type determinacy, \leancodeptr{denote\_welltyped\_eq}{}]
+\begin{theorem}[Type adequacy][denote\_welltyped\_eq][B/Reasoning/Lemmas.html\#denote_welltyped_eq]
 \label{thm:b-denote-type-det}
 If $t$ is a well-typed PHOAS term and $\interpB{t} = \denval{V}[\tau]$, then
 $\tau$ equals the B type assigned to $t$ by its typing derivation.
@@ -392,7 +401,7 @@ The soundness theorem states that well-typed terms, under a suitable environment
 always have a denotation of the correct type, provided the partial operations
 they contain are well-defined.
 
-\begin{theorem}[Denotation soundness, \leancodeptr{denote\_exists\_of\_typing}{}]
+\begin{theorem}[Denotation soundness][B.denote\_exists\_of\_typing][B/Reasoning/DenotationTotality.html\#B.denote_exists_of_typing]
 \label{thm:b-denote-sound}
 Let $\btype{\Gamma}{t}{\tau}$ be a concrete B typing derivation, let
 $\Delta : \mathsf{B}.\mathcal{V} \to \mathsf{Option}\,\mathsf{Dom}$ be a
