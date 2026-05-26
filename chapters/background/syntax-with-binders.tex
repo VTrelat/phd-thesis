@@ -121,13 +121,15 @@ This parametricity is what rules out the exotic functions that ordinary HOAS adm
 \subsection{Using PHOAS for denotational semantics}
 \label{subsec:phoas-for-semantics}
 
-In this work, PHOAS is not just prettier syntax for binders; parametricity is also used as a trick to define semantics. 
-If we consider a semantic domain \(\mathcal D\) for the object language, then \(\mathsf{Term}\ \mathcal D\) is the type of syntax whose variables already are semantic values, not names.
+PHOAS is not just a more practical syntax for dealing with binders:
+considering a semantic domain \(\mathcal D\) for the object language, then
+\(\mathsf{Term}\ \mathcal D\) is the type of syntax whose variables already are semantic values,
+not names.
 It is a device for defining denotational semantics with much less environment bookkeeping.
 In a first-order syntax, the denotation of an open term usually has to carry an environment
-\[
-  ρ : \mathsf{Name} \to \mathcal D.
-\]
+\(
+  ρ : \mathsf{Name} \to \mathcal D
+\)
 mapping variable names to semantic values.
 The variable case performs a lookup in \(\rho\).
 The binder cases extend \(\rho\), and the proof must repeatedly show that the extension is fresh, that substitution agrees with lookup, and that renamed variables do not change meaning.
