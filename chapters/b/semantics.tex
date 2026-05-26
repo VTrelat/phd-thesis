@@ -384,44 +384,207 @@ Overall, the denotation of the whole quantification is then given by
 \subsection{Basic properties}
 \label{subsec:b-sem-properties}
 
-The two fundamental properties of the denotation are type adequacy and
-soundness.
+\inlremark[]{This section is still in progress, in particular proofs need further polishing.}
+
+The denotation enjoys two fundamental properties: \emph{type adequacy} and \emph{soundness}.
+Type adequacy ensures that whenever a term denotes, the intrinsic B-type tag carried by its
+denotation coincides with the static type assigned by the typing derivation.
+Soundness then ensures that, under suitable hypotheses on the environment and on the
+well-definedness of partial operations, every well-typed term does indeed denote a value of
+the expected type.
+
+Both statements presuppose that the variables appearing in a term are bound to domain
+elements whose intrinsic B types match what the abstract typing context records.
+Since PHOAS variables are themselves domain elements, this coherence is conveniently
+captured at the PHOAS level by the following condition, which is automatically satisfied by
+contexts obtained through the abstraction \(\aterm{\Gamma}{\Delta}\) of
+\Cref{def:b-context-abstraction}.
+
+\begin{definition}[Well-typed PHOAS context][B.PHOAS.WellTypedCtx][B/Reasoning/DenotationTotality.html\#B.PHOAS.WellTypedCtx]
+\label{def:b-welltyped-ctx}
+A PHOAS typing context \(\Gamma : \mathsf{Dom} \rightharpoonup \mathsf{BType}\) is
+\emph{well-typed}, written \(\WTctx(\Gamma)\), whenever every binding agrees with the
+intrinsic type tag of its key:
+\[
+  \forall d : \mathsf{Dom},\, \forall \tau : \mathsf{BType},\quad
+  \Gamma(d) = \tau \implies d.\tau = \tau,
+\]
+where \(d.\tau\) is the second projection of \(d \in \mathsf{Dom}\).
+\end{definition}
 
 \begin{theorem}[Type adequacy][denote\_welltyped\_eq][B/Reasoning/Lemmas.html\#denote_welltyped_eq]
 \label{thm:b-denote-type-det}
-If $t$ is a well-typed PHOAS term and $\interpB{t} = \denval{V}[\tau]$, then
-$\tau$ equals the B type assigned to $t$ by its typing derivation.
+Let \(t : \mathsf{PHOAS.Term}\,\mathsf{Dom}\) be a PHOAS term well-typed of type
+\(\tau_0\) under some well-typed context, and assume
+\(\interpB{t} = \denval{V}[\tau]\). Then \(\tau = \tau_0\).
 \end{theorem}
 
-In other words, if a term has a denotation, its B-type tag is uniquely
-determined by the static type: a term of type $\tau$ cannot denote a value
-of type $\sigma \neq \tau$.
+\begin{proof}
+By structural induction on \(t\). The key observation is that, in every clause of the
+denotation function, the type tag of the result is constructed from the type tags of the
+subterm denotations by the very same combinator that the typing rule uses to combine the
+subterm types. The induction therefore reduces to checking the cases one by one.
 
-The soundness theorem states that well-typed terms, under a suitable environment,
-always have a denotation of the correct type, provided the partial operations
-they contain are well-defined.
+For the variable case \(t = v\), the denotation returns \(v\) itself, so its type tag is
+\(v.\tau\). Inversion of the variable typing rule yields \(\Gamma(v) = \tau_0\), and
+\(\WTctx(\Gamma)\) gives \(v.\tau = \tau_0\), hence \(\tau = \tau_0\).
+For each literal or constant (\(\mathsf{int}\,n\), \(\mathsf{bool}\,b\), \(\ZintB\),
+\(\ZboolB\)), the typing rule fixes the type uniquely and the denotation tags the result
+with the same type; the equality is then immediate.
+
+For each compound non-binder constructor (pairs, arithmetic, Boolean and set-theoretic
+operations, partial function space), inversion of the typing rule provides typings of the
+subterms, the induction hypothesis identifies the type tags of their denotations with the
+typing-derivation types, and the denotation clause assembles the result type by the same
+formula as the typing rule. For example, for a pair \(t \mapletB u\), inversion yields
+\(\btype{\cdot}{t}{\alpha}\) and \(\btype{\cdot}{u}{\beta}\), the induction hypothesis
+matches the subterm denotation tags to \(\alpha\) and \(\beta\), and the clause sets the
+result type to \(\alpha \prodB \beta\), which is exactly the typing-rule output.
+
+For the partial operations \(\appB f\,x\), \(\cardB{S}\), \(\minB(S)\), and \(\maxB(S)\),
+the denotation enters its success branch only after a side condition is verified, and that
+branch tags the result with a fixed type (\(\beta\) for \(\appB\), \(\intB\) for the other
+three) matching the typing-rule output.
+
+For binders \(\{D \mid P\}\), \(\lambdaB' D \cdot E\), and \(\forallB' D \cdot P\), the
+induction hypothesis on the domain identifies its type tag with the folded product
+\(\setB\tau^\times\); the binder clause then constructs the result with type tag
+\(\setB\tau^\times\), \(\setB(\tau^\times \prodB \gamma)\), or \(\boolB\) respectively,
+matching the typing rule.
+\end{proof}
+
+In other words, a term cannot denote a value of two distinct types: the static type fully
+determines the type tag of the denotation whenever the latter exists.
+
+We now turn to existence. To formulate it, we briefly recall the well-definedness side
+conditions that B-method proof obligations require for partial operations. These are the
+B-side analogue of the well-definedness obligations of Atelier B and are detailed in
+\Cref{sec:b-wd}; here we only need the following packaging.
+
+\begin{definition}[Well-definedness predicate][B.PHOAS.WellDefined][B/Reasoning/WellDefined.html\#B.PHOAS.WellDefined]
+\label{def:b-welldefined}
+The predicate \(\WD : \mathsf{PHOAS.Term}\,\mathsf{Dom} \to \mathsf{Prop}\) is defined by
+structural recursion. It holds vacuously on variables and literals, propagates conjunctively
+to immediate subterms, and additionally carries the following semantic side conditions at
+partial operations:
+\begin{description}
+  \item[\(\appB f\,x\):] writing \(\interpB{f} = \denval{F}[\setB(\tau \prodB \sigma)]\)
+  and \(\interpB{x} = \denval{X}[\tau]\), the ZFC component \(F\) is a partial function
+  from \(\interpZ{\tau}\) to \(\interpZ{\sigma}\), and \(X \in \domB(F)\);
+  \item[\(\cardB{S}\):] writing \(\interpB{S} = \denval{S'}[\setB\alpha]\), the set
+  \(S'\) is finite;
+  \item[\(\minB(S),\maxB(S)\):] \(S'\) is finite and nonempty.
+\end{description}
+\end{definition}
+
+The soundness theorem then asserts that well-typed, well-defined terms always denote at the
+expected type. We state the result both at the PHOAS level (the form actually proved) and
+at the concrete level (its intended use, obtained by composition with the typing
+abstraction result of \Cref{thm:b-typing-of-abstract}).
 
 \begin{theorem}[Denotation soundness][B.denote\_exists\_of\_typing][B/Reasoning/DenotationTotality.html\#B.denote_exists_of_typing]
 \label{thm:b-denote-sound}
-Let $\btype{\Gamma}{t}{\tau}$ be a concrete B typing derivation, let
-$\Delta : \mathsf{B}.\mathcal{V} \to \mathsf{Option}\,\mathsf{Dom}$ be a
-renaming covering all free variables of $t$, and let $t^*$ denote the
-abstracted PHOAS term.
-If $\aterm{\Gamma}{\Delta}$ is a well-typed context and $t^*$ is
-well-defined, then
+Let \(\Gamma : \mathsf{Dom} \rightharpoonup \mathsf{BType}\) be a PHOAS context with
+\(\WTctx(\Gamma)\), and let \(t : \mathsf{PHOAS.Term}\,\mathsf{Dom}\) satisfy
+\(\batype{\Gamma}{t}{\tau}\) and \(\WD(t)\). Then there exists \(V \in \interpZ{\tau}\) such
+that
 \[
-  \exists\, V \in \interpB{\tau},\quad
-  \interpB{t^*} = \denval{V}[\tau].
+  \interpB{t} = \denval{V}[\tau].
 \]
+In particular, for any concrete derivation \(\btype{\Gamma}{t}{\tau}\) and any renaming
+\(\Delta\) well-formed with respect to \(\Gamma\) and covering the free variables of \(t\),
+if \(\WD(\aterm{t}{\Delta})\) holds, then there exists \(V \in \interpZ{\tau}\) such that
+\(\interpB{\aterm{t}{\Delta}} = \denval{V}[\tau]\).
 \end{theorem}
 
-The \emph{well-definedness} predicate \leancodeptr{WellDefined}{} formalises the
-semantic side conditions for partial operations:
-for each subterm of the form $f(x)$, it requires $\interpB{f}$ to be a partial
-function and $\interpB{x} \in \mathrm{dom}(\interpB{f})$;
-for each subterm $\cardB{S}$, $\minB(S)$, or $\maxB(S)$, it requires
-$\interpB{S}$ to be finite (and nonempty for $\minB$ and $\maxB$).
+\begin{proof}
+The second statement follows from the first by composition with
+\Cref{thm:b-typing-of-abstract} (\(\baop\vdash\) is preserved by abstraction) and the fact
+that \(\aterm{\Gamma}{\Delta}\) is automatically well-typed in the sense of
+\Cref{def:b-welltyped-ctx}, by construction.
 
-The syntax, typing, and semantics described in this chapter form the
-source-language contract used by the SMT translation and by the correctness
-arguments in the following chapters.
+For the PHOAS-level statement, we proceed by structural induction on the typing
+derivation \(\batype{\Gamma}{t}{\tau}\). The argument splits into four groups of cases.
+
+\paragraph{Variables and literals.}
+For \(t = v\), take \(V \coloneq v.X\); the denotation clause returns \(v\) itself, and
+\(V \in \interpZ{v.\tau} = \interpZ{\tau}\) follows from
+\(\WTctx(\Gamma)\). For literals, the witnesses are immediate:
+\(V \coloneq \zop{n} \in \Zint\) for \(\mathsf{int}\,n\),
+\(V \coloneq \zop{b} \in \Zbool\) for \(\mathsf{bool}\,b\),
+and \(V \coloneq \Zint \in \powZ(\Zint)\),
+\(V \coloneq \Zbool \in \powZ(\Zbool)\) for \(\ZintB\) and \(\ZboolB\). In each case, the
+membership proof was constructed in \Cref{subsec:b-denote}.
+
+\paragraph{Compound non-partial constructors.}
+For each of \(\mapletB\), \(\addB\), \(\subB\), \(\mulB\), \(\andB\), \(\notB\), \(\eqB\),
+\(\leB\), \(\inB\), \(\powB\), \(\prodB\), \(\cupB\), \(\capB\), and \(\pfunB\), the
+induction hypothesis applied to each subterm produces a witness denotation whose type tag
+matches the typing-rule premise. By \Cref{thm:b-denote-type-det}, every case analysis on
+subterm type tags inside the corresponding denotation clause selects the success branch.
+The witness \(V\) is then constructed by applying the relevant ZFC closure lemma to the
+subterm witnesses: \(\pairZ{X}{Y} \in \interpZ{\alpha} \timesZ \interpZ{\beta}\) for
+maplets, closure of \(\Zint\) and \(\Zbool\) under the arithmetic and Boolean operations
+for the connectives, monotonicity of \(\cupZ\), \(\capZ\), \(\timesZ\), and \(\powZ\) under
+inclusion for the set constructors, and the closure of partial-function sets under the
+covariant action of their domain and codomain for \(\pfunB\) (\Cref{subsec:b-denote}).
+
+\paragraph{Partial operations.}
+For \(\appB f\,x\), the induction hypothesis gives denotations
+\(\interpB{f} = \denval{F}[\setB(\tau \prodB \sigma)]\) and
+\(\interpB{x} = \denval{X}[\tau]\). The well-definedness hypothesis \(\WD(\appB f\,x)\)
+supplies a proof that \(F\) is a partial function from \(\interpZ{\tau}\) to
+\(\interpZ{\sigma}\) and a witness \(Y_0\) with \(\pairZ{X}{Y_0} \in F\); these unlock
+the conditional in the denotation clause, and the partial-function property yields a
+unique \(Y \in \interpZ{\sigma}\) with \(\pairZ{X}{Y} \in F\), which we take as \(V\).
+For \(\cardB{S}\), \(\minB(S)\), and \(\maxB(S)\), writing
+\(\interpB{S} = \denval{S'}[\setB\alpha]\), \(\WD\) supplies the finiteness (and
+nonemptiness, for \(\minB\) and \(\maxB\)) hypotheses that activate the corresponding
+denotation clauses; the witnesses \(\cardZ{S'}\), \(\minZ(S')\), and \(\maxZ(S')\) belong
+to \(\Zint\) by their defining properties.
+
+\paragraph{Binders.}
+For \(\{D \mid P\}\), the induction hypothesis on \(D\) (which is itself a foldl of
+Cartesian products of the component domains \(D_i\)) gives a denotation
+\(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^\times]\). By \Cref{thm:b-type-nonempty},
+each \(\interpZ{\tau_i}\) is nonempty, so we can pick a canonical default tuple
+\(\vec d^{\,\mathsf{def}} \in \interpZ{\tau^\times}\) with type tags exactly matching
+\(\vec\alpha\); the induction hypothesis applied to \(P(\vec d^{\,\mathsf{def}})\) under the
+extended context \(\Gamma[\vec v : \vec\alpha]\)---which remains well-typed since each
+\(d_i^{\mathsf{def}}\) carries the intrinsic type \(\alpha_i\)---yields a Boolean
+denotation, which activates the success branch of the comprehension clause. The witness is
+then \(V \coloneq \{ z \in \mathcal{D} \mid \mathbb{P}(z) \}\), which lies in
+\(\powZ(\interpZ{\tau^\times})\) by the separation principle.
+
+The \(\forallB' D \cdot P\) case proceeds analogously, with two subcases: when
+\(\mathcal{D} = \emptyset\), the denotation evaluates to \(\topZ \in \Zbool\); when
+\(\mathcal{D} \neq \emptyset\), pick any \(d \in \mathcal{D}\) and apply the induction
+hypothesis to \(P(\vec d)\) (with type tags matching \(\vec\alpha\), by membership of
+\(\vec d\) in \(\mathcal{D} \subseteq \interpZ{\tau^\times}\)) to ensure the body denotes
+at every tuple of the right shape; the bounded infimum then lies in \(\Zbool\) by closure
+of the two-element algebra under conjunction.
+
+The \(\lambdaB' D \cdot E\) case mirrors \(\forallB'\), with the additional twist that the
+return type \(\gamma\) of the body must be retrieved before the result type
+\(\setB(\tau^\times \prodB \gamma)\) can be formed. When \(\mathcal{D} = \emptyset\), the
+canonical default tuple from \Cref{thm:b-type-nonempty} provides this information, and the
+denotation is \(\emptyset \in \powZ(\interpZ{\tau^\times \prodB \gamma})\). When
+\(\mathcal{D} \neq \emptyset\), an arbitrary witness in \(\mathcal{D}\) supplies a
+representative for which the induction hypothesis returns \(\gamma\) and a denotation; the
+denotation is then a subset of \(\interpZ{\tau^\times} \timesZ \interpZ{\gamma}\) by
+separation.
+\end{proof}
+
+The following corollary, used freely in the correctness proofs of subsequent chapters,
+records the most common form of the soundness theorem: the conclusion is restated as the
+defining property of the \(\mathsf{some}\) constructor.
+
+\begin{corollary}[Totality on well-typed, well-defined terms][B.PHOAS.denote\_isSome\_of\_typing][B/Reasoning/DenotationTotality.html\#B.PHOAS.denote_isSome_of_typing]
+\label{cor:b-denote-isSome}
+Under the hypotheses of \Cref{thm:b-denote-sound}, \(\interpB{t}\) is defined, \ie
+\(\interpB{t} \neq \bot\).
+\end{corollary}
+
+The syntax, typing, and semantics described in this chapter form the source-language
+contract used by the SMT translation and by the correctness arguments in the following
+chapters.
