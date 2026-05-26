@@ -1,4 +1,4 @@
-\documentclass[10pt]{book}
+\documentclass[10pt]{scrbook}
 \usepackage[Bjornstrup]{fncychap}
 
 
@@ -39,6 +39,8 @@
 \title{\ThesisTitle}
 \author{\ThesisAuthor}
 
+\frontmatter
+
 \iffalse
 \include{cover.tex}
 \let\svCDP\cleardoublepage\let\cleardoublepage\clearpage
@@ -50,6 +52,8 @@
 \hypersetup{linkcolor=black}
 \tableofcontents
 \endgroup
+
+\mainmatter
 
 \include{chapters/introduction.tex}
 
@@ -71,6 +75,8 @@
 \include{chapters/evaluation.tex}
 
 \include{chapters/conclusion.tex}
+
+\backmatter
 
 \include{chapters/appendices.tex}
 
