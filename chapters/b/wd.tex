@@ -2,3 +2,19 @@
 \label{sec:b-wd}
 
 \inlremark[]{To be included if substantial enough. See \leancodeptr{B.PHOAS.WellDefined}{https://vtrelat.github.io/BEer/docs/B/Reasoning/WellDefined.html\#B.PHOAS.WellDefined}}
+
+\begin{definition}[Well-definedness predicate][B.PHOAS.WellDefined][B/Reasoning/WellDefined.html\#B.PHOAS.WellDefined]
+  \label{def:b-welldefined}
+  The predicate \(\WD : \mathsf{PHOAS.Term}\,\mathsf{Dom} \to \mathsf{Prop}\) is defined by
+  structural recursion. It holds vacuously on variables and literals, propagates conjunctively
+  to immediate subterms, and additionally carries the following semantic side conditions at
+  partial operations:
+  \begin{description}
+    \item[\(\appB f\,x\):] writing \(\interpB{f} = \denval{F}[\setB(\tau \prodB \sigma)]\)
+          and \(\interpB{x} = \denval{X}[\tau]\), the ZFC component \(F\) is a partial function
+          from \(\interpZ{\tau}\) to \(\interpZ{\sigma}\), and \(X \in \domB(F)\);
+    \item[\(\cardB{S}\):] writing \(\interpB{S} = \denval{S'}[\setB\alpha]\), the set
+          \(S'\) is finite;
+    \item[\(\minB(S),\maxB(S)\):] \(S'\) is finite and nonempty.
+  \end{description}
+\end{definition}

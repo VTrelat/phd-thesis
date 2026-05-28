@@ -32,6 +32,9 @@
 
 \setstretch{1.2}
 
+% Tighten \paragraph spacing (KOMA-Script)
+\RedeclareSectionCommand[beforeskip=0.5ex,afterskip=-0.5em]{paragraph}
+
 \usepackage{emptypage}
 % \usepackage{lettrine}
 
@@ -106,12 +109,12 @@
   fonttitle=\small\sffamily\color{black},
   attach boxed title to top left={yshift={-\dimexpr\tcboxedtitleheight/2\relax}, xshift=6mm},
   boxed title style={
-    colback=beige!30,
-    colframe=beige!90!black,
-    arc=3pt,
-    boxrule=1pt,
-    left=4pt, right=4pt, top=1pt, bottom=1pt,
-  },
+      colback=beige!30,
+      colframe=beige!90!black,
+      arc=3pt,
+      boxrule=1pt,
+      left=4pt, right=4pt, top=1pt, bottom=1pt,
+    },
   #1,
 }
 \makeatother
@@ -155,33 +158,33 @@
 \makeatletter
 
 \renewcommand{\DOCH}{%
-    \settowidth{\py}{\CNoV\thechapter}
-    \addtolength{\py}{-10pt}% 
-    \fboxsep=0pt%
-    \colorbackchap{\rule{0pt}{40pt}\parbox[b]{\textwidth}{\hfill}}%
-    \kern-\py\raise20pt%
-    \hbox{\colornumberchap\CNoV\thechapter}\\%
+  \settowidth{\py}{\CNoV\thechapter}
+  \addtolength{\py}{-10pt}% 
+  \fboxsep=0pt%
+  \colorbackchap{\rule{0pt}{40pt}\parbox[b]{\textwidth}{\hfill}}%
+  \kern-\py\raise20pt%
+  \hbox{\colornumberchap\CNoV\thechapter}\\%
 }
 
 \renewcommand{\DOTI}[1]{%
-    \nointerlineskip\raggedright%
-    \fboxsep=\myhi%
-    \vskip-1ex%
-    \colorbackchap{\parbox[t]{\dimexpr\textwidth-2\myhi\relax}{\CTV\FmTi{\colortitlechap#1}}}\par\nobreak%
-    \vskip 40\p@%
+  \nointerlineskip\raggedright%
+  \fboxsep=\myhi%
+  \vskip-1ex%
+  \colorbackchap{\parbox[t]{\dimexpr\textwidth-2\myhi\relax}{\CTV\FmTi{\colortitlechap#1}}}\par\nobreak%
+  \vskip 40\p@%
 }
 
 \renewcommand{\DOTIS}[1]{%
-    \fboxsep=0pt%
-    \colorbackchap{\rule{0pt}{40pt}\parbox[b]{\textwidth}{\hfill}}\\%
-    \nointerlineskip\raggedright%
-    \fboxsep=\myhi%
-    \colorbackchap{\parbox[t]{\dimexpr\textwidth-2\myhi\relax}{\CTV\FmTi{\colortitlechap#1}}}\par\nobreak%
-    \vskip 40\p@%
+  \fboxsep=0pt%
+  \colorbackchap{\rule{0pt}{40pt}\parbox[b]{\textwidth}{\hfill}}\\%
+  \nointerlineskip\raggedright%
+  \fboxsep=\myhi%
+  \colorbackchap{\parbox[t]{\dimexpr\textwidth-2\myhi\relax}{\CTV\FmTi{\colortitlechap#1}}}\par\nobreak%
+  \vskip 40\p@%
 }
 
 \renewcommand{\@seccntformat}[1]{%
-    {\colornumberchap\csname the#1\endcsname}\quad%
+  {\colornumberchap\csname the#1\endcsname}\quad%
 }
 
 % Each chapter title on its own page: wrap the fncychap-defined macros
@@ -234,14 +237,14 @@
 \newcommand{\pagenumboxL}[1]{%
   \llap{%
     {%
-      \setlength{\fboxsep}{10pt}%
-      \colorbox{gray!10}{%
-        \makebox[\dimexpr\halfoutermarginwidth - 20pt\relax][c]{%
-          \fontsize{14}{16}\sffamily\bfseries\itshape\selectfont
-          \color{gray}#1%
+        \setlength{\fboxsep}{10pt}%
+        \colorbox{gray!10}{%
+          \makebox[\dimexpr\halfoutermarginwidth - 20pt\relax][c]{%
+            \fontsize{14}{16}\sffamily\bfseries\itshape\selectfont
+            \color{gray}#1%
+          }%
         }%
       }%
-    }%
     \hspace*{\halfoutermarginwidth}%
   }%
 }
@@ -262,6 +265,6 @@
 }
 
 \SetBNFConfig{
-    comment = {//},
-    single-line-delim = {\&\&},
+  comment = {//},
+  single-line-delim = {\&\&},
 }

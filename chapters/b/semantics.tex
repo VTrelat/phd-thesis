@@ -16,31 +16,31 @@ Concrete terms are interpreted after abstraction to PHOAS, as described in \Cref
 We first define the interpretation of B types as ZFC sets, denoted \(\interpZ{\cdot}\).
 
 \begin{definition}[Type interpretation][B.BType.toZFSet][B/SemanticsPHOAS.html\#B.BType.toZFSet]
-\label{def:b-type-interp}
-The function $\interpZ{\cdot} : \mathsf{BType} \to \mathsf{ZFSet}$ is defined by:
-\[
-\begin{array}{rcl}
-\interpZ{\intB} &=& \Zint,\\
-\interpZ{\boolB} &=& \Zbool,\\
-\interpZ{\setB\tau} &=& \powZ(\interpZ{\tau}),\\
-\interpZ{\tau \prodB \sigma} &=& \interpZ{\tau} \timesZ \interpZ{\sigma}.
-\end{array}
-\]
+  \label{def:b-type-interp}
+  The function $\interpZ{\cdot} : \mathsf{BType} \to \mathsf{ZFSet}$ is defined by:
+  \[
+    \begin{array}{rcl}
+      \interpZ{\intB}              & = & \Zint,                                   \\
+      \interpZ{\boolB}             & = & \Zbool,                                  \\
+      \interpZ{\setB\tau}          & = & \powZ(\interpZ{\tau}),                   \\
+      \interpZ{\tau \prodB \sigma} & = & \interpZ{\tau} \timesZ \interpZ{\sigma}.
+    \end{array}
+  \]
 \end{definition}
 
 Agreeing on the fact that this set-theoretic interpretation is appropriate, we can show
 that B types are inhabited.
 
 \begin{lemma}[Nonemptiness][B.BType.toZFSet\_nonempty][B/SemanticsPHOAS.html\#B.BType.toZFSet_nonempty]
-\label{thm:b-type-nonempty}
-Interpretations of B types are nonempty, \ie
-\[\forall \tau,\, \interpZ{\tau} \neq \emptyset\]
+  \label{thm:b-type-nonempty}
+  Interpretations of B types are non-empty, \ie
+  \[\forall \tau,\, \interpZ{\tau} \neq \emptyset\]
 \end{lemma}
 \begin{proof}
-By structural induction on \(\tau\).
-The sets \(\Zint\) and \(\Zbool\) are nonempty by construction;
-\(\emptyset \in \powZ(S)\) for any \(S\);
-the Cartesian product of two nonempty sets is nonempty.
+  By structural induction on \(\tau\).
+  The sets \(\Zint\) and \(\Zbool\) are non-empty by construction;
+  \(\emptyset \in \powZ(S)\) for any \(S\);
+  the Cartesian product of two non-empty sets is non-empty.
 \end{proof}
 
 Nonemptiness ensures that open terms can be given canonical default values, and
@@ -67,13 +67,13 @@ This is highly motivated by the idea of obtaining a \emph{correct-by-constructio
 \end{remark}
 
 \begin{definition}[Semantic domain][B.Dom][B/SemanticsPHOAS.html\#B.Dom]
-\label{def:b-dom}
-The semantic domain is the following dependent sum type:
-\[
-  \mathsf{Dom} \triangleq
-  \sum_{X : \mathsf{ZFSet}}\sum_{\tau : \mathsf{BType}}\,
-  X \in \interpZ{\tau}
-\]
+  \label{def:b-dom}
+  The semantic domain is the following dependent sum type:
+  \[
+    \mathsf{Dom} \triangleq
+    \sum_{X : \mathsf{ZFSet}}\sum_{\tau : \mathsf{BType}}\,
+    X \in \interpZ{\tau}
+  \]
 \end{definition}
 
 Elements in \(\mathsf{Dom}\) are therefore dependent triples, denoted \(\denval{X}[\tau]\),
@@ -93,12 +93,12 @@ The denotation function is therefore a partial function---due to B containing pa
 \begin{definition}[Denotation][B.denote][B/Reasoning/Lemmas.html\#B.denote]
   \label{def:b-denote}
   The denotation function is defined by structural recursion over PHOAS terms as the partial function
-\[
-  \begin{array}{rcccc}
-  \interpB{\cdot} & : & \mathsf{PHOAS.Term}\,\mathsf{Dom} & \rightharpoonup & \mathsf{Dom}\\
-  & & t & \mapsto & \denval{X}[\tau]
-  \end{array}
-\]
+  \[
+    \begin{array}{rcccc}
+      \interpB{\cdot} & : & \mathsf{PHOAS.Term}\,\mathsf{Dom} & \rightharpoonup & \mathsf{Dom}     \\
+                      &   & t                                 & \mapsto         & \denval{X}[\tau]
+    \end{array}
+  \]
 \end{definition}
 The equations defining the denotation function are detailed below, and written as \(\interpB{t} \triangleq \denval{X}[\tau]\) for each term constructor.
 In each case, the construction of the proof \(\pf{\tau}{X}\) is detailed.
@@ -113,8 +113,8 @@ For any variable \(v : \mathsf{Dom}\),
 \]
 For any integer \(n\) and Boolean \(b\),
 \[
-\interpB{n} \triangleq \denval{\zop{n}}[\intB],\quad
-\interpB{b} \triangleq \denval{\zop{b}}[\boolB]
+  \interpB{n} \triangleq \denval{\zop{n}}[\intB],\quad
+  \interpB{b} \triangleq \denval{\zop{b}}[\boolB]
 \]
 where $\zop{n}$ and $\zop{b}$ are the respective ZFC encodings of integers and Booleans.
 \begin{proof}
@@ -123,12 +123,12 @@ where $\zop{n}$ and $\zop{b}$ are the respective ZFC encodings of integers and B
 
 For built-in sets, the denotation is given by the interpretation of their ZFC counterparts:
 \[
-\interpB{\ZintB}          \triangleq \denval{\Zint}[\setB\intB],\quad
-\interpB{\ZboolB}         \triangleq \denval{\Zbool}[\setB\boolB]
+  \interpB{\ZintB}          \triangleq \denval{\Zint}[\setB\intB],\quad
+  \interpB{\ZboolB}         \triangleq \denval{\Zbool}[\setB\boolB]
 \]
 
 \begin{proof}
-\(\pf{\setB\intB}{\Zint} : \Zint \in \powZ(\Zint)\) and \(\pf{\setB\boolB}{\Zbool} : \Zbool \in \powZ(\Zbool)\) are trivially given by the fact that any set belongs to its own powerset.
+  \(\pf{\setB\intB}{\Zint} : \Zint \in \powZ(\Zint)\) and \(\pf{\setB\boolB}{\Zbool} : \Zbool \in \powZ(\Zbool)\) are trivially given by the fact that any set belongs to its own powerset.
 \end{proof}
 
 \paragraph{Pairs.}
@@ -138,16 +138,16 @@ Given \(\interpB{t} = \denval{X}[\tau]\) and \(\interpB{u} = \denval{Y}[\sigma]\
 \]
 
 \begin{proof}
-Using that \(\interpZ{\tau \prodB \sigma} \triangleq \interpZ{\tau} \timesZ \interpZ{\sigma}\),
-\(\pf{\tau \prodB \sigma}{\pairZ{X}{Y}} : \pairZ{X}{Y} \in \interpZ{\tau} \timesZ \interpZ{\sigma}\) easily follows from composing {\small\leancodeptr{ZFSet.pair\_mem\_prod}{Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.pair_mem_prod}} with the proofs \(\pf{\tau}{X}\) and \(\pf{\sigma}{Y}\).
+  Using that \(\interpZ{\tau \prodB \sigma} \triangleq \interpZ{\tau} \timesZ \interpZ{\sigma}\),
+  \(\pf{\tau \prodB \sigma}{\pairZ{X}{Y}} : \pairZ{X}{Y} \in \interpZ{\tau} \timesZ \interpZ{\sigma}\) easily follows from composing {\small\leancodeptr{ZFSet.pair\_mem\_prod}{Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.pair_mem_prod}} with the proofs \(\pf{\tau}{X}\) and \(\pf{\sigma}{Y}\).
 \end{proof}
 
 \paragraph{Arithmetic.}
 Given \(\interpB{t} = \denval{X}[\intB]\) and \(\interpB{u} = \denval{Y}[\intB]\) (when the types do not match \(\intB\), the denotation is undefined), we define the denotation of arithmetic operations by lifting the corresponding ZFC operations:
 \[
-\interpB{t \addB u} \triangleq \denval{X \addZ Y}[\intB],\quad
-\interpB{t \subB u} \triangleq \denval{X \subZ Y}[\intB],\quad
-\interpB{t \mulB u} \triangleq \denval{X \mulZ Y}[\intB]
+  \interpB{t \addB u} \triangleq \denval{X \addZ Y}[\intB],\quad
+  \interpB{t \subB u} \triangleq \denval{X \subZ Y}[\intB],\quad
+  \interpB{t \mulB u} \triangleq \denval{X \mulZ Y}[\intB]
 \]
 
 \begin{proof}
@@ -158,15 +158,15 @@ Given \(\interpB{t} = \denval{X}[\intB]\) and \(\interpB{u} = \denval{Y}[\intB]\
 Given \(\interpB{t} = \denval{X}[\tau]\) and \(\interpB{u} = \denval{Y}[\sigma]\), we define the denotation of Boolean operations by lifting the corresponding ZFC operations, when the types match the expected ones; otherwise, the denotation is undefined.
 \begin{align*}
   \intertext{When \(\tau = \intB\) and \(\sigma = \intB\),}
-    \interpB{t \leB u}   &\triangleq \denval{X \leqZ Y}[\boolB]
+  \interpB{t \leB u}  & \triangleq \denval{X \leqZ Y}[\boolB]
   \intertext{When \(\tau = \boolB\),}
-    \interpB{\notB t}    &\triangleq \denval{\negZ X}[\boolB]
+  \interpB{\notB t}   & \triangleq \denval{\negZ X}[\boolB]
   \intertext{When \(\tau = \boolB\) and \(\sigma = \boolB\),}
-    \interpB{t \andB u}  &\triangleq \denval{X \andZ Y}[\boolB]
+  \interpB{t \andB u} & \triangleq \denval{X \andZ Y}[\boolB]
   \intertext{When \(\tau = \sigma\),}
-    \interpB{t \eqB u}   &\triangleq \denval{X \eqZ Y}[\boolB]
+  \interpB{t \eqB u}  & \triangleq \denval{X \eqZ Y}[\boolB]
   \intertext{When \(\sigma = \setB\tau\),}
-    \interpB{t \inB u}   &\triangleq \denval{X \in Y}[\boolB]
+  \interpB{t \inB u}  & \triangleq \denval{X \in Y}[\boolB]
 \end{align*}
 
 \begin{proof}
@@ -178,22 +178,22 @@ Given \(\interpB{S} = \denval{S'}[\setB\tau]\) and \(\interpB{T} = \denval{T'}[\
 Those equations witness the fact that the B language is rooted in set theory.
 
 \begin{align*}
-  \interpB{S \prodB T} &\triangleq \denval{S' \timesZ T'}[\setB(\tau \prodB \sigma)]\\
-  \interpB{\powB(S)}   &\triangleq \denval{\powZ(S')}[\setB(\setB\tau)]
-\intertext{
-  \begin{proof}
-    Using that \(\interpZ{\setB(\tau \prodB \sigma)} \triangleq \powZ(\interpZ{\tau} \timesZ \interpZ{\sigma})\), we show
-    \begin{align*}
-      \undernote{S' \timesZ T' \in \interpZ{\setB(\tau \prodB \sigma)}}{\pf{\setB(\tau \prodB \sigma)}{S' \timesZ T'}} &\iff S' \timesZ T' \in \powZ(\interpZ{\tau} \timesZ \interpZ{\sigma})\\[-18pt]
-      &\iff S' \timesZ T' \subseteq \interpZ{\tau} \timesZ \interpZ{\sigma}\\
-      &\iff S' \subseteq \interpZ{\tau} \land T' \subseteq \interpZ{\sigma}\\
-      &\iff \undernote{S' \in \powZ(\interpZ{\tau})}{\pf{\tau}{S'}} \land \undernote{T' \in \powZ(\interpZ{\sigma})}{\pf{\sigma}{T'}}
-    \end{align*}
-    Likewise, we construct the proof \(\pf{\setB(\setB\tau)}{\powZ(S')}\).
-  \end{proof}
-  When \(\tau = \sigma\),}
-  \interpB{S \cupB T} &\triangleq \denval{S' \cupZ T'}[\setB\tau]\\
-  \interpB{S \capB T} &\triangleq \denval{S' \capZ T'}[\setB\tau]
+  \interpB{S \prodB T} & \triangleq \denval{S' \timesZ T'}[\setB(\tau \prodB \sigma)] \\
+  \interpB{\powB(S)}   & \triangleq \denval{\powZ(S')}[\setB(\setB\tau)]
+  \intertext{
+    \begin{proof}
+      Using that \(\interpZ{\setB(\tau \prodB \sigma)} \triangleq \powZ(\interpZ{\tau} \timesZ \interpZ{\sigma})\), we show
+      \begin{align*}
+        \undernote{S' \timesZ T' \in \interpZ{\setB(\tau \prodB \sigma)}}{\pf{\setB(\tau \prodB \sigma)}{S' \timesZ T'}} & \iff S' \timesZ T' \in \powZ(\interpZ{\tau} \timesZ \interpZ{\sigma})                                                          \\[-18pt]
+                                                                                                                         & \iff S' \timesZ T' \subseteq \interpZ{\tau} \timesZ \interpZ{\sigma}                                                           \\
+                                                                                                                         & \iff S' \subseteq \interpZ{\tau} \land T' \subseteq \interpZ{\sigma}                                                           \\
+                                                                                                                         & \iff \undernote{S' \in \powZ(\interpZ{\tau})}{\pf{\tau}{S'}} \land \undernote{T' \in \powZ(\interpZ{\sigma})}{\pf{\sigma}{T'}}
+      \end{align*}
+      Likewise, we construct the proof \(\pf{\setB(\setB\tau)}{\powZ(S')}\).
+    \end{proof}
+    When \(\tau = \sigma\),}
+  \interpB{S \cupB T}  & \triangleq \denval{S' \cupZ T'}[\setB\tau]                   \\
+  \interpB{S \capB T}  & \triangleq \denval{S' \capZ T'}[\setB\tau]
 \end{align*}
 \begin{proof}
   \(\pf{\setB\tau}{S' \cupZ T'} : S' \cupZ T' \in \powZ(\interpZ{\tau})\) and \(\pf{\setB\tau}{S' \capZ T'} : S' \capZ T' \in \powZ(\interpZ{\tau})\) are easily constructed using monotonicity of union and intersection: {\small\leancodeptr{union\_mono}{Extra/ZFC_Extra.html\#union_mono}}, {\small\leancodeptr{inter\_mono}{Extra/ZFC_Extra.html\#inter_mono}}.
@@ -213,11 +213,11 @@ Then, the denotation is given by
 \]
 \begin{proof}
   Using that \textbf{partial} functions are covariant in both their domain and codomain---see lemma {\small\leancodeptr{prod\_sep\_is\_pfunc\_mem}{ZFLean/Functions.html\#ZFSet.prod_sep_is_pfunc_mem}}, we show that
-\begin{align*}
-  F &\subseteq \bigl\{ f \in \powZ(\interpZ{\tau} \timesZ \interpZ{\sigma}) \bigm| \leancodeptr{IsPFunc}{ZFLean/Functions.html\#ZFSet.IsPFunc}\ f\ \interpZ{\tau}\ \interpZ{\sigma}  \bigr\} & \text{(using \(\pf{\setB\tau}{A'}\) and \(\pf{\setB\sigma}{B'}\))}\\
-  & \subseteq \powZ(\interpZ{\tau} \timesZ \interpZ{\sigma}) & \text{(using \leancodeptr{sep\_subset}{Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.sep_subset})}
-\end{align*}%
-\ie that \(F \in \powZ(\powZ(\interpZ{\tau} \timesZ \interpZ{\sigma})) = \interpZ{\setB(\setB(\tau \prodB \sigma))}\).
+  \begin{align*}
+    F & \subseteq \bigl\{ f \in \powZ(\interpZ{\tau} \timesZ \interpZ{\sigma}) \bigm| \leancodeptr{IsPFunc}{ZFLean/Functions.html\#ZFSet.IsPFunc}\ f\ \interpZ{\tau}\ \interpZ{\sigma}  \bigr\} & \text{(using \(\pf{\setB\tau}{A'}\) and \(\pf{\setB\sigma}{B'}\))}                           \\
+      & \subseteq \powZ(\interpZ{\tau} \timesZ \interpZ{\sigma})                                                                                                                                & \text{(using \leancodeptr{sep\_subset}{Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.sep_subset})}
+  \end{align*}%
+  \ie that \(F \in \powZ(\powZ(\interpZ{\tau} \timesZ \interpZ{\sigma})) = \interpZ{\setB(\setB(\tau \prodB \sigma))}\).
 \end{proof}
 
 \paragraph{Partial operations.}
@@ -231,18 +231,18 @@ Given \(\interpB{f} = \denval{F}[\setB(\tau \prodB \sigma)]\) and \(\interpB{x} 
 \begin{proof}
   Both uniqueness and the fact that \(Y \in \interpZ{\sigma}\) follow from the definition of \(\mathsf{IsPFunc}\).
 \end{proof}
- 
+
 Cardinality is defined under finiteness conditions, like minimum and maximum, which also require nonemptiness; they lift the corresponding ZFC operations.
 Given \(\interpB{S} = \denval{S'}[\setB\tau]\) such that \(\leancodeptr{IsFinite}{ZFLean/Functions.html\#ZFSet.IsFinite}\ S'\), we define:
 \begin{align*}
-  \interpB{\cardB{S}} &\triangleq \denval{\cardZ{S'}}[\intB]
-\intertext{
-  \begin{proof}
-    By definition, \(\cardZ{S'}\) is defined, when \(S'\) is finite, as the unique natural number \(n\), lifted as integer, such that there exists a bijection between \(S'\) and the set \(\{0, 1, \ldots, n-1\}\); in particular, \(\cardZ{S'} \in \Zint = \interpZ{\intB}\).
-  \end{proof}  
-  Moreover, when \(\tau = \intB\) and \(S' \neq \emptyset\),}
-  \interpB{\minB(S)} &\triangleq \denval{\minZ(S')}[\intB]\\
-  \interpB{\maxB(S)} &\triangleq \denval{\maxZ(S')}[\intB]
+  \interpB{\cardB{S}} & \triangleq \denval{\cardZ{S'}}[\intB]
+  \intertext{
+    \begin{proof}
+      By definition, \(\cardZ{S'}\) is defined, when \(S'\) is finite, as the unique natural number \(n\), lifted as integer, such that there exists a bijection between \(S'\) and the set \(\{0, 1, \ldots, n-1\}\); in particular, \(\cardZ{S'} \in \Zint = \interpZ{\intB}\).
+    \end{proof}
+    Moreover, when \(\tau = \intB\) and \(S' \neq \emptyset\),}
+  \interpB{\minB(S)}  & \triangleq \denval{\minZ(S')}[\intB]  \\
+  \interpB{\maxB(S)}  & \triangleq \denval{\maxZ(S')}[\intB]
 \end{align*}
 \begin{proof}
   We sketch the proof for the minimum case, the maximum case being similar.
@@ -269,20 +269,20 @@ Definedness assumptions are the following:
 We can therefore define the following scoped denotation \(\mathbb{P} : \mathsf{ZFSet} \to \mathsf{Dom}\) of the body \(P\), for any set argument \(z\), by the following case distinction:
 \begin{description}
   \item[if \(z \in \mathcal{D}\):] \(z\) can be written as an \(n\)-ary set-level tuple \(\pairZ{z_1}{\cdots, z_n}\).
-  It easily follows from \(\pf{\setB\tau^\times}{\mathcal{D}}\) that each \(z_i\) belongs to \(\interpZ{\tau_i}\), thereby constructing \(\pf{\tau_i}{z_i}\).
-  By assumption, \(P\) therefore has a denotation for the family of variables \((\denval{z_i}[\tau_i])_{1 \leq i \leq n}\), whose first component is a set \(p_z\), \ie
-  \[
-    \interpB{P\bigl((\denval{z_i}[\tau_i])_{1 \leq i \leq n}\bigr)} = \denval{p_z}[\tau_{p_z}]
-  \]
-  
-  In this case, we define the denotation of the body at \(z\) as the following equality:
-  \[
-    \mathbb{P}(z) : \mathsf{Prop} \coloneq p_z = \topZ
-  \]
-  \begin{note}
-  Note that \(\tau_{p_z}\) is not used in the definition of \(\mathbb{P}\), otherwise we would require that it be equal to \(\boolB\).
-  It is unnecessary at this point and the fact can be easily retrieved when we add typing assumptions.
-  \end{note}
+        It easily follows from \(\pf{\setB\tau^\times}{\mathcal{D}}\) that each \(z_i\) belongs to \(\interpZ{\tau_i}\), thereby constructing \(\pf{\tau_i}{z_i}\).
+        By assumption, \(P\) therefore has a denotation for the family of variables \((\denval{z_i}[\tau_i])_{1 \leq i \leq n}\), whose first component is a set \(p_z\), \ie
+        \[
+          \interpB{P\bigl((\denval{z_i}[\tau_i])_{1 \leq i \leq n}\bigr)} = \denval{p_z}[\tau_{p_z}]
+        \]
+
+        In this case, we define the denotation of the body at \(z\) as the following equality:
+        \[
+          \mathbb{P}(z) : \mathsf{Prop} \coloneq p_z = \topZ
+        \]
+        \begin{note}
+          Note that \(\tau_{p_z}\) is not used in the definition of \(\mathbb{P}\), otherwise we would require that it be equal to \(\boolB\).
+          It is unnecessary at this point and the fact can be easily retrieved when we add typing assumptions.
+        \end{note}
   \item[otherwise:] we define \(\mathbb{P}(z) : \mathsf{Prop} \coloneq \mathsf{False}\).
 \end{description}
 
@@ -295,10 +295,10 @@ The denotation of the whole comprehension is then simply given by the ZFC separa
 
 \begin{proof}
   The proof is straightforward:
-\[
-  \{ z \in \mathcal{D} \mid \mathbb{P}(z) \} \subseteq \undernote{\mathcal{D} \subseteq \interpZ{\tau^\times}}{\pf{\setB\tau^\times}{\mathcal{D}}}
-  \vspace{-\baselineskip}
-\]
+  \[
+    \{ z \in \mathcal{D} \mid \mathbb{P}(z) \} \subseteq \undernote{\mathcal{D} \subseteq \interpZ{\tau^\times}}{\pf{\setB\tau^\times}{\mathcal{D}}}
+    \vspace{-\baselineskip}
+  \]
 \end{proof}
 
 For lambda abstraction \(\lambdaB' D \cdot E\), the result is the graph of the function described by
@@ -310,37 +310,37 @@ the body. The definition is quite similar to set comprehension, with the technic
 We define the following scoped denotation \(\mathcal{E} : \mathsf{ZFSet} \to \mathsf{Dom}\) of the body \(E\), for any set argument \(z\), by distinguishing whether \(\mathcal{D}\) is empty or not:
 \begin{description}
   \item[if \(\mathcal{D} = \emptyset\):] in this case, we cannot directly compute the return type of the body, as we have no element in the domain to plug in it; however, we can still define a dummy family of variables from the domain's type, and use it to compute the return type of the body. We have no guarantee that the body has a denotation for this family of variables, and even if it does, the denotation might be ill-typed.
-  \begin{note}
-    Even though this last remark may seem degenerate or even pathological, it is important to note that it is not. If such an ill-formed term were to occur as sub-calculation in a denotation clause, the denotation of the whole term would simply fail since it would not satisfy well-definedness assumptions, thus remaining equi-consistent with the semantics of B.
-  \end{note}
-  Such a dummy family can be defined by picking a arbitrary elements \(d_i\) in each \(\interpZ{\tau_i}\), which are nonempty by \Cref{thm:b-type-nonempty}, and defining the family as \((\denval{d_i}[\tau_i])_{1 \leq i \leq n}\).
-  If \(E\bigl((\denval{d_i}[\tau_i])_{1 \leq i \leq n}\bigr)\) has a denotation whose second component is a B type \(\gamma\), we define whole denotation of the abstraction as:
-  \[
-    \interpB{\lambdaB' D \cdot E} \triangleq \denval{\emptyset}[\setB(\setB(\tau^\times \prodB \gamma))]
-  \]
-  \begin{proof}
-    Trivial by {\small\leancodeptr{empty\_subset}{Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.empty_subset}}.
-  \end{proof}
-    
+        \begin{note}
+          Even though this last remark may seem degenerate or even pathological, it is important to note that it is not. If such an ill-formed term were to occur as sub-calculation in a denotation clause, the denotation of the whole term would simply fail since it would not satisfy well-definedness assumptions, thus remaining equi-consistent with the semantics of B.
+        \end{note}
+        Such a dummy family can be defined by picking a arbitrary elements \(d_i\) in each \(\interpZ{\tau_i}\), which are non-empty by \Cref{thm:b-type-nonempty}, and defining the family as \((\denval{d_i}[\tau_i])_{1 \leq i \leq n}\).
+        If \(E\bigl((\denval{d_i}[\tau_i])_{1 \leq i \leq n}\bigr)\) has a denotation whose second component is a B type \(\gamma\), we define whole denotation of the abstraction as:
+        \[
+          \interpB{\lambdaB' D \cdot E} \triangleq \denval{\emptyset}[\setB(\setB(\tau^\times \prodB \gamma))]
+        \]
+        \begin{proof}
+          Trivial by {\small\leancodeptr{empty\_subset}{Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.empty_subset}}.
+        \end{proof}
+
   \item[otherwise:] in this case, we pick an arbitrary element \(d \in \mathcal{D}\), which can be written as an \(n\)-ary set-level tuple \(\pairZ{d_1}{\cdots, d_n}\) as before, and we define the family of variables as \((\denval{d_i}[\tau_i])_{1 \leq i \leq n}\).
-  By assumption, \(E\) has a denotation for this family of variables, whose second component is a B type \(\gamma\), which is the return type of the body.
-  
-  The scoped denotation \(\mathcal{E}\) of the body is then defined for arbitrary set arguments \(z\) similarly to the set comprehension case.
-  The only difference is that \(z\) is expected to be a set-level pair of the form \(z = \pairZ{x}{y}\).
-  Similarly to set comprehension, we distinguish whether \(x\) belongs to \(\mathcal{D}\):
-  \begin{description}
-    \item[if \(x \in \mathcal{D}\):] we can write \(x\) as an \(n\)-ary set-level tuple \(\pairZ{x_1}{\cdots, x_n}\), where each \(x_i\) belongs to \(\interpZ{\tau_i}\) as before.
-    By assumption, \(E\) has a denotation for the family of variables \((\denval{x_i}[\tau_i])_{1 \leq i \leq n}\), whose first component is a set \(e_x\). We define the denotation of the body at \(z\) as the following equality:
-    \[
-      \mathcal{E}(z) : \mathsf{Prop} \coloneq e_x = y
-    \]
-    \item[otherwise:] we define \(\mathcal{E}(z) : \mathsf{Prop} \coloneq \mathsf{False}\).
-  \end{description}
-  The denotation of the whole abstraction is then given using \(\mathcal{E}\) by the set-level separation
-  \(\Lambda \coloneq \{ z \in \powZ(\interpZ{\tau^\times} \timesZ \interpZ{\gamma}) \mid \mathcal{E}(z) \}\):
-  \[
-    \interpB{\lambdaB' D \cdot E} \triangleq \denval{\Lambda}[\setB(\setB(\tau^\times \prodB \gamma))]
-  \]
+        By assumption, \(E\) has a denotation for this family of variables, whose second component is a B type \(\gamma\), which is the return type of the body.
+
+        The scoped denotation \(\mathcal{E}\) of the body is then defined for arbitrary set arguments \(z\) similarly to the set comprehension case.
+        The only difference is that \(z\) is expected to be a set-level pair of the form \(z = \pairZ{x}{y}\).
+        Similarly to set comprehension, we distinguish whether \(x\) belongs to \(\mathcal{D}\):
+        \begin{description}
+          \item[if \(x \in \mathcal{D}\):] we can write \(x\) as an \(n\)-ary set-level tuple \(\pairZ{x_1}{\cdots, x_n}\), where each \(x_i\) belongs to \(\interpZ{\tau_i}\) as before.
+                By assumption, \(E\) has a denotation for the family of variables \((\denval{x_i}[\tau_i])_{1 \leq i \leq n}\), whose first component is a set \(e_x\). We define the denotation of the body at \(z\) as the following equality:
+                \[
+                  \mathcal{E}(z) : \mathsf{Prop} \coloneq e_x = y
+                \]
+          \item[otherwise:] we define \(\mathcal{E}(z) : \mathsf{Prop} \coloneq \mathsf{False}\).
+        \end{description}
+        The denotation of the whole abstraction is then given using \(\mathcal{E}\) by the set-level separation
+        \(\Lambda \coloneq \{ z \in \powZ(\interpZ{\tau^\times} \timesZ \interpZ{\gamma}) \mid \mathcal{E}(z) \}\):
+        \[
+          \interpB{\lambdaB' D \cdot E} \triangleq \denval{\Lambda}[\setB(\setB(\tau^\times \prodB \gamma))]
+        \]
 \end{description}
 
 \begin{proof}
@@ -366,9 +366,9 @@ When the domain is empty, \ie \(\mathcal{D} = \emptyset\), the infimum should be
 In order to circumvent this first technicality, we distinguish the empty domain case and return
 \(\denval{\topZ}[\boolB][{\small\leancodeptr{zftrue\_mem\_𝔹}{ZFLean/Booleans.html\#ZFSet.ZFBool.zftrue_mem_𝔹}}]\)
 directly in that case.
-The second technicality is that our model of ZFC does not offer generalized comprehension, so we write the following quantified intersection over a separation instead: 
+The second technicality is that our model of ZFC does not offer generalized comprehension, so we write the following quantified intersection over a separation instead:
 \[
-\bigandZ_{\mathcal{D}} \mathbb{P} = \bigcap \{z \in \ZboolB \mid \exists x \in \mathcal{D},\, y = \mathbb{P}(x) \}
+  \bigandZ_{\mathcal{D}} \mathbb{P} = \bigcap \{z \in \ZboolB \mid \exists x \in \mathcal{D},\, y = \mathbb{P}(x) \}
 \]
 Overall, the denotation of the whole quantification is then given by
 \[
@@ -384,207 +384,198 @@ Overall, the denotation of the whole quantification is then given by
 \subsection{Basic properties}
 \label{subsec:b-sem-properties}
 
-\inlremark[]{This section is still in progress, in particular proofs need further polishing.}
-
-The denotation enjoys two fundamental properties: \emph{type adequacy} and \emph{soundness}.
-Type adequacy ensures that whenever a term denotes, the intrinsic B-type tag carried by its
+The denotation enjoys two fundamental properties: \emph{type adequacy} and \emph{totality} for
+well-defined terms.
+Type adequacy ensures that whenever a term denotes, the intrinsic B type carried by its
 denotation coincides with the static type assigned by the typing derivation.
-Soundness then ensures that, under suitable hypotheses on the environment and on the
-well-definedness of partial operations, every well-typed term does indeed denote a value of
-the expected type.
+Totality then ensures that, under suitable hypotheses on the environment, every well-defined
+and well-typed term does indeed denote a value of the expected type.
+Overall, these properties resemble the usual soundness and completeness properties of semantics
+with respect to a type system.
 
-Both statements presuppose that the variables appearing in a term are bound to domain
-elements whose intrinsic B types match what the abstract typing context records.
-Since PHOAS variables are themselves domain elements, this coherence is conveniently
-captured at the PHOAS level by the following condition, which is automatically satisfied by
-contexts obtained through the abstraction \(\aterm{\Gamma}{\Delta}\) of
-\Cref{def:b-context-abstraction}.
-
-\begin{definition}[Well-typed PHOAS context][B.PHOAS.WellTypedCtx][B/Reasoning/DenotationTotality.html\#B.PHOAS.WellTypedCtx]
-\label{def:b-welltyped-ctx}
-A PHOAS typing context \(\Gamma : \mathsf{Dom} \rightharpoonup \mathsf{BType}\) is
-\emph{well-typed}, written \(\WTctx(\Gamma)\), whenever every binding agrees with the
-intrinsic type tag of its key:
-\[
-  \forall d : \mathsf{Dom},\, \forall \tau : \mathsf{BType},\quad
-  \Gamma(d) = \tau \implies d.\tau = \tau,
-\]
-where \(d.\tau\) is the second projection of \(d \in \mathsf{Dom}\).
-\end{definition}
-
-\begin{theorem}[Type adequacy][denote\_welltyped\_eq][B/Reasoning/Lemmas.html\#denote_welltyped_eq]
-\label{thm:b-denote-type-det}
-Let \(t : \mathsf{PHOAS.Term}\,\mathsf{Dom}\) be a PHOAS term well-typed of type
-\(\tau_0\) under some well-typed context, and assume
-\(\interpB{t} = \denval{V}[\tau]\). Then \(\tau = \tau_0\).
+\begin{theorem}[Denotation typing-soundness][denote\_welltyped\_eq][B/Reasoning/Lemmas.html\#denote_welltyped_eq]
+  \label{thm:b-denote-type-det}
+  Let \(t : \mathsf{PHOAS.Term}\,\mathsf{Dom}\) be a well-typed PHOAS term, and \(\Gamma\) be a
+  well-formed typing context. Then, if \(t\) can be assigned a B type in \(\Gamma\), any denotation
+  of \(t\) must carry the same type:
+  \[
+    \batype{\Gamma}{t}{\tau_0} \quad\land\quad
+    \interpB{t} = \denval{V}[\tau][\irrelprf] \quad \implies\quad
+    \tau = \tau_0
+  \]
 \end{theorem}
 
 \begin{proof}
-By structural induction on \(t\). The key observation is that, in every clause of the
-denotation function, the type tag of the result is constructed from the type tags of the
-subterm denotations by the very same combinator that the typing rule uses to combine the
-subterm types. The induction therefore reduces to checking the cases one by one.
-
-For the variable case \(t = v\), the denotation returns \(v\) itself, so its type tag is
-\(v.\tau\). Inversion of the variable typing rule yields \(\Gamma(v) = \tau_0\), and
-\(\WTctx(\Gamma)\) gives \(v.\tau = \tau_0\), hence \(\tau = \tau_0\).
-For each literal or constant (\(\mathsf{int}\,n\), \(\mathsf{bool}\,b\), \(\ZintB\),
-\(\ZboolB\)), the typing rule fixes the type uniquely and the denotation tags the result
-with the same type; the equality is then immediate.
-
-For each compound non-binder constructor (pairs, arithmetic, Boolean and set-theoretic
-operations, partial function space), inversion of the typing rule provides typings of the
-subterms, the induction hypothesis identifies the type tags of their denotations with the
-typing-derivation types, and the denotation clause assembles the result type by the same
-formula as the typing rule. For example, for a pair \(t \mapletB u\), inversion yields
-\(\btype{\cdot}{t}{\alpha}\) and \(\btype{\cdot}{u}{\beta}\), the induction hypothesis
-matches the subterm denotation tags to \(\alpha\) and \(\beta\), and the clause sets the
-result type to \(\alpha \prodB \beta\), which is exactly the typing-rule output.
-
-For the partial operations \(\appB f\,x\), \(\cardB{S}\), \(\minB(S)\), and \(\maxB(S)\),
-the denotation enters its success branch only after a side condition is verified, and that
-branch tags the result with a fixed type (\(\beta\) for \(\appB\), \(\intB\) for the other
-three) matching the typing-rule output.
-
-For binders \(\{D \mid P\}\), \(\lambdaB' D \cdot E\), and \(\forallB' D \cdot P\), the
-induction hypothesis on the domain identifies its type tag with the folded product
-\(\setB\tau^\times\); the binder clause then constructs the result with type tag
-\(\setB\tau^\times\), \(\setB(\tau^\times \prodB \gamma)\), or \(\boolB\) respectively,
-matching the typing rule.
+  By induction on \(t\). The key observation is that, B types carried by
+  denotations are constructed resursively from subterm denotations by the very same combinator
+  that the typing rules use to combine the subterm types.
+  The induction therefore reduces to inverting cases one by one, and identifying the type carried by
+  denotations with the types assigned by the typing rules.
 \end{proof}
 
-In other words, a term cannot denote a value of two distinct types: the static type fully
-determines the type tag of the denotation whenever the latter exists.
+In other words, a term cannot denote a value of two distinct types: the static type---provided by
+the typing derivation---fully determines the type tag of the denotation whenever the latter exists.
+This is particularly relevant in a set-theoretic setting, where the same set can be given multiple
+interpretations as a value of different types; for instance, the set
+\(\{\emptyset, \{\emptyset\}\}\) is usually identified either with the natural number \(2\), or the
+set of Booleans \(\mathbb{B}\), or potentially other sets.
 
-We now turn to existence. To formulate it, we briefly recall the well-definedness side
-conditions that B-method proof obligations require for partial operations. These are the
-B-side analogue of the well-definedness obligations of Atelier B and are detailed in
-\Cref{sec:b-wd}; here we only need the following packaging.
+We now turn to completeness.
+This is therefore an existence theorem asserting that well-typed, well-defined terms have a
+denotation, with the expected type.
 
-\begin{definition}[Well-definedness predicate][B.PHOAS.WellDefined][B/Reasoning/WellDefined.html\#B.PHOAS.WellDefined]
-\label{def:b-welldefined}
-The predicate \(\WD : \mathsf{PHOAS.Term}\,\mathsf{Dom} \to \mathsf{Prop}\) is defined by
-structural recursion. It holds vacuously on variables and literals, propagates conjunctively
-to immediate subterms, and additionally carries the following semantic side conditions at
-partial operations:
-\begin{description}
-  \item[\(\appB f\,x\):] writing \(\interpB{f} = \denval{F}[\setB(\tau \prodB \sigma)]\)
-  and \(\interpB{x} = \denval{X}[\tau]\), the ZFC component \(F\) is a partial function
-  from \(\interpZ{\tau}\) to \(\interpZ{\sigma}\), and \(X \in \domB(F)\);
-  \item[\(\cardB{S}\):] writing \(\interpB{S} = \denval{S'}[\setB\alpha]\), the set
-  \(S'\) is finite;
-  \item[\(\minB(S),\maxB(S)\):] \(S'\) is finite and nonempty.
-\end{description}
-\end{definition}
-
-The soundness theorem then asserts that well-typed, well-defined terms always denote at the
-expected type. We state the result both at the PHOAS level (the form actually proved) and
-at the concrete level (its intended use, obtained by composition with the typing
-abstraction result of \Cref{thm:b-typing-of-abstract}).
-
-\begin{theorem}[Denotation soundness][B.denote\_exists\_of\_typing][B/Reasoning/DenotationTotality.html\#B.denote_exists_of_typing]
-\label{thm:b-denote-sound}
-Let \(\Gamma : \mathsf{Dom} \rightharpoonup \mathsf{BType}\) be a PHOAS context with
-\(\WTctx(\Gamma)\), and let \(t : \mathsf{PHOAS.Term}\,\mathsf{Dom}\) satisfy
-\(\batype{\Gamma}{t}{\tau}\) and \(\WD(t)\). Then there exists \(V \in \interpZ{\tau}\) such
-that
-\[
-  \interpB{t} = \denval{V}[\tau].
-\]
-In particular, for any concrete derivation \(\btype{\Gamma}{t}{\tau}\) and any renaming
-\(\Delta\) well-formed with respect to \(\Gamma\) and covering the free variables of \(t\),
-if \(\WD(\aterm{t}{\Delta})\) holds, then there exists \(V \in \interpZ{\tau}\) such that
-\(\interpB{\aterm{t}{\Delta}} = \denval{V}[\tau]\).
+\begin{theorem}[Denotation typing-completeness][B.denote\_exists\_of\_typing][B/Reasoning/DenotationTotality.html\#B.denote_exists_of_typing]
+  \label{thm:b-denote-complete}
+  Let \(\Gamma\) be a well-formed abstract typing context, and let
+  \(t : \mathsf{PHOAS.Term}\,\mathsf{Dom}\) be a well-defined PHOAS term such that
+  \(\batype{\Gamma}{t}{\tau}\). Then \(t\) has a denotation carrying type \(\tau\), \ie there
+  exists a set \(T \in \interpZ{\tau}\) such that
+  \[
+    \interpB{t} = \denval{T}[\tau].
+  \]
 \end{theorem}
 
 \begin{proof}
-The second statement follows from the first by composition with
-\Cref{thm:b-typing-of-abstract} (\(\baop\vdash\) is preserved by abstraction) and the fact
-that \(\aterm{\Gamma}{\Delta}\) is automatically well-typed in the sense of
-\Cref{def:b-welltyped-ctx}, by construction.
+  By induction on the typing derivation \(\batype{\Gamma}{t}{\tau}\).
+  The argument splits into four groups of cases.
 
-For the PHOAS-level statement, we proceed by structural induction on the typing
-derivation \(\batype{\Gamma}{t}{\tau}\). The argument splits into four groups of cases.
+  \paragraph{Variables and literals.}
+  Trivial, and in each case, the membership proof was constructed in \Cref{subsec:b-denote}.
 
-\paragraph{Variables and literals.}
-For \(t = v\), take \(V \coloneq v.X\); the denotation clause returns \(v\) itself, and
-\(V \in \interpZ{v.\tau} = \interpZ{\tau}\) follows from
-\(\WTctx(\Gamma)\). For literals, the witnesses are immediate:
-\(V \coloneq \zop{n} \in \Zint\) for \(\mathsf{int}\,n\),
-\(V \coloneq \zop{b} \in \Zbool\) for \(\mathsf{bool}\,b\),
-and \(V \coloneq \Zint \in \powZ(\Zint)\),
-\(V \coloneq \Zbool \in \powZ(\Zbool)\) for \(\ZintB\) and \(\ZboolB\). In each case, the
-membership proof was constructed in \Cref{subsec:b-denote}.
+  \paragraph{Compound non-partial constructors.}
+  The induction hypothesis applied to each subterm produces a witness denotation carrying a
+  type that matches the typing-rule premise.
+  By \Cref{thm:b-denote-type-det}, every case analysis on subterm type tags inside the
+  corresponding denotation clause selects the success branch.
+  The witness set is then constructed by applying the relevant ZFC closure lemma to the
+  subterm witnesses: Cartesian products for maplets, closure of \(\Zint\) and \(\Zbool\) under the
+  arithmetic and Boolean operations for the connectives, monotonicity of union, intersection,
+  Cartesian product, and power set under inclusion for the set constructors, and the closure of
+  partial-function sets under the covariant action of their domain and codomain for partial
+  function spaces.
 
-\paragraph{Compound non-partial constructors.}
-For each of \(\mapletB\), \(\addB\), \(\subB\), \(\mulB\), \(\andB\), \(\notB\), \(\eqB\),
-\(\leB\), \(\inB\), \(\powB\), \(\prodB\), \(\cupB\), \(\capB\), and \(\pfunB\), the
-induction hypothesis applied to each subterm produces a witness denotation whose type tag
-matches the typing-rule premise. By \Cref{thm:b-denote-type-det}, every case analysis on
-subterm type tags inside the corresponding denotation clause selects the success branch.
-The witness \(V\) is then constructed by applying the relevant ZFC closure lemma to the
-subterm witnesses: \(\pairZ{X}{Y} \in \interpZ{\alpha} \timesZ \interpZ{\beta}\) for
-maplets, closure of \(\Zint\) and \(\Zbool\) under the arithmetic and Boolean operations
-for the connectives, monotonicity of \(\cupZ\), \(\capZ\), \(\timesZ\), and \(\powZ\) under
-inclusion for the set constructors, and the closure of partial-function sets under the
-covariant action of their domain and codomain for \(\pfunB\) (\Cref{subsec:b-denote}).
+  \paragraph{Partial operations.}
+  For \(\appB' f\,x\), the induction hypothesis gives denotations
+  \[
+    \interpB{f} = \denval{F}[\setB(\tau \prodB \sigma)]\quad\text{and}\quad
+    \interpB{x} = \denval{X}[\tau].
+  \]
+  The well-definedness assumption supplies a proof that \(F\) is a partial function from
+  \(\interpZ{\tau}\) to \(\interpZ{\sigma}\) and a unique witness \(Y\) with \(\pairZ{X}{Y} \in F\);
+  these ensure---by definition of the denotation---that \(\interpB{\appB' f\,x}\) is defined.
+  Thus, we take \(Y\) as witness for the denotation of the application, and the proof
+  \(\pf{\sigma}{Y} : Y \in \interpZ{\sigma}\) follows directly from
+  \(\pairZ{X}{Y} \in F \subseteq \interpZ{\tau \prodB \sigma}\).
 
-\paragraph{Partial operations.}
-For \(\appB f\,x\), the induction hypothesis gives denotations
-\(\interpB{f} = \denval{F}[\setB(\tau \prodB \sigma)]\) and
-\(\interpB{x} = \denval{X}[\tau]\). The well-definedness hypothesis \(\WD(\appB f\,x)\)
-supplies a proof that \(F\) is a partial function from \(\interpZ{\tau}\) to
-\(\interpZ{\sigma}\) and a witness \(Y_0\) with \(\pairZ{X}{Y_0} \in F\); these unlock
-the conditional in the denotation clause, and the partial-function property yields a
-unique \(Y \in \interpZ{\sigma}\) with \(\pairZ{X}{Y} \in F\), which we take as \(V\).
-For \(\cardB{S}\), \(\minB(S)\), and \(\maxB(S)\), writing
-\(\interpB{S} = \denval{S'}[\setB\alpha]\), \(\WD\) supplies the finiteness (and
-nonemptiness, for \(\minB\) and \(\maxB\)) hypotheses that activate the corresponding
-denotation clauses; the witnesses \(\cardZ{S'}\), \(\minZ(S')\), and \(\maxZ(S')\) belong
-to \(\Zint\) by their defining properties.
+  For \(\cardB{S}\), \(\minB(S)\), and \(\maxB(S)\), writing
+  \(\interpB{S} = \denval{\mathcal{S}}[\setB\alpha]\), well-definedness supplies the necessary
+  finiteness (and nonemptiness, for \(\minB\) and \(\maxB\)) hypotheses that activate the
+  corresponding denotation clauses; the witnesses \(\cardZ{\mathcal{S}}\),
+  \(\minZ(\mathcal{S})\), and \(\maxZ(\mathcal{S})\) belong to \(\Zint\) by their defining
+  properties.
 
-\paragraph{Binders.}
-For \(\{D \mid P\}\), the induction hypothesis on \(D\) (which is itself a foldl of
-Cartesian products of the component domains \(D_i\)) gives a denotation
-\(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^\times]\). By \Cref{thm:b-type-nonempty},
-each \(\interpZ{\tau_i}\) is nonempty, so we can pick a canonical default tuple
-\(\vec d^{\,\mathsf{def}} \in \interpZ{\tau^\times}\) with type tags exactly matching
-\(\vec\alpha\); the induction hypothesis applied to \(P(\vec d^{\,\mathsf{def}})\) under the
-extended context \(\Gamma[\vec v : \vec\alpha]\)---which remains well-typed since each
-\(d_i^{\mathsf{def}}\) carries the intrinsic type \(\alpha_i\)---yields a Boolean
-denotation, which activates the success branch of the comprehension clause. The witness is
-then \(V \coloneq \{ z \in \mathcal{D} \mid \mathbb{P}(z) \}\), which lies in
-\(\powZ(\interpZ{\tau^\times})\) by the separation principle.
+  \paragraph{Binders.}
+  We treat the three binder cases uniformly. Inverting the binder typing rule supplies,
+  for some arity \(n \geq 1\),
+  a family of B types \(\vec\alpha = (\alpha_1,\cdots,\alpha_n)\), a family of B terms
+  \(\vec D = (D_1,\cdots,D_n)\), and a body \(\varphi\) (which is either a comprehension predicate,
+  a universally quantified body, or an abstraction body, depending on the constructor), with the
+  following data, in line with the binder typing rules of \Cref{subsec:b-concrete-typing}:
+  \begin{itemize}
+    \item the bound domain term is the iterated Cartesian product:
+          \(D = D^\times \triangleq D_1 \prodB \cdots \prodB D_n\);
+    \item each component is well-typed: \(\forall i,\, \batype{\Gamma}{D_i}{\setB\alpha_i}\);
+    \item for every family of PHOAS variables
+          \(\vec v = (v_1,\cdots,v_n)\) such that each \(v_i\) carries the B type \(\alpha_i\),
+          the body \(\varphi(\vec v)\) is well-typed under the extended context \(\Gamma[\vec v : \vec\alpha]\),
+          with type \(\boolB\) for set comprehension and universal quantification, and
+          some type \(\gamma\) for lambda abstraction.
+  \end{itemize}
+  Writing \(\alpha^\times \coloneq \alpha_1 \prodB \cdots \prodB \alpha_n\), the typing-rule output
+  is \(\setB\alpha^\times\), \(\boolB\), or \(\setB(\alpha^\times \prodB \gamma)\) for set
+  comprehension, universal quantification, and lambda abstraction respectively.
 
-The \(\forallB' D \cdot P\) case proceeds analogously, with two subcases: when
-\(\mathcal{D} = \emptyset\), the denotation evaluates to \(\topZ \in \Zbool\); when
-\(\mathcal{D} \neq \emptyset\), pick any \(d \in \mathcal{D}\) and apply the induction
-hypothesis to \(P(\vec d)\) (with type tags matching \(\vec\alpha\), by membership of
-\(\vec d\) in \(\mathcal{D} \subseteq \interpZ{\tau^\times}\)) to ensure the body denotes
-at every tuple of the right shape; the bounded infimum then lies in \(\Zbool\) by closure
-of the two-element algebra under conjunction.
+  \smallskip\noindent\emph{Step 1: domain denotation.}
+  Applying the induction hypothesis to each \(D_i\) yields
+  \[
+    \interpB{D_i} = \denval{\mathcal{D}_i}[\setB\alpha_i][\pf{}{i}] \qquad\text{with }
+    \pf{}{i} : \mathcal{D}_i \subseteq \interpZ{\alpha_i}.
+  \]
+  Writing \(\mathcal{D}^\times \coloneq \mathcal{D}_1 \times \cdots \times \mathcal{D}_n\), we
+  obtain a denotation
+  \[
+    \interpB{D} = \denval{\mathcal{D}^\times}[\setB\alpha^\times],
+  \]
+  where \(\pf{\setB\alpha^\times}{\mathcal{D}^\times} : \mathcal{D}^\times \subseteq \interpZ{\alpha^\times}\) is obtained from the proofs \((\pf{}{i})_{1\leq i \leq n}\).
 
-The \(\lambdaB' D \cdot E\) case mirrors \(\forallB'\), with the additional twist that the
-return type \(\gamma\) of the body must be retrieved before the result type
-\(\setB(\tau^\times \prodB \gamma)\) can be formed. When \(\mathcal{D} = \emptyset\), the
-canonical default tuple from \Cref{thm:b-type-nonempty} provides this information, and the
-denotation is \(\emptyset \in \powZ(\interpZ{\tau^\times \prodB \gamma})\). When
-\(\mathcal{D} \neq \emptyset\), an arbitrary witness in \(\mathcal{D}\) supplies a
-representative for which the induction hypothesis returns \(\gamma\) and a denotation; the
-denotation is then a subset of \(\interpZ{\tau^\times} \timesZ \interpZ{\gamma}\) by
-separation.
+  \smallskip\noindent\emph{Step 2: body denotation at typed tuples.}
+  By \Cref{thm:b-type-nonempty}, each \(\interpZ{\alpha_i}\) is non-empty and admits a
+  canonical default element \(d_i\), which we package into a default
+  family \(\vec d = (\denval{d_i}[\alpha_i])_{1 \leq i \leq n}\) of PHOAS variables whose intrinsic
+  types are precisely \(\vec\alpha\).
+  More generally, any tuple \(z \in \interpZ{\alpha^\times}\) decomposes as
+  \(z = \pairZ{z_1}{\cdots,z_n}\) with each \(z_i \in \interpZ{\alpha_i}\), and induces a typed
+  family \(\vec z = (\denval{z_i}[\alpha_i])_{1 \leq i \leq n}\).
+  The induction hypothesis applied to \(\varphi\)
+  under the extended context \({\Gamma[\vec z : \vec\alpha]}\)---which is well-formed
+  because every \(z_i\) carries intrinsic type \(\alpha_i\)---yields:
+  \[
+    \interpB{\varphi(\vec z)} = \denval{b_z}[\beta_z], \text{ with } b_z =
+    \begin{cases}
+      \boolB & \text{for comprehension and universal quantification} \\
+      \gamma & \text{for lambda abstraction}
+    \end{cases}.
+  \]
+  The same construction applied to \(\vec d\) yields a Boolean (resp.\@ \(\gamma\)-typed) witness
+  for the body at the canonical default tuple.
+
+  \smallskip\noindent\emph{Step 3: discharging the side conditions of the denotation clause.}
+  The denotation function for binders, given in \Cref{subsec:b-denote}, guards its
+  output by a side condition (in addition to the existence of \(\mathcal{D}\)), which enforces
+  \emph{parametric body denotation}: for every \(z \in \mathcal{D}\), the body
+  denotes at the induced family \(\vec z\), and the resulting denotation carries the expected type.
+  This condition is satisfied, so the denotation is defined.
+
+  \smallskip\noindent\emph{Step 4: assembling the witness.}
+  Let \(\Phi : \mathsf{ZFSet} \to \mathsf{ZFSet}\) be the scoped denotation of the
+  body introduced in \Cref{subsec:b-denote}, defined for \(z \in \mathcal{D}\) by
+  \(\Phi(z) \coloneq b_z\) with \(b_z\) given by Step 2 and extended elsewhere by
+  default values. The denotation witness is then assembled by ZFC separation as follows.
+  \begin{description}
+    \item[Set comprehension:] take
+          \(T \coloneq \{ z \in \mathcal{D} \mid \Phi(z) = \topZ \}\); since
+          \(T \subseteq \mathcal{D} \subseteq \interpZ{\alpha^\times}\), we have
+          \(\pf{\setB\alpha^\times}{T} : T \in \powZ(\interpZ{\alpha^\times}) = \interpZ{\setB\alpha^\times}\).
+    \item[Universal quantification:] take
+          \[
+            T \coloneq
+            \begin{cases}
+              \displaystyle \bigandZ_{z \in \mathcal{D}} \Phi(z) & \text{when } \mathcal{D} \neq \emptyset \\
+              \topZ                                              & \text{when } \mathcal{D} = \emptyset
+            \end{cases}
+          \]
+          which lies in \(\Zbool = \interpZ{\boolB}\).
+    \item[Lambda abstraction:] to form the codomain type
+          \(\setB(\alpha^\times \prodB \gamma)\), the return type \(\gamma\) of the body
+          must first be retrieved. When \(\mathcal{D} = \emptyset\), this information is
+          supplied by Step 2 applied to \(\vec d\), and the denotation is
+          \(T \coloneq \emptyset \in \powZ(\interpZ{\alpha^\times \prodB \gamma})\); when
+          \(\mathcal{D} \neq \emptyset\), any element \(z \in \mathcal{D}\) provides a
+          representative, Step 2 applied to its induced family \(\vec z\) returns
+          the type \(\gamma\), and the denotation is the graph
+          \[
+            T \coloneq \bigl\{\, \pairZ{z}{y} \in \mathcal{D} \timesZ \interpZ{\gamma}
+            \,\bigm|\, y = \Phi(z) \,\bigr\}.
+          \]
+          Since \(T \subseteq \mathcal{D} \timesZ \interpZ{\gamma}
+          \subseteq \interpZ{\alpha^\times} \timesZ \interpZ{\gamma}
+          = \interpZ{\alpha^\times \prodB \gamma}\), \(T\) lies in
+          \(\interpZ{\setB(\alpha^\times \prodB \gamma)}\) by separation.
+  \end{description}
+
+  In each case, the constructed \(T\) belongs to \(\interpZ{\tau}\), thereby providing
+  \(\pf{\tau}{T}\), which concludes the proof.
 \end{proof}
-
-The following corollary, used freely in the correctness proofs of subsequent chapters,
-records the most common form of the soundness theorem: the conclusion is restated as the
-defining property of the \(\mathsf{some}\) constructor.
-
-\begin{corollary}[Totality on well-typed, well-defined terms][B.PHOAS.denote\_isSome\_of\_typing][B/Reasoning/DenotationTotality.html\#B.PHOAS.denote_isSome_of_typing]
-\label{cor:b-denote-isSome}
-Under the hypotheses of \Cref{thm:b-denote-sound}, \(\interpB{t}\) is defined, \ie
-\(\interpB{t} \neq \bot\).
-\end{corollary}
 
 The syntax, typing, and semantics described in this chapter form the source-language
-contract used by the SMT translation and by the correctness arguments in the following
-chapters.
+contract used by the correctness arguments in the following chapters.
