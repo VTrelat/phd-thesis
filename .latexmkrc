@@ -1,6 +1,7 @@
 push @extra_pdflatex_options, '-synctex=1', '-interaction=nonstopmode';
 push @extra_lualatex_options, '-synctex=1', '-interaction=nonstopmode';
 push @extra_xelatex_options, '-synctex=1', '-interaction=nonstopmode';
+$clean_ext .= '.nav .snm .vrb .synctex.gz';
 
 $file_line_error //= 1;
 if ($file_line_error) {
