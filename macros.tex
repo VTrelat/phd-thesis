@@ -13,6 +13,9 @@
 \newcommand\etc{\textit{etc.}\xspace}
 \newcommand\wrt{\textit{w.r.t.\@}\xspace}
 
+
+\newcommand\beer{\textsc{BEer}\xspace}
+\newcommand\barrel{\textsc{BARReL}\xspace}
 \newcommand{\irrelprf}{\ensuremath{\cdot\mkern-3mu\cdot\mkern-3mu\cdot}}
 \newcommand{\catop}[2]{\ensuremath{#1^{\scriptscriptstyle{\mathsf{#2}}}}}
 
@@ -132,18 +135,18 @@
 \newcommand{\appZ}{\mathop{\zop{@}}\mkern-4mu}
 \newcommand{\lamZ}{\zop{\lambda}}
 \newcommand{\lambdaZ}[4]{%
-\left\{
-\begin{array}{rccl}
-\lamZ : & #1 & \to & #2\\
-& #3 & \mapsto & {#4}
-\end{array}
-\right.}
+  \left\{
+  \begin{array}{rccl}
+    \lamZ : & #1 & \to     & #2   \\
+            & #3 & \mapsto & {#4}
+  \end{array}
+  \right.}
 \newcommand{\graphcastZ}[2]{\ensuremath{\zop{\mathsf{graph}}_{(#1,#2)}}}
 \newcommand{\idZ}[1]{\mathbb{1}_{#1}}
 \newcommand{\semrel}{%
   {\ensuremath{%
-    \,\mathrel{\raisebox{.5ex}{$\smallfrown$}{\mkern-18.85mu}=}\,%
-  }}%
+        \,\mathrel{\raisebox{.5ex}{$\smallfrown$}{\mkern-18.85mu}=}\,%
+      }}%
 }
 \newcommand{\topZ}{\zop{\top}}
 \newcommand{\botZ}{\zop{\bot}}
@@ -166,11 +169,11 @@
 \newcommand{\interpZ}[1]{\zop{\lBrack #1 \rBrack}}
 \newcommand{\pf}[2]{{\mathcolor{cover-cream}{\wp}}^{#1}_{#2}}
 \NewDocumentCommand{\denval}{m o o}{%
-\def\snd{\IfNoValueTF{#2}{\tau_{#1}}{#2}}%
-\langle%
-    #1,\,%
-    \snd,\,%
-    \IfNoValueTF{#3}{\pf{\snd}{#1}}{#3}%
+  \def\snd{\IfNoValueTF{#2}{\tau_{#1}}{#2}}%
+  \langle%
+  #1,\,%
+  \snd,\,%
+  \IfNoValueTF{#3}{\pf{\snd}{#1}}{#3}%
   \rangle
 }
 
@@ -196,7 +199,7 @@
 \newcommand{\beerref}[1]{\BEerBase#1}
 
 \NewDocumentCommand{\leancodeptr}{m m}{%
-\href{\beerref{#2}}{\texttt{#1}}%
+  \href{\beerref{#2}}{\texttt{#1}}%
 }
 
 
