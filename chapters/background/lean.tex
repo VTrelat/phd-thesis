@@ -116,7 +116,8 @@ theorem and_swap' (p q : Prop) : p ∧ q → q ∧ p := by
 Lean's kernel is based on an intensional dependent type theory in the family of
 the Calculus of Inductive Constructions.
 Lean has a non-cumulative hierarchy of universes:
-the universe of propositions is the first sort, and ordinary data types live in higher sorts.
+the universe of propositions is the first sort, \ie \leaninl{Prop : Sort 0},
+and other types live in higher sorts; for any universe level \leaninl{u}, \leaninl{Type u}, defined as \leaninl{Sort (u + 1)}, lives in \leaninl{Type (u + 1)}.
 
 Moreover, Lean is classical by construction in the presence of choice:
 by Diaconescu's theorem, choice and functional extensionality entail excluded middle, thus making Lean's

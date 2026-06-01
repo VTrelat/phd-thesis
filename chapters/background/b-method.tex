@@ -41,7 +41,7 @@ They mix first- and higher-order reasoning, arithmetic, finite and infinite sets
 \subsection{The mathematical language of B}
 \label{subsec:b-mathematical-language}
 
-Beneath the machine notation lies a small mathematical language in which
+Beneath the machine notation lies the core mathematical language in which
 invariants, properties, guards, and the resulting proof obligations are
 expressed.
 The B-Book~\cite{abrial1996bbook} distinguishes two strata: the \emph{language
@@ -51,64 +51,43 @@ expressions, in which the meaning of those substitutions---and the obligations
 they generate---is ultimately phrased.
 Proof obligations belong entirely to the latter stratum.
 It is therefore the mathematical language, rather than the substitution
-calculus, that our formalization targets, and that the present subsection
-introduces; it serves as the conceptual prerequisite for \Cref{ch:b}.
+calculus, that our formalization targets; this subsection serves as a short conceptual prerequisite for \Cref{ch:b}.
 
-\paragraph{A set-theoretic foundation.}
-The mathematical language of B is grounded in a typed set theory: a fragment of
-Zermelo set theory enriched with the integers and a pairing construct.
-Every object is a set.
-There are no primitive notions of relation, function, or sequence---only sets
-together with the two atomic kinds of value, integers and Booleans.
-Ordered pairs are written with the \emph{maplet} \(x \mapletB y\), and the
-Cartesian product \(S \prodB T\), the powerset \(\powB(S)\), and the usual
-arithmetic and Boolean operations generate the remaining objects.
+The mathematical language of B is grounded in Zermelo-Fraenkel
+set theory with choice (ZFC).
+There are no primitive notions of relation, function, or sequence---only sets.
 This uniformity is the source of B's expressive economy: relations, functions,
 and sequences are not separate species but particular sets of pairs.
 
-\paragraph{Predicates and expressions.}
-The language is stratified into \emph{predicates}, which denote truth values,
-and \emph{expressions}, which denote values---sets, integers, Booleans, or
-pairs.
-Atomic predicates are membership \(x \inB S\), equality \(x \eqB y\), and the
-arithmetic comparisons; compound predicates are built with the connectives
-\(\andB, \orB, \impB, \iffB, \notB\) and the quantifiers \(\forallB\) and
-\(\existsB\).
-Quantification in B is always bounded by a set---one writes
-\(\forallB x \inB S \cdot P\) rather than an unrestricted \(\forall x \cdot P\)---which
+Binding connectors in B are always \emph{bounded} by a set---one writes \eg \(\forallB x \inB S \cdot P\) rather than an unrestricted \(\forallB x \cdot P\)---which
 keeps the language anchored in its set-theoretic reading.
-Expressions are built from variables and literals by the set-forming operations
-\(\cupB, \capB, \ssubB, \powB, \prodB\), bounded comprehension
-\(\{\, x \inB S \mid P \,\}\), the maplet, \(\lambda\)-abstraction, function
-application, and, on the integers, the usual arithmetic.
 
-\paragraph{Relations and functions.}
+Relations are central in B developments.
 A relation between \(A\) and \(B\) is any subset of \(A \prodB B\); the set of
 all such relations is \(A \bop{\leftrightarrow} B \triangleq \powB(A \prodB B)\).
 Functions are exactly the functional relations, and B organizes them into a
 hierarchy of function spaces: partial \(\pfunB\) and total \(\tfunB\), together
 with their injective, surjective, and bijective refinements
 (\(\injpfunB, \surjpfunB, \injtfunB, \surjtfunB, \dots\)).
-Function application \(\appB f\ x\) is meaningful only when \(f\) is functional
+Function application \(\appB f\ x\) is meaningful only when \(f\) is a functional relation
 and \(x\) belongs to its domain, and sequences are recovered as functions whose
-domain is an initial integer interval.
+domain is a specific integer interval.
 A substantial body of derived notation---domain and range
 (\(\domB, \ranB\)), the restriction and subtraction operators, relational
 overriding, direct product, inverse, and direct image---is layered on top of
 this core, yet each construct is ultimately definable by comprehension over sets
 of pairs.
 
-\paragraph{Typing and well-definedness.}
 Because it is grounded in set theory, the mathematical language has no intrinsic
 type system: it is, in a precise sense, formally untyped.
 The B-Book nevertheless equips it with a typing discipline whose purpose is not
 to erect a separate type theory but to guarantee that expressions are
 well-formed and to delimit the sets over which they range.
 A ``type'' in this sense is itself a set, generated from the basic sets---the
-integers \(\ZintB\), the Booleans \(\ZboolB\), and the user-declared given
-sets---by powerset and Cartesian product.
+integers \(\ZintB\), truth values, \ie Booleans \(\ZboolB\), and the user-declared
+sets, which are non-empty countable sets---by powerset and Cartesian product.
 Typing is intertwined with \emph{well-definedness}: partial operations such as
-function application or \(\minB\) and \(\maxB\) of a set carry side conditions
+function application or minimum and maximum of a set carry side conditions
 (that the argument lies in the domain, or that the set is non-empty and
 bounded), and discharging these conditions is itself part of proving a proof
 obligation.
@@ -116,12 +95,9 @@ This separation---an untyped set-theoretic core, a typing judgment that ensures
 well-formedness, and well-definedness side conditions for partial
 constructs---directly shapes the formalization developed in \Cref{ch:b}.
 
-\paragraph{A small primitive core.}
 A final feature governs the formalization to come.
 Although the surface language is large, most of it is redundant: a handful of
-primitive constructs---the atoms, the maplet, a few arithmetic and logical
-operations, membership, bounded comprehension, powerset, product, and
-\(\lambda\)-abstraction---suffice to express the remainder by definitional
+primitive constructs suffice to express the remainder by definitional
 extension.
 The set theory itself supplies the definitional power, since every derived
 operator named above is introduced as an abbreviation for a comprehension over
