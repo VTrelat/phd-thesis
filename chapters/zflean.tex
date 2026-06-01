@@ -1,2 +1,46 @@
-\mkchapter{ZFLean: Set-Level Mathematics in Lean}
+\newcommand\zflean{ZFLean\@}
+\mkchapter{Set-Level Mathematics in Lean with \zflean}
 \label{ch:zflean}
+
+\iffalse
+  \begin{abstract}
+    We present \zflean, a Lean~4 library for doing core mathematics inside a model of ZFC with the ergonomics expected of typed Mathlib developments.
+    Building on Mathlib's ZFC model, we contribute a relational calculus for sets with rewriting hints and small predictable tactics, canonical set‑theoretic constructions---Booleans, naturals, integers, sums/option---and bridges between ZFC objects and Lean's native types enabling mixed set‑level/typed proofs.
+    The layer reduces boilerplate for extensional reasoning while remaining compatible with vanilla Mathlib.
+    We discuss library organization and usage patterns that lower the friction of set-theoretic formalization in a dependently typed assistant.
+    We demonstrate typical use of the framework with a case study exercising our constructions and relational calculus through a proof of an isomorphism theorem on curried functions.
+  \end{abstract}
+\fi
+
+\def\Dom{\mathsf{Dom}}
+\def\Ran{\mathsf{Range}}
+\newcommand{\Image}[2]{#1[#2]}
+\def\IsFunc{\mathsf{IsFunc}}
+\def\IsPFunc{\mathsf{IsPFunc}}
+\def\IsInjective{\mathsf{IsInjective}}
+\def\IsSurjective{\mathsf{IsSurjective}}
+\def\IsBijective{\mathsf{IsBijective}}
+
+\newcommand{\Id}[1]{\mathds{1}_{#1}}
+\newcommand{\fapplysym}{\ensuremath{\raisebox{-0.25ex}{@}^\mathsf{z}}}
+\newcommand{\fapply}[2]{\ensuremath{\fapplysym\mkern-1.5mu#1}(#2)}
+
+\newcommand{\zunop}[1]{\mathop{\ensuremath{\mathsf{#1}^{\mathsf{z}}}}}
+\newcommand{\zbinop}[1]{\mathbin{\ensuremath{\mathsf{#1}^{\mathsf{z}}}}}
+\newcommand\zlambda[4]{%
+  \ensuremath{%
+    \begin{array}{ccccc}
+      \zop{\lambda} & :    & #1 & \to     & #2 \\
+                    & \mid & #3 & \mapsto & #4
+    \end{array}%
+  }}
+
+\newcommand{\inlinelean}{\lstinline[language=lean, basicstyle=\ttfamily]}
+
+\input{chapters/zflean/introduction.tex}
+\input{chapters/zflean/background.tex}
+\input{chapters/zflean/relational-calculus.tex}
+\input{chapters/zflean/constructions.tex}
+\input{chapters/zflean/evaluation.tex}
+\input{chapters/zflean/related-work.tex}
+\input{chapters/zflean/conclusion.tex}
