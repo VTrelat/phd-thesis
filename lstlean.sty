@@ -7,7 +7,7 @@
 
 \lstdefinelanguage{Lean} {
 % Anything between $ becomes LaTeX math mode
-mathescape=false,
+mathescape=true,
 alsoletter={.},
 % Comments may or not include Latex commands
 texcl=false,
@@ -151,7 +151,7 @@ literate=
 {∉}{{\ensuremath{\notin}}}1
 {∋}{{\ensuremath{\ni}}}1
 {∌}{{\ensuremath{\notni}}}1
-{∅}{{\ensuremath{\emptyset}}}1
+% {∅}{{\ensuremath{\emptyset}}}1
 {∖}{{\ensuremath{\setminus}}}1
 {†}{{\ensuremath{\dag}}}1
 {ℕ}{{\ensuremath{\mathbb{N}}}}1
@@ -182,6 +182,7 @@ literate=
 {ⱼ}{{\ensuremath{_j}}}1
 {ₐ}{{\ensuremath{_a}}}1
 {¹}{{\ensuremath{^1}}}1
+{𝟙}{{\ensuremath{\mathds{1}}}}1
 {ₙ}{{\ensuremath{_n}}}1
 {ₘ}{{\ensuremath{_m}}}1
 {ₚ}{{\ensuremath{_p}}}1
@@ -204,7 +205,9 @@ literate=
 {<|>}{{\color{symbolcolor}<|>}}3
 {<\$>}{{\color{symbolcolor}<\$>}}3
 {+}{{\color{symbolcolor}+}}1
-{*}{{\color{symbolcolor}*}}1,
+{*}{{\color{symbolcolor}*}}1
+{ᶻ}{{\color{symbolcolor}\ensuremath{^{\mathsf{z}}}}}1
+{⁻¹}{{\color{symbolcolor}\ensuremath{^{-1}}}}2,
 % Comments
 %comment=[s][\itshape \color{commentcolor}]{/-}{-/},
 morecomment=[s]{/-}{-/},
@@ -243,9 +246,11 @@ extendedchars=true,
 	%% Subscripts
 	^^^^2080^^^^2081^^^^2082^^^^2083^^^^2084^^^^2085^^^^2086^^^^2087%
 	^^^^2088^^^^2089%
+	%% Superscripts
+	^^^^207b%
 	%% Misc maths 
 	^^^^2200^^^^2203^^^^2192^^^^2227^^^^2228%
 	^^^^27e8^^^^27e9%
-	^^^^1d2e^^^^^^01d4ab^^^^^^01d4b1%
+	^^^^1d2e^^^^1dbb^^^^^^01d4ab^^^^^^01d4b1^^^^^^01d7d9%
 	^^00}
 \lst@RestoreCatcodes

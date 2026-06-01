@@ -21,6 +21,7 @@
 \usepackage{setspace}
 \usepackage{unicode-math}
 \usepackage{enumitem}
+\usepackage{dsfont}
 
 \setmainfont{Fira Sans}
 \setsansfont{Fira Sans}
@@ -94,9 +95,17 @@
 }
 
 \makeatletter
+% Make \cref/\Cref print "Listing N" for the auto-counter behind leanlisting.
+% Use [label=lst:foo] on a leanlisting to label it.
+\crefname{tcb@cnt@leanlisting}{Listing}{Listings}
+\Crefname{tcb@cnt@leanlisting}{Listing}{Listings}
 \newtcblisting[auto counter, number within=chapter]{leanlisting}[1][]{
   listing only,
-  listing options={language=Lean},
+  % Render content verbatim: keep every space and the typed indentation, and
+  % never auto-indent wrapped long lines (breakautoindent/breakindent off).
+  listing options={language=Lean, mathescape=true,
+    keepspaces=true, columns=fullflexible, gobble=0,
+    breaklines=true, breakautoindent=false, breakindent=0pt},
   breakable,
   enhanced,
   colback=beige!30,
@@ -104,7 +113,7 @@
   arc=3pt,
   boxrule=1pt,
   left=4pt, right=4pt, top=0pt, bottom=0pt,
-  before upper={\iftcb@titlevisible\vspace{6pt}\fi},
+  before upper={\iftcb@hasTitle\vspace{6pt}\fi},
   before title={\sffamily Listing~\thetcbcounter\enspace\enspace},
   fonttitle=\small\sffamily\color{black},
   attach boxed title to top left={yshift={-\dimexpr\tcboxedtitleheight/2\relax}, xshift=6mm},
@@ -117,6 +126,19 @@
     },
   #1,
 }
+% When a leanlisting is used without an optional [..] argument, LaTeX's optional
+% argument lookahead (\@ifnextchar[) skips spaces across the line break and eats
+% the leading indentation of the first content line. Replace the lookahead with a
+% \futurelet check that does not skip spaces, so the first line keeps its indent.
+\expandafter\let\expandafter\leanlisting@worker\csname\string\leanlisting\endcsname
+\def\leanlisting{\futurelet\@let@token\leanlisting@optcheck}
+\def\leanlisting@optcheck{%
+  \ifx\@let@token[%
+    \let\leanlisting@next\leanlisting@worker
+  \else
+    \def\leanlisting@next{\leanlisting@worker[]}%
+  \fi
+  \leanlisting@next}
 \makeatother
 
 \usetikzlibrary{arrows, arrows.meta, shapes, positioning, calc, fit, shadings}
