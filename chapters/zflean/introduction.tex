@@ -1,0 +1,26 @@
+\section{Introduction}
+\label{sec:zflean-intro}
+
+Modern mathematical formalization is increasingly carried out with proof assistants, whose foundational cores range from first-order set theories to more expressive systems based on simple or dependent type theory.
+This evolution was fueled by the \emph{proofs-as-objects} vision of the Curry-Howard correspondence, and it crystallized into two broad and often contrasted families of foundations: \emph{collections}-based theories (set-theoretic) and \emph{constructions}-based theories (type-theoretic).
+Various proposals aim to reconcile these viewpoints, either by generalizing over them---e.g.\ category theory---or by refining them---e.g.\ constructive set theories such as CZF~\cite{aczel-czf}.
+
+Nevertheless, formalizing \emph{set-level} mathematics is sometimes desirable---for extensional equalities, partiality via relations, or category-style ``up to isomorphism'' reasoning.
+However, working directly at set level in a typed assistant can be verbose and brittle: partial maps require encodings; extensionality must be disciplined; and crossing the boundary to native types is manual and error-prone. As a result, ZFC models are more often referenced than \emph{used} for development.
+We therefore leverage Lean's Mathlib~\cite{mathlib} and its provided model of ZFC and develop a framework for doing mathematics in ZFC with Lean-grade ergonomics.
+Our aim is \emph{not} to replace Mathlib's native arithmetic or data types; instead, we engineer a uniform \emph{relational calculus} (with partial automation), provide \emph{canonical ZFC constructions} with \emph{universal properties}, and build \emph{bridges} to Lean~4 types, so proofs can fluidly toggle between extensional sets and typed infrastructure.
+We contribute the following:
+\begin{itemize}
+  \item \emph{a relational calculus}: Composition/converse/images with associativity/identity and image, composition interaction laws, normal forms, and rewriting hints feeding partial automation.
+  \item \emph{canonical constructions with usual properties}: $\mathbb{B}$, $\mathbb{N}$, $\mathbb{Z}$, $\mathbb{Q}$, functions, sums, options.
+  \item \emph{an interoperable framework with Lean~4/Mathlib}: Bridges allowing to step across boundaries smoothly, enabling ``up to isomorphism'' reasoning and transport of properties.
+\end{itemize}
+All definitions and theorems mentioned in this paper are available in the artifacts, as well as full proofs omitted in the text.
+
+We first recall Mathlib's ZFC model and design choices in \cref{sec:zflean-background}.
+In \cref{sec:zflean-rel} we present the relational calculus with automation tactics for relations and (partial) functions.
+Using this calculus, we build canonical constructions along with their usual associated properties in \cref{sec:zflean-canon}.
+In \cref{subsec:iso-bridges} we formalize embeddings and isomorphisms, along with structure theorems and transport patterns.
+\cref{sec:zflean-case-study} then demonstrates usability of the framework via selected case studies.
+We also discuss related work in \cref{sec:zflean-related} before concluding.
+

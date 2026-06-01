@@ -1,0 +1,129 @@
+\section{Background and Design Choices}
+\label{sec:zflean-background}
+
+We rely on Mathlib's implementation of a model of ZFC set theory~\cite{mathlib-zfc}, which we briefly recall here.
+The construction starts from a universe-polymorphic type of \emph{pre-sets} \inlinelean|PSet| and its extensional quotient, so as to obtain the intended set-theoretic model.
+We briefly recall central definitions: extensional equivalence $X \sim Y$ and membership $x \in X$, which witness the axioms of extensionality and regularity in the model.
+
+\subsection{Pre-sets}
+
+Pre-sets are defined inductively as universe-polymorphic structures, as follows.
+
+\begin{definition}
+  For any type $\alpha$ in a universe of level $u$\footnotemark
+  and any indexed family $A$ of pre-sets over $\alpha$, a pre-set can be constructed from $\alpha$ and $A$.
+  This provides an inductive (intensional) definition of pre-sets via a constructor of type $\prod_{\alpha \colon \mathsf{Type}\, u} (\alpha \to \mathsf{PSet}) \to \mathsf{PSet}$.
+  The corresponding Lean definition is shown below.
+  \begin{leanlisting}[label={lst:pset}]
+inductive PSet : Type (u + 1)
+| mk (α : Type u) (A : α → PSet) : PSet
+  \end{leanlisting}
+\end{definition}
+\footnotetext{$\mathsf{Type}\,u$ denotes Lean's universe level $u$ in a weakly cumulative hierarchy---see \Cref{subsec:lean-foundations} for details---where the parameter $u$ makes the construction universe-polymorphic.}
+
+Constructing a pre-set is therefore a cumulative process, a commonly observed fact about sets: (pre-)sets are built from other (pre-)sets.
+With such a definition, one can inductively construct a pre-set upon an underlying type $\alpha$ by providing an interpretation function of type $\alpha \to \mathsf{PSet}$ of its elements as pre-sets.
+Since we need a starting point to populate the type of pre-sets, we construct the empty pre-set. This shows that the type of pre-sets is \emph{inhabited}.
+
+\begin{definition}
+  The empty pre-set is obtained from the (universe polymorphic) empty type $\bot$ and its elimination function $\mathsf{elim}_\bot : \prod_\alpha \bot \to \alpha$
+  \begin{equation*}
+    \varnothing \triangleq \mathsf{PSet.mk}\ \bot\ \mathsf{elim}_\bot
+  \end{equation*}
+\end{definition}
+
+Operations on pre-sets are then defined with the aim of being later lifted to sets.
+It is noticeable that some of these operations will serve as witnesses of the ZFC axioms.
+We only recall principal operations here, such as extensional equivalence and membership.
+
+\begin{definition}
+  Two pre-sets $X =: \langle \alpha, A \rangle$ and $Y =: \langle \beta, B \rangle$ are said to be extensionally equivalent---or to have the same extension---denoted by $X \sim Y$, if every element of $A$ is (inductively) extensionally equivalent to some element of $B$ and vice-versa:
+  \begin{equation*}
+    X \sim Y \triangleq \left(\forall\, a,\, \exists\, b,\, A(a) \sim B(b)\right) \land \left(\forall\, b,\, \exists\, a,\, A(a) \sim B(b)\right)
+  \end{equation*}
+\end{definition}
+Extensional equivalence is then shown to be an equivalence relation on pre-sets, which allows us to instantiate a setoid structure on pre-sets and serves as a witness for the axiom of extensionality.
+It is also used to define pre-set membership, as follows.
+\begin{definition}
+  A pre-set $x$ is said to be a member of a pre-set $X =: \langle \alpha, A \rangle$, denoted by $x \in X$, if it is extensionally equivalent to some element of $X$:
+  \begin{equation*}
+    x \in X \triangleq \exists\, a,\, x \sim A(a)
+  \end{equation*}
+\end{definition}
+
+The membership relation is then shown to be well-founded---meaning there is no infinite $\in$-chain of pre-sets---a key property that witnesses the axiom of regularity.
+Further usual operations such as cartesian product ($\times$), union ($\cup$), and powerset ($\mathcal{P}$), are defined on pre-sets, all to be later lifted to sets.
+
+\subsection{Sets}
+
+Sets are defined as the extensional quotient of pre-sets, as follows.
+\begin{definition}
+  The type of sets is defined as the quotient type $\mathsf{ZFSet} \triangleq \mathsf{PSet}/{\sim}$.
+\end{definition}
+
+Since Lean has built-in support for quotient types, the definition of sets in Lean is straightforward.
+Operations on sets are then defined by lifting the corresponding operations on pre-sets via the quotient map.
+
+\begin{remark}
+  The construction validates the full ZFC axioms, including choice: in \zflean{} we only rely on choice to define noncomputable selectors such as function evaluation on partial functions.
+  This definition already marks the divergence between \emph{intensional} and \emph{extensional} theories.
+  ZFC sets are indeed constrained by a notion of equality that is coarser than \emph{definitional} equality, which is fundamentally used in many systems, among which Lean, Rocq and Agda.
+  Indeed, although most proof assistants are based on intensional type systems, some like F$^\star$~\cite{fstar} treat provably equal terms like definitionally equal ones.
+  The purpose of our development is exactly to alleviate the friction caused by this divergence by preventing repeated quotient-lifting boilerplate: proof scripts stay at the \inlinelean|ZFSet| interface, and \emph{extensional} reasoning inside Lean is enabled while retaining compatibility with its \emph{intensional} core.
+\end{remark}
+
+A definition of Kuratowski's ordered pairs is also provided by the model, denoted by $(x, y)$ for any sets $x$ and $y$ and is defined as the set $\displaystyle\bigl\lbrace\lbrace x\rbrace, \lbrace x, y\rbrace\bigr\rbrace$, but lacks projections and simplification lemmas.
+We therefore define projections $\pi_1$ and $\pi_2$ accordingly and provide simplification lemmas to manipulate them.
+This represents the first contribution of our work.
+
+\begin{definition}
+  We define general projections $\pi_1$ and $\pi_2$ for any set $x$:
+  \begin{equation*}
+    \pi_1\, x \triangleq \bigcup {\bigcap x} \quad\text{and}\quad \pi_2\, x \triangleq
+    \begin{cases}
+      \pi_1\, x                                           & \text{if}\ \bigcup x \setminus \bigcap x = \varnothing \\
+      \bigcup \left( \bigcup x \setminus \bigcap x\right) & \text{otherwise}
+    \end{cases}
+  \end{equation*}
+\end{definition}
+
+\begin{remark}
+  The projections $\pi_1$ and $\pi_2$ are defined as \emph{total} set-level operators to avoid partiality in the object language;
+  they are only meant to be used under hypotheses that force $x$ to be a pair, e.g.\ it belongs to a cartesian product $x \in A\times B$, or $x = (a,b)$.
+  When $x$ is \emph{not} a Kuratowski pair, $\pi_1(x)$ and $\pi_2(x)$ are just some sets with no intended semantic content.
+\end{remark}
+
+\begin{leanlisting}[title={Projections for Kuratowski pairs along with simplification lemmas.}, label=lst:pair-proj]
+  theorem π₁_pair (x y : ZFSet) : π₁ (x.pair y) = x := $\irrelprf$
+  theorem π₂_pair (x y : ZFSet) : π₂ (x.pair y) = y := $\irrelprf$
+  theorem pair_eta {z A B : ZFSet} (h : z ∈ A × B) :
+  z = z.π₁.pair z.π₂ := $\irrelprf$
+  theorem pair_mem_prod {x y a b : ZFSet} :
+  a.pair b ∈ x × y ↔ a ∈ x ∧ b ∈ y := $\irrelprf$
+\end{leanlisting}
+
+With these projections, we can prove the expected simplification lemmas for ordered pairs, e.g.\ $\pi_1\, (x, y) = x$ and $\pi_2\, (x, y) = y$ for any sets $x$ and $y$, $\eta$-expansion of pairs and membership on a cartesian product, as shown in \cref{lst:pair-proj}---with proofs omitted and replaced by $\irrelprf$ but available in the artifacts, with additional equational lemmas.
+
+ZFC set theory has no built-in notion of functions, whose definition must be taken carefully.
+In programming languages and type theories, functions are usually first-class and \emph{total} by construction, while mathematical functions can be \emph{partial} and are defined as \emph{functional relations} whose domain may be smaller than the intended source set.
+This difference is usually bridged by using options or dependent types to encode partiality, however in this work we aim to stay as close as possible to the set-theoretic definitions.
+Also, Mathlib already provides a definition for total functions and exponential objects, which we reuse in our development.
+The definition is as follows.
+\begin{definition}
+  A set $f$ is said to be a total function from a set $A$ to a set $B$, denoted by $\IsFunc(A, B, f)$, if it is a functional relation whose domain is exactly $A$:
+  \begin{equation*}
+    \IsFunc(A, B, f) \triangleq f \subseteq A \times B \land \forall\, x \in A,\, \exists!\, y \in B, (x, y) \in f
+  \end{equation*}
+  The exponential object $B^A$ is then defined as the set of all functions from $A$ to $B$:
+  \begin{equation*}
+    B^A \triangleq \{ f \in \mathcal{P}(A \times B) \mid \IsFunc(A, B, f) \}
+  \end{equation*}
+\end{definition}
+
+This definition, however, does not cover partial functions, which are ubiquitous in mathematical developments.
+This highly motivates the relational calculus presented in the next section.
+% \fixme[If you really want to define the set of partial functions from A to B, isn't it just $\bigcup \{ B^C \mid C \in \mathcal{P}(A) \}$ ? Note that every element of that set is still a total function, just from a subset of A.]
+% I have several criticisms about this definition of function:
+% - it is based upon totality, which is not the usual mathematical definition of function (partial functions come before total functions in math). Shall totality be removed from the framework, the framework should not change.
+% - I think the definition via implications---$(x, y) \in f \implies \dots$---is more convenient to work with than the definition via the set of all "smaller" total functions. Of course, both definitions can be shown equivalent, but again, this is an argument of atomicity and agnosticism of definitions.
+

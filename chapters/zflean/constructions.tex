@@ -1,0 +1,287 @@
+\section{Canonical Constructions and Universal Properties}
+\label{sec:zflean-canon}
+
+The relational calculus of \cref{sec:zflean-rel} already provides a stable framework for manipulating relations and (partial) functions internally in the ZFC model.
+We now build a library of canonical ZFC objects and expose their characteristic properties in a form designed to be usable in practice, compositional, and integrated with the relational calculus.
+
+\subsection{Canonical objects}
+\paragraph*{Boolean algebra}
+We define a canonical two-element set-theoretic object $\mathbb{B} : \mathsf{ZFSet} \triangleq \{\bot, \top\}$ and its usual associated algebraic structure, with accompanying lemmas and notations.
+Definitions are standard: $\bot \triangleq \varnothing$, $\top \triangleq \{\varnothing\}$, conjunction as intersection, disjunction as union, and negation as set-theoretic complement relative to $\mathbb{B}$.
+%
+\begin{note}[Subtypes as extensional types]
+  For any set $S : \mathsf{ZFSet}$, its extension can be exposed as a Lean subtype $\{ x : \mathsf{ZFSet} \,\slash\mkern-3mu\slash\, x \in S\}$.
+  Concretely, an element $e : \{ x : \mathsf{ZFSet} \,\slash\mkern-3mu\slash\, x \in S\}$ can be coerced back to a set, and the stored membership proof is still accessible.
+  Conversely, a raw $e : \mathsf{ZFSet}$ equipped with $h : e \in S$ can be packaged as $\langle e, h \rangle : \{ x : \mathsf{ZFSet} \,\slash\mkern-3mu\slash\, x \in S\}$, and equality of subtype values reduces to equality of underlying sets via extensionality and the proofs are irrelevant.
+\end{note}
+%
+We define a proper type \mbox{$\mathsf{ZFBool} \triangleq \{ x : \mathsf{ZFSet}\, \slash\mkern-3mu\slash\,  x \in \mathbb{B} \}$} leveraging Lean's \emph{subtypes}, which is \emph{not} a set and must be read as ``the type of sets belonging to $\mathbb{B}$''.
+%
+% \begin{remark}
+%   Any element $x : \mathsf{ZFBool}$ is internally represented as a pair $\langle b, p \rangle$ where $b : \mathsf{ZFSet}$ and $p : b \in \mathbb{B}$ is a proof that $b$ belongs to $\mathbb{B}$.
+% \end{remark}
+%
+Our algebraic structure is then elaborated upon this type.
+First, we define a \emph{case eliminator} $\mathsf{casesOn}$ for $\mathsf{ZFBool}$, enabling branching upon Booleans---that is, case analysis via the \inlinelean|cases| tactic, or case splitting in definitions.
+%
+\begin{lstlisting}[language=lean, caption={Case analysis on internal Booleans.}, label=lst:zfbool-casesOn, float=t]
+@[cases_eliminator]
+def ZFBool.casesOn {motive : ZFBool → Sort _} (p : ZFBool)
+  (false : motive ⊥) (true : motive ⊤) : motive p
+\end{lstlisting}
+%
+Its type is given in \cref{lst:zfbool-casesOn}.
+
+Then, we define the usual boolean operations (conjunction, disjunction, negation, implication, etc.) as operations on $\mathsf{ZFBool}$, ensuring that the result of each operation is again a member of $\mathbb{B}$ by construction.
+%
+\begin{definition}[Conjunction]
+  Given $\langle p, h_p \rangle, \langle q, h_q \rangle : \mathsf{ZFBool}$, their conjunction $p \bigwedge q : \mathsf{ZFBool}$ is defined as the pair $\langle p \cap q, h \rangle$ where $h : p \cap q \in \mathbb{B}$ is a proof obtained by case analysis on $p$ and $q$; this yields four cases, all easily discharged.
+\end{definition}
+%
+\begin{lstlisting}[language=lean, caption={Some simplification lemmas for ZFC Booleans.}, label=lst:bool-lemmas, float=t]
+theorem and_comm  (p q : ZFBool)   : p ⋀ q = q ⋀ p := $\irrelprf$
+theorem and_assoc (p q r : ZFBool) : p ⋀ q ⋀ r = p ⋀ (q ⋀ r) := $\irrelprf$
+@[simp]
+theorem and_true  (p : ZFBool)     : p ⋀ ⊤ = p := $\irrelprf$
+theorem and_intro (p q : ZFBool)   : p = ⊤ ∧ q = ⊤ → p ⋀ q = ⊤ := $\irrelprf$
+\end{lstlisting}
+%
+Similar definitions are provided for disjunction ($\bigvee$) and negation ($\mathsf{not}$), together with the expected algebraic laws such as commutativity, associativity, distributivity, neutral elements and simplification lemmas.
+\cref{lst:bool-lemmas} shows some of those laws.
+
+\paragraph*{Natural numbers}
+Mathlib already provides a set-theoretic object $\omega$ (the first infinite von Neumann ordinal) inside the ZFC model.
+Reusing it is technically harmless: nothing in the development relies on a peculiarity of our presentation, and one can obtain a natural-number structure from $\omega$ by working with its elements as (finite) von Neumann ordinals.
+We nonetheless re-derive $\mathbb{N}$ directly from the axiom of infinity as the least inductive set---thereby keeping the development self-contained---because $\omega$ is introduced a priori as an \emph{ordinal} object geared towards ordinal reasoning rather than towards a minimal natural-numbers interface.
+Our construction explicitly targets natural numbers: it fixes the successor, recursion/induction principle, and arithmetic operations with definitional equalities.
+
+%
+% \begin{figure}[t]
+%   \centering
+%   \begin{tikzpicture}
+%     \begin{scope}[x=1cm, y=1cm, every node/.style={align=center}]
+%       \tikzset{
+%         dot/.style={circle, fill=black, inner sep=1.2pt},
+%         setlabel/.style={font=\scriptsize},
+%         numlabel/.style={font=\small},
+%       }
+%       \def\dotsep{2}
+%       \def\sety{0.5}
+%       \def\boxpadx{0.3cm}
+%       \def\boxpady{0.2cm}
+%       \def\boxround{0.25cm}
+%       \def\labelgap{0.45cm}
+%       \foreach \i/\set in {
+%         0/{\varnothing},
+%         1/{\{\varnothing\}},
+%         2/{\{\varnothing,\{\varnothing\}\}},
+%         3/{\{\varnothing,\{\varnothing\},\{\varnothing,\{\varnothing\}\}\}}
+%       } {
+%         \pgfmathsetmacro{\x}{\i*\dotsep}
+%         \node[setlabel] (set\i) at (\x,\sety) {$\set$};
+%         \node[dot] (dot\i) at (\x,0) {};
+%         \node[numlabel] (num\i) at (\x,-\sety) {$\i$};
+%       }
+%       \node[draw, rounded corners=\boxround, fit=(dot0)(dot3),
+%         inner xsep=\boxpadx, inner ysep=\boxpady] (dotbox) {};
+%       \node[numlabel] (countlabel) at ([xshift=-\labelgap, yshift=1pt]dotbox.west) {$4\ \triangleq$};
+%     \end{scope}
+%   \end{tikzpicture}
+%   \caption{Representation of the extension of the 4\textsuperscript{th} von Neumann numeral.}
+%   \label{fig:vn-nat}
+% \end{figure}
+%
+We still achieve a von Neumann-like representation of (transitive) natural numbers, where each natural number is represented as the set of all its predecessors.
+% , as illustrated in \cref{fig:vn-nat}.
+
+%
+\begin{definition}[Inductive set]
+  We call a set $X : \mathsf{ZFSet}$ \emph{inductive} when
+  \begin{enumerate}
+    \item $\varnothing \in X$;
+    \item $X$ is closed under the operation $n \mapsto n \cup \{n\}$, i.e.\@
+          \( \forall\, n \in X,\, n \cup \{n\} \in X \).
+  \end{enumerate}
+\end{definition}
+
+The axiom of infinity guarantees the existence of at least one inductive (infinite) set, which we classically choose and denote by $S^{\infty}$.
+We then define the set of natural numbers as follows.
+%
+\begin{definition}\label{def:nat}
+  $\mathbb{N}$ is defined as the smallest inductive set:
+  \[
+    \mathbb{N} \triangleq \bigcap \left\{ X \subseteq S^{\infty} \mid X\ \text{is inductive} \right\}
+  \]
+\end{definition}
+%
+\begin{remark}
+  \cref{def:nat} is actually agnostic to the choice of $S^{\infty}$.
+\end{remark}
+In \zflean, we expose naturals as the subtype $\mathsf{ZFNat} \triangleq \{n : \mathsf{ZFSet} \,\slash\mkern-3mu\slash\, n \in \mathbb{N}\}$, with $0_{\mathbb{N}} := \varnothing$ and $1_{\mathbb{N}} \triangleq \mathsf{succ}(0_{\mathbb{N}})$ where the successor function is defined as:
+\begin{equation*}
+  \begin{matrix}
+    \mathsf{succ} : & \mathsf{ZFNat}       & \to     & \mathsf{ZFNat}                   \\
+                    & \langle n, h \rangle & \mapsto & \langle n \cup \{n\}, h' \rangle
+  \end{matrix} \quad \text{where } h' : n \cup \{n\} \in \mathbb{N} \text{ is derived from } h : n \in \mathbb{N}.
+\end{equation*}
+
+This definition yields the expected inductive structure on $\mathbb{N}$, with each natural number $n$ being the set of all smaller natural numbers.
+This offers a straightforward definition of the standard (strict) total ordering on $\mathsf{ZFNat}$ as set membership: $\langle m, h_m \rangle < \langle n, h_n \rangle \triangleq m \in n$, which we instantiate in Lean and derive the expected properties (irreflexivity, transitivity, trichotomy, etc.). We also define the non-strict order as usual: $m \leq n \triangleq m < n \lor m = n$.
+
+\begin{lstlisting}[language=lean, caption={Recursor for $\mathsf{ZFNat}$.}, label=lst:nat-rec, float=t]
+@[induction_eliminator]
+def rec.{u} {motive : ZFNat → Sort u} (n : ZFNat)
+  (zero : motive 0) (succ : Π x, motive x → motive (succ x)) : motive n := $\irrelprf$
+\end{lstlisting}
+
+We then derive a well-founded recursion principle---as well as weak/strong induction---as a fixpoint, using that $\mathsf{succ}$ induces a well-founded relation on $\mathsf{ZFNat}$.
+The type of $\mathsf{ZFNat.rec}$ is shown in \cref{lst:nat-rec} and contains the two usual branches for zero and successor.
+We indicate to Lean that this is an \emph{induction eliminator} so that the \inlinelean|induction| tactic can leverage it.
+%
+\begin{lstlisting}[language=lean, caption={Basic arithmetic operations on $\mathsf{ZFNat}$ and some associated facts.}, label=lst:nat-lemmas, float=t]
+def pred  (m : ZFNat) : ZFNat := ZFNat.rec m 0 (fun x _ ↦ x)
+def add (n m : ZFNat) : ZFNat := ZFNat.rec n m (fun _ ↦ succ)
+def sub (n m : ZFNat) : ZFNat := ZFNat.rec m n (fun _ ↦ pred)
+def mul (n m : ZFNat) : ZFNat := ZFNat.rec n 0 (fun _ ↦ (· + m))
+--
+theorem sub_add_distrib {n m k : ZFNat} : n - (m + k) = n - m - k := $\irrelprf$
+theorem left_distrib    {n m k : ZFNat} : n * (m + k) = n * m + n * k := $\irrelprf$
+theorem mul_lt_mono     {n m k : ZFNat} (h : 0 < k) : n < m → k*n < k*m := $\irrelprf$
+\end{lstlisting}
+%
+Finally, we define standard arithmetic operations by primitive recursion, together with convenient notations and a furnished library of arithmetic lemmas.
+A few examples of such theorems are shown in \cref{lst:nat-lemmas}.
+% \begin{remark}
+%   For the predecessor operator $\mathsf{pred}$, we defined it both set-theoretically and recursively and showed that they coincide.
+% \end{remark}
+% % useless remark?
+\begin{lstlisting}[language=lean, caption={Example of ring equality on $\mathsf{ZFNat}$.}, label=ex:nat-ring, float=t]
+example (a b : ZFNat) : (a + b)² = a² + 2*a*b + b² := by ring
+\end{lstlisting}
+%
+We eventually equip $\mathsf{ZFNat}$ with a \emph{commutative semiring} structure and allow to leverage Mathlib's \inlinelean|ring| tactic, which can automatically prove equalities in semirings by normalization.
+\cref{ex:nat-ring} shows that \inlinelean|ring| can be used seamlessly on $\mathsf{ZFNat}$ and is able to prove the binomial squares identity automatically.
+% \fixme[Perhaps you might want to discuss why the following development is carried out in ZFNat rather than directly for the set $\mathbb{N}$. In particular, why would a Lean user prefer ZFNat over the native type of natural numbers in Lean?]
+
+\paragraph*{Integers and rationals}
+\newcommand{\zrel}{\ensuremath{\sim_{\mathbb{Z}}}}
+
+We follow standard constructions to build integers as equivalence classes of pairs of naturals under the relation $(a,b) \zrel (c,d) \iff a + d = b + c$ for all $a,b,c,d : \mathsf{ZFNat}$.
+Contrary to naturals however, we do not primarily expose integers as a set, but as quotient type.
+\begin{definition}[Ring of integers]
+  We define the set of integers as the quotient:
+  \[
+    \mathsf{ZFInt} \triangleq (\mathsf{ZFNat} \times \mathsf{ZFNat})/\!\zrel
+  \]
+  We then define $0_{\mathbb{Z}} \triangleq [(0_{\mathbb{N}}, 0_{\mathbb{N}})]_{\zrel}$, $1_{\mathbb{Z}} \triangleq [(1_{\mathbb{N}}, 0_{\mathbb{N}})]_{\zrel}$ (equivalence classes of the representatives), and the usual addition, subtraction and multiplication operations on $\mathsf{ZFInt}$ by lifting the corresponding operations on representatives and instantiate a \emph{commutative ring} structure $\langle \mathsf{ZFInt}, +, * \rangle$ with the usual ordering.
+
+  We then define a set $\mathbb{Z}$ of canonical representatives of integers as the union as follows
+  \[
+    \mathbb{Z} \triangleq \mathbb{N} \times \{0_{\mathbb{N}}\}\, \cup\, \{0_{\mathbb{N}}\} \times \mathbb{N}
+  \]
+  and prove that the subtype built from the extension of the set $\mathbb{Z}$ is isomorphic to $\mathsf{ZFInt}$ (which also provides coercions).
+\end{definition}
+\begin{remark}% this remark can be removed if space is tight
+  % \begin{figure}[t]
+  %   \centering
+  % \begin{tikzpicture}
+  %   \begin{scope}[x=0.9cm, y=1cm]
+  %     \tikzset{
+  %       dot/.style={circle, fill=black, inner sep=1.2pt},
+  %       numlabel/.style={font=\small},
+  %       intarrow/.style={line width=1pt, shorten <=1.2pt, shorten >=1.2pt, -{>[scale=0.85]}, color=black},
+  %     }
+  %     \draw[color=gray] (0,0) -- (8,0);
+  %     \draw[intarrow] (0,0) -- (1,0);
+  %     \draw[intarrow] (3,0) -- (4,0);
+  %     \draw[intarrow] (6,0) -- (7,0);
+  %     \foreach \i in {0,...,8} {
+  %       \node[dot] at (\i,0) {};
+  %       \node[numlabel] at (\i,-0.35) {\i};
+  %     }
+  %   \end{scope}
+  % \end{tikzpicture}
+  % \caption{Some representatives of the integer $1_{\mathbb{Z}}$ as a distance between naturals, namely $(1_{\mathbb{N}},0_{\mathbb{N}})$, $(4_{\mathbb{N}},3_{\mathbb{N}})$, and $(7_{\mathbb{N}},6_{\mathbb{N}})$.}
+  % \label{fig:int-rep}
+  % \end{figure}
+  This definition does not imply that $\mathbb{N} \subseteq \mathbb{Z}$
+  % ---formally, this does not hold in standard mathematics either---
+  but rather that $\mathbb{N}$ is isomorphic to the set of nonnegative integers.
+  Instead, it views integers as algebraic ``distances'' between two naturals, so any integer can be represented by infinitely many pairs of naturals.
+  % , as shown in \cref{fig:int-rep}.
+  This is particularly useful to define the opposite operation since it simply consists in flipping pairs; subtraction is then directly obtained as addition of the opposite.
+\end{remark}
+
+\newcommand{\qrel}{\ensuremath{\sim_{\mathbb{Q}}}}
+Implementing rationals follows a similar pattern, as equivalence classes of pairs of integers under the relation $(a,b) \qrel (c,d) \iff a * d = b * c$ for all $a,b,c,d : \mathsf{ZFInt}$ with $b,d \neq 0_{\mathbb{Z}}$.
+This yields a quotient type $\mathsf{ZFRat} \triangleq (\mathsf{ZFInt} \times \mathsf{ZFInt}^{\star})/\!\qrel$.\footnote{$\mathsf{ZFInt}^{\star}$ denotes the type $\mathsf{ZFInt}$ without $0_{\mathbb{Z}}$.}
+As with integers, we implement the basic operations: addition, subtraction, and multiplication are lifted from $\mathsf{ZFInt}$, while division is defined via $\qrel$.
+We prove the required properties and ultimately instantiate a \emph{commutative field} structure on $\langle \mathsf{ZFRat}, +, * \rangle$.
+
+\paragraph*{Coproducts and options}
+We also provide canonical set-theoretic representations for coproducts (disjoint unions) and options.
+These constructions carry less mathematical weight than the previous ones, but can be useful to model sum types and alternative partiality in a set-theoretic context.
+
+\begin{definition}
+  Given two sets $A,B : \mathsf{ZFSet}$, the \emph{sum}, or \emph{coproduct} type $A \uplus B$ is defined as the following extension (Lean subtype):
+  \begin{equation*}
+    A \uplus B \triangleq \{ {x : \mathsf{ZFSet} \,\slash\mkern-3mu\slash\, x \in (\{ \bot \} \times A) \cup (\{ \top \} \times B)} \}
+  \end{equation*}
+  and is equipped with canonical injections
+  \begin{equation*}
+    \mathsf{inl} : A \to A \uplus B
+    \qquad\text{and}\qquad
+    \mathsf{inr} : B \to A \uplus B
+  \end{equation*}
+\end{definition}
+From this, we provide a set-theoretic definition of the \emph{option} type via the coproduct
+\mbox{$\mathsf{Option}\, A \triangleq \{ \varnothing \} \uplus A$}
+equipped with expected canonical injections
+\mbox{$\mathsf{none} : \mathsf{Option}\, A \triangleq \mathsf{inl}(\varnothing)$}
+and \mbox{$\mathsf{some} : A \to \mathsf{Option}\, A \triangleq \mathsf{inr}$}
+as well as a case eliminator.
+
+\subsection{Embeddings, isomorphisms, and transport}
+\label{subsec:iso-bridges}
+\paragraph*{Embeddings and isomorphisms}
+We define embeddings and isomorphisms between sets internally in ZFC.
+\begin{definition}[Set-level embeddings and isomorphisms]
+  A set $A$ is \emph{embeddable} into a set $B$, denoted $A \zbinop{\hookrightarrow} B$, when there exists an injective total function from $A$ to $B$:
+  \[
+    A \zbinop{\hookrightarrow} B \triangleq \exists\, (f : \mathsf{ZFSet})\, (h_f : \mathsf{IsFunc}(A,B,f)),\, \mathsf{Injective}(f)
+  \]
+  $A$ and $B$ are said to be \emph{isomorphic}, denoted $A \zbinop{\cong} B$, when there exists a bijective function\footnote{In the category of sets, isomorphisms are the bijections.} from $A$ to $B$:
+  \[
+    A \zbinop{\cong} B \triangleq \exists\, (f : \mathsf{ZFSet})\, (h_f : \mathsf{IsFunc}(A,B,f)),\, \mathsf{Bijective}(f)
+  \]
+\end{definition}
+\begin{remark}
+  $\mathsf{Injective}(f)$ and $\mathsf{Bijective}(f)$ expect $f$ to be a total function from $A$ to $B$, which is given by $h_f$; this is handled by our automation layer---here, by the \inlinelean|zfun| tactic.
+\end{remark}
+The relation $\zbinop{\cong}$ is shown to be an equivalence relation on sets, and $\zbinop{\hookrightarrow}$ is shown to be antisymmetric up to isomorphism, a property known as the \emph{Cantor-Schr\"{o}der-Bernstein theorem}~\cite{CSB_thm}.
+\begin{theorem}[Cantor-Schr\"{o}der-Bernstein]
+  For any sets $A,B$, if $A \zbinop{\hookrightarrow} B$ and $B \zbinop{\hookrightarrow} A$, then $A \zbinop{\cong} B$, i.e. in \zflean:
+  \begin{lstlisting}[language=lean, basicstyle=\normalfont\ttfamily]
+theorem isIso_of_biembedding {A B : ZFSet} (h : A ↪ᶻ B) (h' : B ↪ᶻ A) :
+  A ≅ᶻ B := $\irrelprf$
+\end{lstlisting}
+\end{theorem}
+\begin{proof}
+  The proof is available in the artifacts and follows a classical pattern using successive sets of \emph{stable} elements under the two embeddings.
+\end{proof}
+
+\paragraph*{Bridges to Lean types and transport along isomorphisms}
+To interoperate with Lean/Mathlib infrastructure, our library provides explicit ``bridges'' between canonical ZFC objects and native types, notably we prove that our constructions are isomorphic---here, at type level, denoted $\simeq$---to their Lean counterparts, namely
+\begin{align*}
+  \mathsf{ZFBool}           & \simeq \mathsf{Bool}, \qquad \mathsf{ZFNat} \simeq \mathsf{Nat}, \qquad \mathsf{ZFInt} \simeq \mathsf{Int}, \\
+  A \uplus B                & \simeq
+  \{ x : \mathsf{ZFSet} \,\slash\mkern-3mu\slash\, x \in A \} \oplus
+  \{ y : \mathsf{ZFSet} \,\slash\mkern-3mu\slash\, y \in B \} \quad \text{(Lean's sum type)}                                              \\
+  \mathsf{ZFSet.Option}\, A & \simeq \mathsf{Option}\,
+  \{ x : \mathsf{ZFSet} \,\slash\mkern-3mu\slash\, x \in A \}
+\end{align*}
+We also instantiate coercions when relevant, so that users can seamlessly switch between ZFC and Lean/Mathlib representations, as illustrated in the next example.
+\begin{example}
+  Proving that conjunction distributes over disjunction on $\mathsf{ZFBool}$, i.e.\@ that for any $p,q,r : \mathsf{ZFBool}$, $p \zbinop{\land} (q \zbinop{\lor} r) = (p \zbinop{\land} q) \zbinop{\lor} (p \zbinop{\land} r)$ holds, can be done by transporting the corresponding theorem from Lean's native boolean type $\mathsf{Bool}$; see theorem \inlinelean|and_or_distrib_left| in the artifacts for full proof details.
+\end{example}
+

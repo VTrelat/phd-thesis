@@ -1,0 +1,151 @@
+\section{Case Study and Evaluation}
+\label{sec:zflean-case-study}
+
+Internally, all constructions developed so far in the ZF model are \emph{sets}, including functions, relations, naturals, etc.
+This section illustrates the intended \emph{user workflow} in \zflean{} on a classical result that exercises most of the infrastructure developed above, with an attempt to demonstrate how the interface is designed so that these implementation details rarely surface.
+The chosen example is the \emph{currying isomorphism}, which is representative because it combines nested abstraction, function application and transformations, while remaining mathematically standard and proof-script friendly.
+
+\subsection{Currying isomorphism}
+
+\begin{theorem}[Currying isomorphism]
+  \label{thm:isIso_curry}
+  For any sets $A,B,C$, the following holds:
+  \begin{equation*}
+    C^{A\times B} \zbinop{\cong} (C^B)^A
+  \end{equation*}
+\end{theorem}
+%
+We use two mutually inverse functions to build the isomorphism, corresponding to the usual (un)currying operation. Those functions are defined as follows in \zflean.
+%
+\begin{definition}[Currying and uncurrying]
+  We define set-level functions $\zunop{\mathsf{curry}} \colon \mathsf{ZFSet}$ and $\zunop{\mathsf{uncurry}} \colon \mathsf{ZFSet}$ as follows in \zflean, mirroring the mathematical definition and syntax:
+  %
+  \begin{equation*}
+    \zunop{\mathsf{curry}} \triangleq \left(\mkern-5mu\zlambda{C^{A \times B}}{(C^B)^A}{f}{\mathcal{C}(f)}\mkern-5mu\right),\,
+    \zunop{\mathsf{uncurry}} \triangleq \left(\mkern-5mu\zlambda{(C^B)^A}{C^{A \times B}}{f}{\mathcal{U}(f)}\mkern-5mu\right)
+  \end{equation*}
+  %
+  where
+  %
+  \begin{equation*}
+    \mathcal{C}(f) \triangleq \left(\zlambda{A}{C^B}{a}{\left(\zlambda{B}{C}{b}{\fapply{f}{\langle (a, b), \irrelprf \rangle}}\right)}\!\right)
+  \end{equation*}
+  %
+  and
+  %
+  \begin{equation*}
+    \mathcal{U}(f) \triangleq \left(\zlambda{A \times B}{C}{(a,b)}{\fapply{\left(\fapply{f}{\langle a, \irrelprf \rangle}\right)}{\langle b, \irrelprf \rangle}}\!\right)
+  \end{equation*}
+  %
+  We prove that $\zunop{\mathsf{curry}}$ and $\zunop{\mathsf{uncurry}}$ are total functions on their respective domains, so that automation can pick those facts up when needed:
+  $\mathsf{IsFunc}(C^{A \times B}, (C^B)^A, \zunop{\mathsf{curry}})$ and $\mathsf{IsFunc}((C^B)^A, C^{A \times B}, \zunop{\mathsf{uncurry}})$.
+\end{definition}
+
+We then prove that these two functions are mutually inverse; this is the core of the proof of \cref{thm:isIso_curry}.
+\begin{lemma}
+  \label{lem:curry-uncurry-inverse}
+  \begin{equation*}
+    \zunop{\mathsf{curry}} \zbinop{\circ} \zunop{\mathsf{uncurry}} = \Id{(C^B)^A} \quad \text{and} \quad
+    \zunop{\mathsf{uncurry}} \zbinop{\circ} \zunop{\mathsf{curry}} = \Id{C^{A \times B}}
+  \end{equation*}
+\end{lemma}
+\begin{proof}
+  We sketch the proof of the first equality; the second one follows a similar pattern.
+  Full proof details are available in the artifacts.
+  First, note that both sides contain side-conditions ensuring that everything is well-defined, all automatically discharged by the automation layer.
+  We first reduce the equality of functions to a pointwise equality using function extensionality, using theorem \inlinelean|is_func_ext_iff| from \cref{ex:func-ext}.
+  Then, let $f \in (C^B)^A$ be an arbitrary set-level curried function; we need to show the following equality:
+  \begin{equation*}
+    \fapply{(\zunop{\mathsf{curry}} \zbinop{\circ} \zunop{\mathsf{uncurry}})}{\langle f, \irrelprf \rangle} =
+    \fapply{\Id{(C^B)^A}}{\langle f, \irrelprf \rangle}
+  \end{equation*}
+  The right-hand side reduces to $f$ by definition of the identity function and using the following theorem:
+  \begin{lstlisting}[language=lean]
+theorem fapply_Id {A x : ZFSet} (hx : x ∈ A) : @ᶻ𝟙A ⟨x, $\irrelprf$⟩ = ⟨x, hx⟩ := $\irrelprf$
+\end{lstlisting}
+  We then use commutativity of evaluation and composition in the left-hand side using the following theorem:
+  \begin{lstlisting}[language=lean]
+theorem fapply_composition {g f : ZFSet} {A B C : ZFSet}
+  (hg : B.IsFunc C g) (hf : A.IsFunc B f) {x : ZFSet} (xA : x ∈ A) :
+  @ᶻ(g ∘ᶻ f) ⟨x, $\irrelprf$⟩ = @ᶻg ⟨@ᶻf ⟨x, $\irrelprf$⟩, $\irrelprf$⟩ := $\irrelprf$
+\end{lstlisting}
+  This reduces the left-hand side to
+  $\fapply{\zunop{\mathsf{curry}}}{\langle \fapply{\zunop{\mathsf{uncurry}}}{\langle f, \irrelprf \rangle}, \irrelprf \rangle}$.
+  Unfolding the definitions of $\zunop{\mathsf{curry}}$ and $\zunop{\mathsf{uncurry}}$ and applying $\beta$-reduction twice from \cref{thm:lambda} then yields the following equality to prove:
+  \begin{equation*}
+    \mathcal{C}(\mathcal{U}(f)) = f
+  \end{equation*}
+  Again, we leverage the framework's functional extensionality theorem and apply it twice to reduce this equality to a pointwise one for any $a \in A$ and $b \in B$:
+  \begin{equation*}
+    \fapply{(\fapply{\mathcal{C}(\mathcal{U}(f))}{\langle a, \irrelprf \rangle})}{\langle b, \irrelprf \rangle} =
+    \fapply{(\fapply{f}{\langle a, \irrelprf \rangle})}{\langle b, \irrelprf \rangle}
+  \end{equation*}
+  Further $\beta$-reductions are applied to the unfolded definition of $\mathcal{C}$, yielding:
+  \begin{equation*}
+    \fapply{\left(\zlambda{B}{C}{b'}{\fapply{\mathcal{U}(f)}{\langle (a, b'), \irrelprf \rangle}}\right)}{\langle b, \irrelprf \rangle} =
+    \fapply{(\fapply{f}{\langle a, \irrelprf \rangle})}{\langle b, \irrelprf \rangle}
+  \end{equation*}
+  and to the unfolded definition of $\mathcal{U}$ as well, reducing the goal to the trivial equality
+  \mbox{\(
+    \fapply{\left(\fapply{f}{\langle a, \irrelprf \rangle}\right)}{\langle b, \irrelprf \rangle} =
+    \fapply{(\fapply{f}{\langle a, \irrelprf \rangle})}{\langle b, \irrelprf \rangle}
+    \)}.%
+\end{proof}
+
+The proof of \cref{thm:isIso_curry} then boils down to applying the following theorem with the equalities from \cref{lem:curry-uncurry-inverse}:
+\begin{lstlisting}[language=lean]
+theorem isIso_of_two_sided_inverse {A B : ZFSet} {f g : ZFSet}
+  {hf : A.IsFunc B f} {hg : B.IsFunc A g}
+  (left_inv : g ∘ᶻ f = 𝟙A) (right_inv : f ∘ᶻ g = 𝟙B) : A ≅ᶻ B := $\irrelprf$
+\end{lstlisting}
+
+\begin{lstlisting}[language=lean, float=t,
+  caption={Proof skeleton of the currying isomorphism.},
+  label=lst:isIso-curry-skel]
+theorem isIso_curry {A B C : ZFSet} : (A × B).funs C ≅ᶻ A.funs (B.funs C) := by
+  have l_inv : uncurry ∘ᶻ curry = 𝟙((A × B).funs C) := $\irrelprf$
+  have r_inv : curry ∘ᶻ uncurry = 𝟙(A.funs (B.funs C)) := by
+    rw [is_func_ext_iff]
+    intro f hf
+    unfold curry uncurry
+    rw [fapply_Id, fapply_composition, fapply_lambda $\irrelprf$ $\irrelprf$, fapply_lambda $\irrelprf$ $\irrelprf$]
+    $\irrelprf$
+  exact isIso_of_two_sided_inverse l_inv r_inv
+\end{lstlisting}
+
+All routine side-conditions (``is a partial/total function'', ``is a relation'') are discharged structurally and automatically by \inlinelean|zrel|/\inlinelean|zpfun|/\inlinelean|zfun| through automatic parameters and the appropriate attribute-tagged closure lemmas.
+The skeleton of the proof script shown in \cref{lst:isIso-curry-skel} closely follows the mathematical argument described above.
+At the proof-script level, the role of the automation layer is not to perform proof search, but to \emph{erase boilerplate}: the user writes the mathematical argument, and the automation layer discharges the ubiquitous well-formedness obligations generated by set-level definitions and rewriting.
+
+\subsection{Size of the artifact}
+\label{subsec:artifacts}
+
+\begin{table}[t]
+  \centering
+  \caption{Artifact sizes in lines of Lean code (LoC) and number of theorems, grouped by component.}
+  \label{tab:artifacts-loc}
+  \small
+  \begin{tabular}{lrr}
+    \hline
+    \textbf{Component (modules)}                 & \textbf{LoC}   & \textbf{\#Theorems} \\
+    \hline
+    Relational calculus                          & 2,534          & 172                 \\
+
+    Embeddings, isomorphisms                     & 1,626          & 31                  \\
+
+    Other canonicals (Booleans, sums, rationals) & 1,362          & 153                 \\
+
+    Naturals                                     & 1,260          & 199                 \\
+
+    Integers                                     & 1,225          & 151                 \\
+
+    Core glue and automation                     & 317            & 0                   \\
+    \hline
+    \textbf{Total}                               & \textbf{8,324} & \textbf{706}        \\
+    \hline
+  \end{tabular}
+\end{table}
+
+The artifact is a self-contained Lean~4 library layered on top of Mathlib's ZFC model consisting of {8,324} lines of code (LoC), organized in a few modules summarized in \cref{tab:artifacts-loc}, and containing 706 proved theorems.
+The relational calculus is the largest component, representing about one third of the codebase.
+
