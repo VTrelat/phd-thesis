@@ -1,3 +1,7 @@
+# Make this project's own files (notably lstlean.sty, with the Lean literates)
+# win over any directory prepended to TEXINPUTS by ~/.latexmkrc.
+ensure_path('TEXINPUTS', '.');
+
 push @extra_pdflatex_options, '-synctex=1', '-interaction=nonstopmode';
 push @extra_lualatex_options, '-synctex=1', '-interaction=nonstopmode';
 push @extra_xelatex_options, '-synctex=1', '-interaction=nonstopmode';
