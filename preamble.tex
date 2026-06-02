@@ -168,59 +168,95 @@
 
 \input{environments.tex}
 
-% --- Chapter style ---
-\ChTitleVar{\raggedright\Huge\playfaircoverfamily\bfseries}
-\ChNumVar{\fontsize{76}{80}\playfaircoverfamily\itshape\bfseries}
+% --- Chapter style (Venn diagram) ---
 
-\newcommand{\colortitlechap}{\color{beige!25!cover-cream}}
+% Colors for the Venn circles
+\definecolor{venn-dark}{RGB}{183, 163, 148} % rgb(183, 163, 148)
+\definecolor{venn-light}{RGB}{237,227,212} % rgb(237,227,212)
+\definecolor{venn-textlight}{RGB}{251,244,237}
+
+% Font for the "CHAPTER" label with positive letter spacing
+\newfontfamily\playfairvennword{Playfair Display}[LetterSpace=4]
+
+% Preserve emphasis color style
 \newcommand{\colornumberchap}{\color{beige!25!cover-cream}}
-\newcommand{\colorbackchap}{\colorbox{beige!80}}
 \DeclareTextFontCommand{\emph}{\colornumberchap\itshape}
+
+% Remove KOMA-Script's default vertical space before/after chapter headings
+% so the TikZ picture controls all spacing itself.
+\RedeclareSectionCommand[beforeskip=0pt, afterskip=0pt]{chapter}
+
+% Venn geometry lengths — computed once \textwidth is known
+% Left circle bleeds ~9% of textwidth into the inner (left) margin.
+\newlength{\vennR}       % circle radius
+\newlength{\vennLx}      % x of left circle centre
+\newlength{\vennRx}      % x of right circle centre
+\newlength{\vennMidX}    % x where "CHAPTER" is centred (left boundary of right circle)
+\newlength{\vennCY}      % y of circle centres (negative = below TikZ origin)
+\newlength{\vennNumY}    % y baseline of the chapter number
+
+\AtBeginDocument{%
+  \setlength{\vennR}    {\dimexpr 25\textwidth/100\relax}%
+  % Left centre: circle bleeds past paper left edge by ~8mm
+  \setlength{\vennLx}   {\dimexpr\vennR - 28mm\relax}%
+  \setlength{\vennRx}   {\dimexpr\vennLx + 37\textwidth/100\relax}%
+  % Colour-split point = left boundary of right circle
+  \setlength{\vennMidX} {\dimexpr\vennRx - \vennR\relax}%
+  % Circles start just below the TikZ origin (top of bounding box)
+  \setlength{\vennCY}   {\dimexpr -\vennR - 4mm\relax}%
+  % Number baseline: ~0.6R above circle centre → sits in upper quarter of right circle
+  \setlength{\vennNumY} {\dimexpr\vennCY + 6\vennR/10\relax}%
+}
 
 \makeatletter
 
-\renewcommand{\DOCH}{%
-  \settowidth{\py}{\CNoV\thechapter}
-  \addtolength{\py}{-10pt}% 
-  \fboxsep=0pt%
-  \colorbackchap{\rule{0pt}{40pt}\parbox[b]{\textwidth}{\hfill}}%
-  \kern-\py\raise20pt%
-  \hbox{\colornumberchap\CNoV\thechapter}\\%
+\renewcommand{\@makechapterhead}[1]{%
+  \vspace*{-20mm}%
+  \noindent
+  \begin{tikzpicture}%
+    % Bounding box: the left circle bleeds past x=0 into the inner margin (intentional).
+    % Top set to 30mm to accommodate the large number overflowing above the circles.
+    \useasboundingbox
+      (0pt, \dimexpr\vennCY - \vennR - 5mm\relax)
+      rectangle (\textwidth, 20mm);
+    % --- Circles ---
+    \fill[venn-dark]  (\vennLx, \vennCY) circle (\vennR);
+    \fill[venn-light, fill opacity=0.9] (\vennRx, \vennCY) circle (\vennR);
+    % --- "CHAPTER" in light colour, clipped to left circle ---
+    \begin{scope}
+      \clip (\vennLx, \vennCY) circle (\vennR);
+      \node[anchor=center] at (\vennMidX, \vennCY)
+        {{\playfairvennword\bfseries\fontsize{48}{50}\selectfont
+          \textcolor{venn-textlight}{CHAPTER}}};
+    \end{scope}
+    % --- "CHAPTER" in dark colour, clipped to right circle ---
+    \begin{scope}
+      \clip (\vennRx, \vennCY) circle (\vennR);
+      \node[anchor=center] at (\vennMidX, \vennCY)
+        {{\playfairvennword\bfseries\fontsize{48}{50}\selectfont
+          \textcolor{venn-dark}{CHAPTER}}};
+    \end{scope}
+    % --- Chapter number: top-right of lighter circle, half-overflows into outer margin ---
+    \node[anchor=base] at (\dimexpr\vennRx + 7\vennR/10\relax, \vennNumY)
+      {{\playfaircoverfamily\itshape\bfseries\fontsize{112}{116}\selectfont
+        \textcolor{venn-dark}{\thechapter}}};
+  \end{tikzpicture}%
+  \par\nobreak\vskip 8\p@
+  {\playfaircoverfamily\bfseries\Huge\raggedright\textcolor{venn-dark}{#1}\par}%
+  \nobreak\vskip 30\p@
 }
 
-\renewcommand{\DOTI}[1]{%
-  \nointerlineskip\raggedright%
-  \fboxsep=\myhi%
-  \vskip-1ex%
-  \colorbackchap{\parbox[t]{\dimexpr\textwidth-2\myhi\relax}{\CTV\FmTi{\colortitlechap#1}}}\par\nobreak%
-  \vskip 40\p@%
+% Starred chapters (\chapter*{...}): plain title, no Venn decoration.
+\renewcommand{\@makeschapterhead}[1]{%
+  \vspace*{40\p@}%
+  {\playfaircoverfamily\bfseries\Huge\raggedright\textcolor{venn-dark}{#1}\par}%
+  \nobreak\vskip 40\p@
 }
 
-\renewcommand{\DOTIS}[1]{%
-  \fboxsep=0pt%
-  \colorbackchap{\rule{0pt}{40pt}\parbox[b]{\textwidth}{\hfill}}\\%
-  \nointerlineskip\raggedright%
-  \fboxsep=\myhi%
-  \colorbackchap{\parbox[t]{\dimexpr\textwidth-2\myhi\relax}{\CTV\FmTi{\colortitlechap#1}}}\par\nobreak%
-  \vskip 40\p@%
-}
-
+% Section/subsection counter colour (unchanged)
 \renewcommand{\@seccntformat}[1]{%
   {\colornumberchap\csname the#1\endcsname}\quad%
 }
-
-% Each chapter title on its own page: wrap the fncychap-defined macros
-% and flush to a new page after the header is rendered.
-% \let\fncychap@makechapterhead\@makechapterhead
-% \renewcommand{\@makechapterhead}[1]{%
-%     \fncychap@makechapterhead{#1}%
-%     \clearpage%
-% }
-% \let\fncychap@makeschapterhead\@makeschapterhead
-% \renewcommand{\@makeschapterhead}[1]{%
-%     \fncychap@makeschapterhead{#1}%
-%     \clearpage%
-% }
 
 \makeatother
 

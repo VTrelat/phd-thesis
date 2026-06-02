@@ -1,9 +1,18 @@
 \newcommand{\mkchapter}[1]{%
   \chapter{#1}%
   \begingroup
-  \hypersetup{linkcolor=black}%
-  \etocsettocdepth{subsection}%
-  \localtableofcontents%
+    \hypersetup{linkcolor=black}%
+    \etocsettocdepth{subsection}%
+    % Local TOC style: no dot leaders, flush page numbers with \hfill
+    \etocsetstyle{section}%
+      {\etocskipfirstprefix}{\smallskip}%
+      {\noindent\normalsize\bfseries\etocnumber\hspace{0.8em}\etocname\hfill\etocpage\par}%
+      {}%
+    \etocsetstyle{subsection}%
+      {}{}%
+      {\noindent\hspace{1.8em}\small\etocname\hfill\small\etocpage\par}%
+      {}%
+    \localtableofcontents%
   \endgroup
   \clearpage%
 }
