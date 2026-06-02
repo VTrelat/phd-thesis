@@ -1,19 +1,24 @@
 \newcommand{\mkchapter}[1]{%
   \chapter{#1}%
+  \noindent\textcolor{venn-light}{\rule{\textwidth}{0.8pt}}%
+  \vskip 4pt
   \begingroup
-    \hypersetup{linkcolor=black}%
+    \hypersetup{hidelinks}%
     \etocsettocdepth{subsection}%
     % Local TOC style: no dot leaders, flush page numbers with \hfill
     \etocsetstyle{section}%
-      {\etocskipfirstprefix}{\smallskip}%
-      {\noindent\normalsize\bfseries\etocnumber\hspace{0.8em}\etocname\hfill\etocpage\par}%
+      {}{\vspace{0pt}}%
+      {\noindent\makebox[2em][l]{{\bfseries\color{venn-dark}\etocnumber}}%
+       {\normalsize\color{black}\etocname}\hfill{\bfseries\color{black}\etocpage}\par}%
       {}%
     \etocsetstyle{subsection}%
       {}{}%
-      {\noindent\hspace{1.8em}\small\etocname\hfill\small\etocpage\par}%
+      {\noindent\hspace{1.5em}\makebox[2.5em][l]{{\small\bfseries\color{venn-dark}\etocnumber}}%
+       {\small\color{black}\etocname}\hfill{\small\color{black}\etocpage}\par}%
       {}%
     \localtableofcontents%
   \endgroup
+  \hypersetup{colorlinks=true,linkcolor=blue}%
   \clearpage%
 }
 
