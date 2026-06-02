@@ -10,17 +10,9 @@ permissions:
   contents: write
 
 jobs:
-  build:
-    name: "Build (${{ matrix.variant }})"
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        include:
-          - variant: proofs
-            pdf: thesis.pdf
-          - variant: noproofs
-            args: -noproofs
-            pdf: thesis-noproofs.pdf
+  release:
+    name: "Release"
+    runs-on: "ubuntu-latest"
 
     steps:
       - name: Checkout
@@ -31,29 +23,6 @@ jobs:
         with:
           root_file: main.tex
           latexmk_use_lualatex: true
-          args: ${{ matrix.args || '' }}
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.pdf }}
-          path: ${{ matrix.pdf }}
-
-  release:
-    name: "Release"
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download thesis.pdf
-        uses: actions/download-artifact@v4
-        with:
-          name: thesis.pdf
-
-      - name: Download thesis-noproofs.pdf
-        uses: actions/download-artifact@v4
-        with:
-          name: thesis-noproofs.pdf
 
       - name: Fetch release by tag
         id: fetch-release
@@ -79,7 +48,7 @@ jobs:
         with:
           tag_name: pdf
           release_name: thesis
-          body: Prebuilt PDF of the thesis, built from the latest commit on the main branch. A variant with all proofs skipped is also included.
+          body: Prebuilt PDF of the thesis, built from the latest commit on the main branch.
           prerelease: false
           draft: false
         env:
@@ -93,14 +62,4 @@ jobs:
           upload_url: ${{ steps.create-release.outputs.upload_url }}
           asset_path: thesis.pdf
           asset_name: thesis.pdf
-          asset_content_type: application/pdf
-
-      - name: Upload thesis-noproofs.pdf
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create-release.outputs.upload_url }}
-          asset_path: thesis-noproofs.pdf
-          asset_name: thesis-noproofs.pdf
           asset_content_type: application/pdf
