@@ -40,8 +40,9 @@ morekeywords=[3]{
 		generalize, clear, revert, done, exact,
 		refine, repeat, cases, rcases, rewrite, rw,
 		simp, simp_all, contradiction,
-		constructor, injection,
+		constructor, injection, grind, ring,
 		induction, show, suffices, exists,
+		zrel, zpfun, zfun
 	},
 % modifiers, taken from lean-syntax.el
 % note: 'otherkeywords' is needed because these use a different symbol.
@@ -121,6 +122,8 @@ literate=
 {▸}{{\ensuremath{\blacktriangleright}}}1
 {∧}{{\ensuremath{\wedge}}}1
 {∨}{{\ensuremath{\vee}}}1
+{⋀}{{\ensuremath{\bigwedgeop}}}1 % \bigwedge is \let to active ⋀ under unicode-math → recurses with listings catcode
+{⋁}{{\ensuremath{\bigveeop}}}1   % same for \bigvee/⋁
 {¬}{{\ensuremath{\neg}}}1
 {⊢}{{\ensuremath{\vdash}}}1
 {⟨}{{\ensuremath{\langle}}}1
@@ -249,7 +252,7 @@ extendedchars=true,
 	%% Superscripts
 	^^^^207b%
 	%% Misc maths 
-	^^^^2200^^^^2203^^^^2192^^^^2227^^^^2228%
+	^^^^2200^^^^2203^^^^2192^^^^2227^^^^2228^^^^22c0^^^^22c1%
 	^^^^27e8^^^^27e9%
 	^^^^1d2e^^^^1dbb^^^^^^01d4ab^^^^^^01d4b1^^^^^^01d7d9%
 	^^00}

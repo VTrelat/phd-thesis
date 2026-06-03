@@ -8,7 +8,8 @@ Those tactics are called \inlinelean|zrel|, \inlinelean|zpfun|, and \inlinelean|
 
 \subsection{Basic definitions}
 
-\begin{definition}[converse, identity, composition]\label{def:rel-basic}
+\begin{definition}[converse, identity, composition][ZFSet.Id, ZFSet.inv, ZFSet.composition][ZFLean/Functions.html\#ZFSet.Id, ZFLean/Functions.html\#ZFSet.inv, ZFLean/Functions.html\#ZFSet.composition]
+  \label{def:rel-basic}
   Let $R\subseteq A\times B$ and $S\subseteq B\times C$ be relations.
   \begin{itemize}
     \item The \emph{identity relation} $\Id{A}$ on $A$ is defined as:
@@ -18,19 +19,21 @@ Those tactics are called \inlinelean|zrel|, \inlinelean|zpfun|, and \inlinelean|
           The identity relation is shown to be a total function belonging to $A^A$, and later shown to be a bijection and the neutral element for composition.
     \item The \emph{converse} $R^{-1}$ is defined as:
           \begin{equation*}
-            R^{-1} \triangleq \{z \in B\times A \mid \exists\, x\, y,\, x \in A \land y \in B \land z = (y, x) \land (x,y)\in R \}
+            R^{-1} \triangleq \{z \in B\times A \mid (\pi_2(z), \pi_1(z))\in R \}
           \end{equation*}
-          This definition depends on the side-condition $R\subseteq A\times B$ (declaring that $R$ is a relation between the implicit sets), an implicit argument that \inlinelean|zrel| attempts to discharge in \zflean.
+          This definition carries the side-condition $R\subseteq A\times B$ (declaring that $R$ is a relation between the implicit sets $A$ and $B$), an implicit argument that \inlinelean|zrel| attempts to discharge in \zflean.
     \item The \emph{composition} $S\circ R \subseteq A\times C$ is defined as:
           \begin{equation*}
-            S \circ R := \{ w \in A\times C \mid \exists\, x\, z,\, x \in A \land z \in C \land w = (x, z) \land \exists\, y \in B,\, (x,y)\in R \land (y, z)\in S \}
+            S \circ R \triangleq \{ w \in A\times C \mid \exists\, y \in B,\, (\pi_1(w), y)\in R \land (y, \pi_2(w))\in S \}
           \end{equation*}
-          Unlike the previous definition, nothing is enforced on $R$ and $S$: if either $R$ or $S$ is not a relation, the composition is still well-defined, but is empty.
-          However, we define \emph{functional composition} $\zbinop{\circ}$ specifically for functions, requiring $R$ and $S$ to be functions, and using the \inlinelean|zfun| tactic to try to discharge the side-conditions automatically.
+          Unlike the converse, the composition carries \emph{no} side-condition on $R$ and $S$: it is defined for arbitrary sets and, being a separation of $A\times C$, always yields a relation between $A$ and $C$.
+          When $R$ and $S$ are genuine relations between $A,B$ and $B,C$, it computes their expected composition; any pairs of $R$ or $S$ lying outside $A\times B$ or $B\times C$ are simply ignored.  
+          For functions specifically, we define a dedicated \emph{functional composition} $\zbinop{\circ}$ that requires $R$ and $S$ to be functions, and uses the \inlinelean|zfun| tactic to discharge these side-conditions automatically.
   \end{itemize}
 \end{definition}
 
-\begin{definition}[Domain, range, image]\label{def:dom-range-image}
+\begin{definition}[Domain, range, image][ZFSet.Dom, ZFSet.Ran, ZFSet.Image][ZFLean/Functions.html\#ZFSet.Dom, ZFLean/Functions.html\#ZFSet.Ran, ZFLean/Functions.html\#ZFSet.Image]
+  \label{def:dom-range-image}
   For a relation $R\subseteq A\times B$, its \emph{domain}, \emph{range}, and \emph{image} of a set $X\subseteq A$ are defined as:
   \begin{align*}
     \begin{array}{rcl}
@@ -44,21 +47,22 @@ Those tactics are called \inlinelean|zrel|, \inlinelean|zpfun|, and \inlinelean|
 \end{definition}
 
 Finally, we define partial functions as functional relations without totality requirements.
-\begin{definition}[Partial functions]
-  A set $f$ is said to be a partial function from set $A$ to set $B$, written $\mathsf{IsPFunc}(f,A,B)$, if it is \emph{functional}:\footnote{The order of arguments is voluntarily changed compared to $\IsFunc$, so that in Lean, one may write \inlinelean|f.IsPFunc A B|}
+\begin{definition}[Partial functions][ZFSet.IsPFunc][ZFLean/Functions.html\#ZFSet.IsPFunc]
+  A set $f$ is said to be a partial function from set $A$ to set $B$, written $\mathsf{IsPFunc}(f,A,B)$\footnotemark, if it is \emph{functional}:
   \begin{equation*}
     \IsPFunc(f, A, B) \triangleq f \subseteq A \times B \,\land\, \left(\forall\, x \in A,\, \forall\, y \in B,\, \forall\, z \in B,\, (x,y) \in f \land (x,z) \in f \implies y = z\right)
   \end{equation*}
 \end{definition}
+\footnotetext{The order of arguments is voluntarily changed compared to $\IsFunc$, so that in Lean, one may write \inlinelean|f.IsPFunc A B|.}
 
 We also derive predicates $\IsInjective$, $\IsSurjective$, and $\IsBijective$ in the usual sense, which all invoke the tactic \inlinelean|zfun| to discharge functional totality requirements.
 
 \subsection{Function evaluation and λ-abstraction}
 
-We introduce two convenient features for working with functions, namely function application and $\lambda$-abstraction, defined as follows.
-We strive both to keep standard mathematical notation and to automate side-conditions as much as possible.
+We now add two notions that make functions practical to use, namely function application and $\lambda$-abstraction.
+In a purely set-theoretic setting these are not primitive---a function \emph{is} its graph, and application is the derived operation that recovers the unique image of a point---yet they are indispensable in practice; we define them so as to keep standard mathematical notation while automating side-conditions as much as possible.
 \begin{itemize}
-  \item \emph{function application} that maps $x\in\Dom(f)$ to the unique $y$ such that $(x,y)\in f$ and denoted by $\fapply{f}{x}$, invoking the \inlinelean|zpfun| tactic; we show that evaluation commutes with composition in the expected way: $\fapply{(g \zbinop{\circ} f)}{x}=\fapply{g}{\fapply{f}{x}}$, and $\fapply{f}{x}$ coincides with the unique element of the image $f[\{x\}]$.
+  \item \emph{function application} that maps $x\in\Dom(f)$ to the unique $y$ such that $(x,y)\in f$ and denoted by $\fapply{f}{x}$, invoking the \inlinelean|zpfun| tactic; we show that evaluating a composite reduces to composing the evaluations: $\fapply{(g \zbinop{\circ} f)}{x}=\fapply{g}{\fapply{f}{x}}$, and that $\fapply{f}{x}$ coincides with the unique element of the image $f[\{x\}]$.
         In practice, $\fapplysym$ is a non-computable dependently typed operator that requires a proof that $f$ is a partial function and a proof $h_x$ that $x$ belongs to its domain (that must be provided, there is no automation at this point), denoted $\fapply{f}{\langle x, h_x \rangle}$.
         Its definition makes use of the axiom of choice to select an element $y$ such that $(x,y)\in f$.
         Since $f$ is functional, there is at most one such $y$, and since $x$ belongs to the domain of $f$, there is at least one such $y$, hence such a $y$ exists and is unique---this property is proved in \zflean{} as \leancodeptr{IsPFunc.exists\_unique\_of\_mem\_dom}{ZFLean/Functions.html\#ZFSet.IsPFunc.exists_unique_of_mem_dom}.
@@ -71,11 +75,23 @@ We strive both to keep standard mathematical notation and to automate side-condi
         \end{equation*}
 \end{itemize}
 which is then shown to belong to $B^A$ whenever $e(x)\in B$ for all $x\in A$.
+
+Function application being \emph{partial}, $\fapply{f}{\langle x, h_x \rangle}$ is defined only when $f$ is a partial function and $x$ lies in its domain, both of which must be witnessed.
+A common alternative is to make every function \emph{total}.
+This could be achieved by returning ``junk values''---some fixed default values---outside the intended domain; this approach is sometimes taken in Mathlib, usually indicated by appending "\leaninl{D}"---default---to the identifier's name.
+We deliberately avoid this: a junk value assigns a meaning to $\fapply{f}{x}$ where there is undefined mathematically; it is a device for reconciling partial mathematical functions with the totality of functions in dependent type theory, not a faithful set-theoretic notion.
+Staying close to the set-theoretic principles, we instead adopt a \emph{by-construction} discipline: objects are formed together with proofs that they are meaningful.
+
+\begin{remark}
+  \label{rmk:no-junk}
+  The price of this choice is the proof obligations that decorate our operators; the automation layer described in \Cref{subsec:automation} is precisely what keeps this price hidden in practice, discharging these obligations structurally so that the user writes the mathematics rather than the bookkeeping.
+\end{remark}
+  
 We prove the expected equational properties for this notation, summarized in the following theorem.
 
-\begin{theorem}[Specification, extensionality, $\beta$- and $\eta$-conversion]
+\begin{theorem}[Basic properties][lambda\_spec, lambda\_ext\_iff, lambda\_beta, lambda\_eta][ZFLean/Functions.html\#ZFSet.lambda_spec, ZFLean/Functions.html\#ZFSet.lambda_ext_iff, ZFLean/Functions.html\#ZFSet.fapply_lambda, ZFLean/Functions.html\#ZFSet.lambda_eta]
   \label{thm:lambda}
-  Let $A$, $B$ be sets, $f \in B^A$, and $e,e'$ be unary Lean-level (endo)functions on sets.
+  Let $A$, $B$ be sets, $f \in B^A$, and $e,e' \colon \mathsf{ZFSet} \to \mathsf{ZFSet}$ be Lean-level (meta)functions on sets.
   \begin{itemize}
     \item \textbf{Specification:} For any sets $x$ and $y$, the following holds:
           \begin{equation*}
@@ -100,6 +116,15 @@ We prove the expected equational properties for this notation, summarized in the
   Full proof details are available in the artifacts as proofs of the theorems \inlinelean|lambda_spec|, \inlinelean|lambda_ext_iff|, \inlinelean|fapply_lambda|, and \inlinelean|lambda_eta|.
 \end{proof}
 
+The definitions above are stated at the mathematical level.
+In \zflean, $\lambda$-abstractions bodies are in fact written with a \emph{dependent} conditional:
+\begin{equation*}
+  f = \left(\zlambda{A}{B}{x}{\mathsf{if}\ h_x : x\in A\ \mathsf{then}\ \fapply{f}{\langle x, h_x \rangle}\ \mathsf{else}\ \varnothing}\right)
+\end{equation*}
+The sole purpose of the test \mbox{$\mathsf{if}\ h_x : x \in A$} is to bring the membership proof $h_x$ into scope, since it is required to form the application $\fapply{f}{\langle x, h_x \rangle}$: the bare binder $x \mapsto \cdots$ does not record that $x\in A$, even though the abstraction ranges over $A$.
+The $\mathsf{else}$ branch is therefore dead code---never selected, because the specification of $\zop{\lambda}$ already restricts membership to $A$---and the placeholder $\varnothing$ is immaterial.
+An alternative that avoids the conditional altogether is to let the abstraction bind over the subtype $\{ x : \mathsf{ZFSet} \,\slash\mkern-3mu\slash\, x \in A\}$, so that the membership proof is recovered by destructing the bound variable; we keep the present form for uniformity with the rest of the calculus.
+
 Application and abstraction integrate well with rewriting, so that many proofs reduce to algebra on images, evaluation, and composition, as expected.
 We illustrate this with a simple example below.
 
@@ -110,15 +135,13 @@ We illustrate this with a simple example below.
   \begin{leanlisting}
 theorem is_func_ext_iff {A B : ZFSet} {f g : ZFSet}
   (hf : IsFunc A B f) (hg : IsFunc A B g) :
-  f = g ↔ ∀ x ∈ A, @ᶻf ⟨x, $\irrelprf$⟩ = @ᶻg ⟨x, $\irrelprf$⟩ := $\irrelprf$
+    f = g ↔ ∀ x, (hx : x ∈ A) → @ᶻf ⟨x, $\irrelprf$⟩ = @ᶻg ⟨x, $\irrelprf$⟩
   \end{leanlisting}
-  where the first two omitted proofs ($\irrelprf$) are proofs that $x$ belongs to the domain of $f$ and $g$ respectively.
+  The hypothesis $h_x : x\in A$ is precisely what discharges the two omitted domain-membership obligations, namely $x\in\Dom(f)$ and $x\in\Dom(g)$, after rewriting $\Dom(f)=\Dom(g)=A$.
   The proof of this theorem can be carried out directly using extensionality on sets, although it turns out to be rather tedious.
-  It is in fact easier to $\eta$-expand both $f$ and $g$ and apply extensionality from \cref{thm:lambda} on the resulting $\lambda$-abstractions.
+  It is in fact easier to $\eta$-expand both $f$ and $g$ and apply extensionality from \Cref{thm:lambda} on the resulting $\lambda$-abstractions.
   In \zflean, this amounts to the following rewriting steps:
   \begin{leanlisting}
-  -- hf : IsFunc A B f
-  -- hg : IsFunc A B g
   rw [lambda_eta hf, lambda_eta hg, lambda_ext_iff]
   \end{leanlisting}
   This ends up in lifting a proof of extensionality for ZFC functions to standard extensionality of Lean functions.
@@ -126,8 +149,10 @@ theorem is_func_ext_iff {A B : ZFSet} {f g : ZFSet}
 \end{example}
 
 \subsection{Automation of side-conditions}
-Manipulating relations in a set-theoretic style generates repetitive proof obligations regarding relations and partial/total functions.
-As already mentioned, the library provides three lightweight tactics whose purpose is to try to solve such obligations \emph{structurally}:
+\label{subsec:automation}
+These proof obligations are not inherent to set-theoretic reasoning; they are the cost of the by-construction discipline mentioned in \Cref{rmk:no-junk}, which trades junk values for well-formedness witnesses in order to keep every object well-formed without threading hypotheses through definitions.
+Working with relations and partial/total functions then repeatedly produces such subtype-shaped goals.
+As already mentioned, the library provides three lightweight tactics whose purpose is to try to solve them \emph{structurally}:
 \begin{itemize}
   \item \inlinelean|zrel|: relational goals $R\subseteq A\times B$;
   \item \inlinelean|zpfun|: partial functionality goals $\mathsf{IsPFunc}(f,A,B)$;
@@ -136,8 +161,8 @@ As already mentioned, the library provides three lightweight tactics whose purpo
 All three tactics work similarly: they first search among local hypotheses for witnesses of the required properties, or apply standard theorems (e.g., composition of functions is a function) to reduce the goal to simpler subgoals.
 
 They may then recursively call each other and backtrack as needed when application of a theorem fails.
-In order to reduce search time and keep automation usable at runtime, some theorems are selected and tagged with relevant attributes---called \texttt{zrel}, \texttt{zpfun}, and \texttt{zfun} for consistency with the tactic names---so that they can be found by the corresponding tactic.
-This design is illustrated in \cref{fig:tactics}.
+In order to reduce search time and keep automation usable at runtime, some theorems are selected and tagged with relevant attributes---called \leaninl{zrel}, \leaninl{zpfun}, and \leaninl{zfun} for consistency with the tactic names---so that they can be found by the corresponding tactic.
+This design is illustrated in \Cref{fig:tactics}.
 This also allows all three tactics to be extended with new rules as needed.
 When an automatic discharge fails, it falls back to the user for manual proof.
 One can also pass explicit proofs to definitions and theorems instead of relying on automation, even when the tactics would succeed.
@@ -169,7 +194,7 @@ One can also pass explicit proofs to definitions and theorems instead of relying
   \end{tikzpicture}
 \end{figure}
 %
-We show a few examples of typical such theorems (with proofs omitted) in \cref{lst:automation-layer-thm}.
+We show a few examples of typical such theorems (with proofs omitted) in \Cref{lst:automation-layer-thm}.
 \begin{leanlisting}[title={Examples of theorems tagged for automation.}, label=lst:automation-layer-thm]
 @[zrel] -- converse of a relation is a relation
 theorem subset_prod_inv {R A B : ZFSet} (hR : R ⊆ A × B) :
@@ -187,16 +212,17 @@ Automatic parameters are very similar to default parameters, but are specific to
 Furthermore, those side conditions often depend on parameters that are kept implicit (e.g., the sets $A$ and $B$ in $R \subseteq A \times B$); they are also inferred automatically by Lean.
 This ultimately enables working with these definitions---most of the time---without worrying about side conditions or implicit parameters, which is the intended purpose of the \zflean{} framework.
 
-\cref{lst:automation-layer-thm} illustrates this already: the converse relation $R^{-1}$ in theorem \inlinelean|subset_prod_inv| is actually a relation between $B$ and $A$, which are implicit at this level, and relies on the side-condition $R \subseteq A \times B$, automatically discharged by \inlinelean|zrel|.
-This principle will be further exemplified in \cref{sec:case-study}.
+\Cref{lst:automation-layer-thm} illustrates this already: the converse relation $R^{-1}$ in theorem \inlinelean|subset_prod_inv| is actually a relation between $B$ and $A$, which are implicit at this level, and relies on the side-condition $R \subseteq A \times B$, automatically discharged by \inlinelean|zrel|.
+This principle will be further exemplified in \Cref{sec:zflean-case-study}.
 \begin{leanlisting}[title={Examples of simplification rules for relations and functions.}, label=lst:simp-rules]
-@[simp] theorem Image_empty {R A B : ZFSet} (hR : R ⊆ A.prod B) : R[∅] = ∅ := $\irrelprf$
 @[simp] theorem range_Id {A : ZFSet} : (𝟙A).Range = A := $\irrelprf$
+@[simp] theorem Image_empty {R A B : ZFSet} (hR : R ⊆ A.prod B) :
+  R[$$∅$$] = ∅ := $\irrelprf$
 @[simp] theorem Image_of_composition_inv_self_of_bijective {f A B X : ZFSet}
   {hf : A.IsFunc B f} (hf : f.IsBijective) (hX : X ⊆ A) : f⁻¹[f[X]] = X := $\irrelprf$
 \end{leanlisting}
 We also tag relevant equality theorems with the \texttt{simp} attribute, so that they can be used by Lean's \inlinelean|simp| tactic for rewriting.
-A few examples are shown in \cref{lst:simp-rules}, with proofs omitted.
+A few examples are shown in \Cref{lst:simp-rules}, with proofs omitted.
 
 \iffalse
   \begin{table}[t]
@@ -254,6 +280,6 @@ A few examples are shown in \cref{lst:simp-rules}, with proofs omitted.
 \fi
 
 Overall, this calculus provides a compact, rewriting-friendly and easily extensible interface for extensional reasoning with relations and functions \emph{inside} ZFC, while hiding routine side-conditions behind small, domain-specific tactics.
-% \cref{tab:rel-api} summarizes the relational interface provided by the library, notations and the associated automatic parameters.
+% \Cref{tab:rel-api} summarizes the relational interface provided by the library, notations and the associated automatic parameters.
 % \fixme[Does the table really add value to the paper?]
 

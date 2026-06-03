@@ -1,28 +1,28 @@
-\section{Related Work}
+\section{Related work}
 \label{sec:zflean-related}
 We position our contributions with respect to set-theoretic developments in interactive provers such as Isabelle and Rocq, to Mathlib's ZFC model, and to categorical/set-theoretic bases.
 
 \paragraph*{Isabelle/ZF and ZFC in Isabelle/HOL}
-Isabelle includes a classical first‑order logic (FOL) object logic with Zermelo–Fraenkel set theory as an object‑level theory, commonly referred to as Isabelle/ZF~\cite{paulson-zf}.
-In this approach, set‑theoretic reasoning happens inside the ZF object logic, with membership and extensionality primitives and large portions of mathematics developed directly at the set level.
-While powerful, ZF lives as a separate object logic from Isabelle's higher‑order logic (HOL).
-This separation historically delivered deep set‑theoretic developments (ordinals, constructibility, etc.), but makes it less convenient to reuse HOL automation, type classes, and libraries in mixed developments.
+Isabelle includes a classical first-order logic (FOL) object logic with Zermelo–Fraenkel set theory as an object-level theory, commonly referred to as Isabelle/ZF~\cite{paulson-zf}.
+In this approach, set-theoretic reasoning happens inside the ZF object logic, with membership and extensionality primitives and large portions of mathematics developed directly at the set level.
+While powerful, ZF lives as a separate object logic from Isabelle's higher-order logic (HOL).
+This separation historically supported extensive set-theoretic formalizations---from elementary theories such as ordinals up to genuinely deep developments such as the constructible universe and relative consistency results---but makes it less convenient to reuse HOL automation, type classes, and libraries in mixed developments.
 
 A complementary line encodes ZFC \emph{within} Isabelle/HOL by introducing a HOL type of sets together with an elementhood relation and basic operations, with an emphasis on close integration with HOL's automation and type classes~\cite{paulson-zf-hol}.
-In this setting, sets are first‑class HOL values; proofs benefit from standard HOL tooling and can interoperate smoothly with typed libraries.
-Conceptually, our Lean framework plays a similar bridging role: we keep ZFC‑level objects and proofs, but we provide explicit bridges to Lean's native types so that tactics, typeclasses, and algebraic infrastructure can be reused where they pay off.
-Our distinct contribution is a \emph{rewriting‑friendly relational calculus} tailored to set‑level developments, whereas the HOL encodings typically emphasize a minimal new notation surface and type‑class integration.
+In this setting, sets are first-class HOL values; proofs benefit from standard HOL tooling and can interoperate smoothly with typed libraries.
+Conceptually, our Lean framework plays a similar bridging role: we keep ZFC-level objects and proofs, but we provide explicit bridges to Lean's native types so that tactics, typeclasses, and algebraic infrastructure can be reused where they pay off.
+Our distinct contribution is a \emph{rewriting-friendly relational calculus} tailored to set-level developments, whereas the HOL encodings typically emphasize a minimal new notation surface and type-class integration.
 
 \paragraph*{Rocq (ZFC, IZF)}
-Rocq has multiple set‑theoretic developments with different aims. One family (e.g. \texttt{coq‑zfc}) encodes ZFC à la Aczel with primitive membership and extensional equality, and then \emph{proves} the ZFC axioms as theorems of the Rocq calculus~\cite{aczel-set-theory}.
-Another strand (e.g. \texttt{coq-izf}, constructive or intuitionistic set theories) targets constructive metatheory or models of type theory, sometimes via pointed‑graph semantics~\cite{miquel-pts-set-theory} or Tarski–Grothendieck universes~\cite{barras-set-theory}.
-These developments showcase that strong set‑level mathematics is possible inside a dependent type theory, but integration with Rocq's typed algebraic hierarchy and automation usually remains more ad‑hoc.
+Rocq has multiple set-theoretic developments with different aims. One family (e.g. \texttt{coq-zfc}) encodes ZFC à la Aczel with primitive membership and extensional equality, and then \emph{proves} the ZFC axioms as theorems of the Rocq calculus~\cite{aczel-set-theory}.
+Another strand (e.g. \texttt{coq-izf}, constructive or intuitionistic set theories) targets constructive metatheory or models of type theory, sometimes via pointed-graph semantics~\cite{miquel-pts-set-theory} or Tarski–Grothendieck universes~\cite{barras-set-theory}.
+These developments showcase that strong set-level mathematics is possible inside a dependent type theory, but integration with Rocq's typed algebraic hierarchy and automation usually remains more ad-hoc.
 
 \paragraph*{ETCS and categorical foundations}
-Lawvere's Elementary Theory of the Category of Sets (ETCS) axiomatizes the (well‑pointed) category of sets with finite limits, cartesian closure, a natural numbers object, and (typically) choice; equality is extensional at the \emph{morphism} level and ``up to isomorphism'' reasoning is built in from the start~\cite{lawvere-etcs}.
-ETCS is weaker than ZFC and is rather a metatheoretic object than a framework for set‑level development.
-In principle though, ETCS could be pursued in Lean via category‑theoretic libraries.
+Lawvere's Elementary Theory of the Category of Sets (ETCS) axiomatizes the (well-pointed) category of sets with finite limits, cartesian closure, a natural numbers object, and (typically) choice; equality is extensional at the \emph{morphism} level and ``up to isomorphism'' reasoning is built in from the start~\cite{lawvere-etcs}.
+ETCS is weaker than ZFC and is rather a metatheoretic object than a framework for set-level development.
+In principle though, ETCS could be pursued in Lean via category-theoretic libraries.
 
 \medskip
-Overall, our Lean framework shares with the above works the goal of enabling set‑level mathematics inside a typed proof assistant, namely Lean, with smooth interoperability with typed libraries and automation.
+Overall, our Lean framework shares with the above works the goal of enabling set-level mathematics inside a typed proof assistant, namely Lean, with smooth interoperability with typed libraries and automation.
 

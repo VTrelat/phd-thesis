@@ -264,15 +264,19 @@
 }
 
 % ---------------------------------------------------------------------------
-% REMARK — inline label, shared counter
+% REMARK — inline label, shared counter, optional title
 % ---------------------------------------------------------------------------
-\NewTColorBox{remark}{ }{%
+\NewTColorBox{remarkbox}{ m }{%
   envbase,
   colback=blue!5,
   borderline west={2pt}{0pt}{blue!70},
   fontupper={\color{dark-blue}},
-  before upper={\stepcounter{thmcounter}\refstepcounter{remtype}\setlength{\parskip}{4pt}\textcolor{blue!70}{\textbf{Remark~\thethmcounter.}}\enspace},
+  before upper={\stepcounter{thmcounter}\refstepcounter{remtype}\setlength{\parskip}{4pt}\textcolor{blue!70}{\textbf{Remark~\thethmcounter\if\relax\detokenize{#1}\relax\else~\textup{(#1)}\fi.}}\enspace},
 }
+
+\NewDocumentEnvironment{remark}{O{}}{%
+  \remarkbox{#1}%
+}{\endremarkbox}
 
 % ---------------------------------------------------------------------------
 % FACT — inline label, no counter

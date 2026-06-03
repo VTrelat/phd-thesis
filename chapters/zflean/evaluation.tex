@@ -7,7 +7,7 @@ The chosen example is the \emph{currying isomorphism}, which is representative b
 
 \subsection{Currying isomorphism}
 
-\begin{theorem}[Currying isomorphism]
+\begin{theorem}[Currying isomorphism][isIso\_curry][ZFLean/Isomorphisms.html\#ZFSet.isIso_curry]
   \label{thm:isIso_curry}
   For any sets $A,B,C$, the following holds:
   \begin{equation*}
@@ -17,7 +17,7 @@ The chosen example is the \emph{currying isomorphism}, which is representative b
 %
 We use two mutually inverse functions to build the isomorphism, corresponding to the usual (un)currying operation. Those functions are defined as follows in \zflean.
 %
-\begin{definition}[Currying and uncurrying]
+\begin{definition}[Currying and uncurrying][ZFSet.currify, ZFSet.uncurrify][ZFLean/Isomorphisms.html\#ZFSet.currify, ZFLean/Isomorphisms.html\#ZFSet.uncurrify]
   We define set-level functions $\zunop{\mathsf{curry}} \colon \mathsf{ZFSet}$ and $\zunop{\mathsf{uncurry}} \colon \mathsf{ZFSet}$ as follows in \zflean, mirroring the mathematical definition and syntax:
   %
   \begin{equation*}
@@ -42,7 +42,7 @@ We use two mutually inverse functions to build the isomorphism, corresponding to
 \end{definition}
 
 We then prove that these two functions are mutually inverse; this is the core of the proof of \cref{thm:isIso_curry}.
-\begin{lemma}
+\begin{lemma}[][ZFSet.currify\_of\_uncurrify][ZFLean/Isomorphisms.html\#ZFSet.currify_of_uncurrify]
   \label{lem:curry-uncurry-inverse}
   \begin{equation*}
     \zunop{\mathsf{curry}} \zbinop{\circ} \zunop{\mathsf{uncurry}} = \Id{(C^B)^A} \quad \text{and} \quad
@@ -59,16 +59,16 @@ We then prove that these two functions are mutually inverse; this is the core of
     \fapply{(\zunop{\mathsf{curry}} \zbinop{\circ} \zunop{\mathsf{uncurry}})}{\langle f, \irrelprf \rangle} =
     \fapply{\Id{(C^B)^A}}{\langle f, \irrelprf \rangle}
   \end{equation*}
-  The right-hand side reduces to $f$ by definition of the identity function and using the following theorem:
-  \begin{lstlisting}[language=lean]
-theorem fapply_Id {A x : ZFSet} (hx : x ∈ A) : @ᶻ𝟙A ⟨x, $\irrelprf$⟩ = ⟨x, hx⟩ := $\irrelprf$
-\end{lstlisting}
-  We then use commutativity of evaluation and composition in the left-hand side using the following theorem:
-  \begin{lstlisting}[language=lean]
+  The right-hand side reduces to $f$ by definition of the identity function and using the following theorem \leancodeptr{fapply\_Id}{ZFLean/Functions.html\#ZFSet.fapply_Id}:
+  \begin{leanlisting}
+theorem fapply_Id {A x : ZFSet} (hx : x ∈ A) : @ᶻ𝟙A ⟨x, $\irrelprf$⟩ = ⟨x, hx⟩
+\end{leanlisting}
+  On the left-hand side we use that evaluating a composite is the composition of the evaluations---i.e.\ application distributes over composition---given by the following theorem \leancodeptr{fapply\_composition}{ZFLean/Functions.html\#ZFSet.fapply_composition}:
+  \begin{leanlisting}
 theorem fapply_composition {g f : ZFSet} {A B C : ZFSet}
   (hg : B.IsFunc C g) (hf : A.IsFunc B f) {x : ZFSet} (xA : x ∈ A) :
-  @ᶻ(g ∘ᶻ f) ⟨x, $\irrelprf$⟩ = @ᶻg ⟨@ᶻf ⟨x, $\irrelprf$⟩, $\irrelprf$⟩ := $\irrelprf$
-\end{lstlisting}
+  @ᶻ(g ∘ᶻ f) ⟨x, $\irrelprf$⟩ = @ᶻg ⟨@ᶻf ⟨x, $\irrelprf$⟩, $\irrelprf$⟩
+\end{leanlisting}
   This reduces the left-hand side to
   $\fapply{\zunop{\mathsf{curry}}}{\langle \fapply{\zunop{\mathsf{uncurry}}}{\langle f, \irrelprf \rangle}, \irrelprf \rangle}$.
   Unfolding the definitions of $\zunop{\mathsf{curry}}$ and $\zunop{\mathsf{uncurry}}$ and applying $\beta$-reduction twice from \cref{thm:lambda} then yields the following equality to prove:
@@ -92,15 +92,15 @@ theorem fapply_composition {g f : ZFSet} {A B C : ZFSet}
     \)}.%
 \end{proof}
 
-The proof of \cref{thm:isIso_curry} then boils down to applying the following theorem with the equalities from \cref{lem:curry-uncurry-inverse}:
-\begin{lstlisting}[language=lean]
+The proof of \cref{thm:isIso_curry} then boils down to applying lemma \leancodeptr{isIso\_of\_two\_sided\_inverse}{ZFLean/Isomorphisms.html\#ZFSet.isIso_of_two_sided_inverse} with the equalities from \cref{lem:curry-uncurry-inverse}:
+\begin{leanlisting}
 theorem isIso_of_two_sided_inverse {A B : ZFSet} {f g : ZFSet}
   {hf : A.IsFunc B f} {hg : B.IsFunc A g}
-  (left_inv : g ∘ᶻ f = 𝟙A) (right_inv : f ∘ᶻ g = 𝟙B) : A ≅ᶻ B := $\irrelprf$
-\end{lstlisting}
+  (left_inv : g ∘ᶻ f = 𝟙A) (right_inv : f ∘ᶻ g = 𝟙B) : A ≅ᶻ B
+\end{leanlisting}
 
-\begin{lstlisting}[language=lean, float=t,
-  caption={Proof skeleton of the currying isomorphism.},
+\begin{leanlisting}[float=t,
+  title={Proof skeleton of the currying isomorphism.},
   label=lst:isIso-curry-skel]
 theorem isIso_curry {A B C : ZFSet} : (A × B).funs C ≅ᶻ A.funs (B.funs C) := by
   have l_inv : uncurry ∘ᶻ curry = 𝟙((A × B).funs C) := $\irrelprf$
@@ -111,13 +111,13 @@ theorem isIso_curry {A B C : ZFSet} : (A × B).funs C ≅ᶻ A.funs (B.funs C) :
     rw [fapply_Id, fapply_composition, fapply_lambda $\irrelprf$ $\irrelprf$, fapply_lambda $\irrelprf$ $\irrelprf$]
     $\irrelprf$
   exact isIso_of_two_sided_inverse l_inv r_inv
-\end{lstlisting}
+\end{leanlisting}
 
 All routine side-conditions (``is a partial/total function'', ``is a relation'') are discharged structurally and automatically by \inlinelean|zrel|/\inlinelean|zpfun|/\inlinelean|zfun| through automatic parameters and the appropriate attribute-tagged closure lemmas.
 The skeleton of the proof script shown in \cref{lst:isIso-curry-skel} closely follows the mathematical argument described above.
 At the proof-script level, the role of the automation layer is not to perform proof search, but to \emph{erase boilerplate}: the user writes the mathematical argument, and the automation layer discharges the ubiquitous well-formedness obligations generated by set-level definitions and rewriting.
 
-\subsection{Size of the artifact}
+\subsection{Size of the framework}
 \label{subsec:artifacts}
 
 \begin{table}[t]
@@ -129,23 +129,23 @@ At the proof-script level, the role of the automation layer is not to perform pr
     \hline
     \textbf{Component (modules)}                 & \textbf{LoC}   & \textbf{\#Theorems} \\
     \hline
-    Relational calculus                          & 2,534          & 172                 \\
+    Relational calculus                          & 2,534          & 129                 \\
 
-    Embeddings, isomorphisms                     & 1,626          & 31                  \\
+    Embeddings, isomorphisms                     & 1,626          & 27                  \\
 
-    Other canonicals (Booleans, sums, rationals) & 1,362          & 153                 \\
+    Other canonicals (Booleans, sums, rationals) & 1,362          & 128                 \\
 
-    Naturals                                     & 1,260          & 199                 \\
+    Naturals                                     & 1,259          & 180                 \\
 
-    Integers                                     & 1,225          & 151                 \\
+    Integers                                     & 1,189          & 128                 \\
 
-    Core glue and automation                     & 317            & 0                   \\
+    Core glue and automation                     & 316            & 41                   \\
     \hline
-    \textbf{Total}                               & \textbf{8,324} & \textbf{706}        \\
+    \textbf{Total}                               & \textbf{8,286} & \textbf{633}        \\
     \hline
   \end{tabular}
 \end{table}
 
-The artifact is a self-contained Lean~4 library layered on top of Mathlib's ZFC model consisting of {8,324} lines of code (LoC), organized in a few modules summarized in \cref{tab:artifacts-loc}, and containing 706 proved theorems.
+The artifact is a self-contained Lean~4 library layered on top of Mathlib's ZFC model consisting of roughly 8k lines of code (LoC), organized in a few modules summarized in \cref{tab:artifacts-loc}, and containing around 633 theorems.
 The relational calculus is the largest component, representing about one third of the codebase.
 
