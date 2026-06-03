@@ -172,6 +172,7 @@
 
 % Colors for the Venn circles
 \definecolor{venn-dark}{RGB}{183, 163, 148} % rgb(183, 163, 148)
+\definecolor{venn-textdark}{RGB}{158, 138, 123} % rgb(158, 138, 123)
 \definecolor{venn-light}{RGB}{237,227,212} % rgb(237,227,212)
 \definecolor{venn-textlight}{RGB}{251,244,237}
 
@@ -221,7 +222,7 @@
       rectangle (\textwidth, 20mm);
     % --- Circles ---
     \fill[venn-dark]  (\vennLx, \vennCY) circle (\vennR);
-    \fill[venn-light, fill opacity=0.95] (\vennRx, \vennCY) circle (\vennR);
+    \fill[venn-light, fill opacity=.95] (\vennRx, \vennCY) circle (\vennR);
     % --- "CHAPTER" in light colour, clipped to left circle ---
     \begin{scope}
       \clip (\vennLx, \vennCY) circle (\vennR);
@@ -234,7 +235,7 @@
       \clip (\vennRx, \vennCY) circle (\vennR);
       \node[anchor=center] at (\vennMidX, \vennCY)
         {{\playfairvennword\bfseries\fontsize{48}{50}\selectfont
-          \textcolor{venn-dark}{CHAPTER}}};
+          \textcolor{venn-textdark}{CHAPTER}}};
     \end{scope}
     % --- Chapter number: top-right of lighter circle, half-overflows into outer margin ---
     \node[anchor=base] at (\dimexpr\vennRx + 7\vennR/10\relax, \vennNumY)
