@@ -1,3 +1,150 @@
 \section{Satisfiability Modulo Theories}
-\label{sec:automated-reasoning-smt-solving}
+\label{sec:ar-smt}
 
+The Boolean satisfiability problem (SAT) asks whether a propositional formula
+admits a truth assignment under which it evaluates to true.
+It is the prototypical NP-complete problem, yet this worst-case hardness is not
+the whole story in practice: modern solvers based on \emph{conflict-driven
+clause learning} (CDCL) decide industrial instances with millions of variables,
+through a tight loop of Boolean propagation, heuristic decisions, and the
+analysis of conflicts into learned clauses that prune the search
+space~\cite{biere2021handbook}.
+
+Propositional logic is, however, a coarse modelling language.
+The proof obligations mentioned in \Cref{sec:b-method} speak of integers, sets,
+functions, and relations, not merely of Boolean variables,
+and reducing such constraints to propositional logic is either impossible---for
+infinite domains---or prohibitively large.
+\emph{Satisfiability modulo theories} (SMT) closes this gap by deciding the
+satisfiability of first-order formulas \emph{with respect to} a fixed background
+theory that constrains the interpretation of selected sorts and
+symbols~\cite{barrett2021smt}.
+It is the technology on which the encodings developed in the following chapters
+ultimately rely.
+
+\subsection{The SMT problem}
+\label{subsec:smt-problem}
+
+Formally, one fixes a many-sorted first-order signature \(\Sigma\) and a
+\emph{theory} \(T\), presented either as a set of axioms or, more commonly, as a
+class of \(\Sigma\)-structures.
+A formula \(\varphi\) is \emph{\(T\)-satisfiable} when at least one structure in
+\(T\) satisfies it, and the SMT problem is to decide \(T\)-satisfiability for a
+given fragment of \(\Sigma\)-formulas.
+The benefit of this formulation is that the symbols of \(\Sigma\) are no longer
+uninterpreted: the theory pins down the meaning of, for instance, \(+\),
+\(\le\), or the array operations \(\mathsf{select}\) and \(\mathsf{store}\), so
+that a solver may reason about them through a dedicated decision procedure rather
+than from axioms alone.
+
+A small, recurring collection of theories covers most practical needs:
+equality with uninterpreted functions, linear arithmetic over the integers or
+the reals, bit-vectors, arrays, algebraic datatypes, and strings, among others.
+Each is equipped with a decision procedure for its quantifier-free fragment, and
+the question a verification backend must answer is which combination of theories
+a given obligation requires.
+
+Most state-of-the-art solvers follow the \emph{lazy}, or \(\mathrm{DPLL}(T)\),
+architecture~\cite{nieuwenhuis2006dpllt}.
+A CDCL engine treats the atoms of the formula as opaque propositions and searches
+for a propositional model; a dedicated \emph{theory solver} then checks whether
+the conjunction of literals selected by that model is consistent in \(T\),
+returning either a satisfying assignment or a \emph{theory lemma} that refines the
+propositional search.
+Reasoning over several theories at once is delegated to combination methods, the
+foundational one being the \emph{Nelson--Oppen} procedure, which combines
+decision procedures for stably infinite theories with disjoint signatures by
+propagating entailed equalities between shared
+variables~\cite{nelson1979simplification}.
+Quantifiers, which lie beyond the decidable core, are handled by heuristic
+instantiation and are a frequent source of incompleteness.
+Mature implementations of this architecture include cvc5~\cite{barbosa2022cvc5},
+Z3~\cite{demoura2008z3}, and veriT~\cite{bouton2009verit}; the
+SMT-LIB scripts produced in \Cref{ch:beer} are discharged by cvc5, whose support
+for higher-order reasoning is exploited in the encodings of this thesis.
+
+\subsection{Automated reasoning beyond SMT}
+\label{subsec:automated-reasoning}
+
+SMT sits within the broader field of \emph{automated reasoning}, and its
+boundary with the rest of that field is one of method rather than of kind.
+The term ``SMT'' names a \emph{problem}---deciding satisfiability modulo a
+background theory---and not a particular algorithm.
+The DPLL(\(T\)) design of \Cref{subsec:smt-problem} is the prevailing
+architecture, but it does not constrain how the
+theory-reasoning component reaches its verdict: a theory solver may be a bespoke
+decision procedure, such as congruence closure for equality or the simplex
+method for linear arithmetic, but it may equally be a general-purpose inference
+engine.
+
+The most prominent general-purpose engine is \emph{saturation}.
+Starting from the clausal form of a negated conjecture, a saturation procedure
+repeatedly applies inference rules and accumulates the resulting clauses until
+either the empty clause is derived---witnessing unsatisfiability---or no
+non-redundant clause remains.
+The inference system of reference is the \emph{superposition} calculus, a
+refinement of resolution and \emph{paramodulation} that builds equality reasoning
+into ordered rewriting and couples it with aggressive redundancy
+elimination~\cite{bachmair1994superposition,nieuwenhuis2001paramodulation}.
+Superposition reasons natively about quantifiers and equality---precisely the
+ingredients that DPLL(\(T\)) handles only heuristically---and it also serves as a
+decision procedure for several theories; for this reason it has been embedded in
+SMT solvers as a theory and quantifier engine~\cite{demoura2008engineering}.
+
+The leading saturation provers---Vampire~\cite{kovacs2013vampire}, the equational
+prover E~\cite{schulz2013e}, and Zipperposition~\cite{bentkamp2023higherorder},
+which extends superposition to higher-order logic---originate in the first-order
+theorem-proving (ATP) tradition, whose canonical target is validity in quantified
+logic with equality.
+What separates the two traditions is thus emphasis rather than kind: historically
+ATPs prioritise quantified first- and higher-order reasoning with equality,
+whereas SMT solvers prioritise efficient, combinable decision procedures for rich
+quantifier-free theories, and a sustained line of work continues to bring the two
+closer together.
+
+\subsection{Standards: SMT-LIB and TPTP}
+\label{subsec:smt-lib-tptp}
+
+The practical viability of both families rests on shared input standards, which
+decouple the producers of reasoning problems from the solvers that discharge
+them and thereby make large benchmark libraries and annual competitions
+possible.
+Two such standards are relevant here.
+The \emph{TPTP} (Thousands of Problems for Theorem Provers) library and its
+language serve the ATP community, spanning clause normal form, the typed
+first-order form, and the typed higher-order form~\cite{sutcliffe2017tptp}, and
+underpin the CASC competition.
+The \emph{SMT-LIB} standard~\cite{smtlib2.7} plays the analogous role for SMT: it
+fixes a many-sorted first-order logic, a catalogue of theories and of named
+\emph{logics}---such as \texttt{QF\_LIA} or \texttt{QF\_UFLRA}, which jointly
+select a syntactic fragment and a theory combination---and a command language by
+which a script declares sorts and symbols, asserts formulas, and queries the
+solver.
+
+\begin{example}[A minimal SMT-LIB script]
+The following script, in the linear integer arithmetic logic, asks whether an
+integer can be both positive and below \(1\); any SMT solver implementing
+\texttt{QF\_LIA} should answer \texttt{unsat}.
+\begin{smtlisting}
+(set-logic QF_LIA)
+(declare-const x Int)
+(assert (and (> x 0) (< x 1)))
+(check-sat)
+\end{smtlisting}
+\end{example}
+
+A development of direct relevance is the recent evolution of the standard towards
+higher-order logic.
+Until version 2.6~\cite{smtlib2.6}, the SMT-LIB language was strictly many-sorted and
+first-order: functions could be neither partially applied, nor passed as
+arguments, nor quantified over.
+Version 2.7, released in early 2025~\cite{smtlib2.7}, takes a deliberate first
+step beyond this restriction.
+While remaining backward compatible with 2.6, it adds a form of prenex
+(rank-1) polymorphism in user-declared sorts and functions and, more
+significantly, a theory of \emph{maps}---the \emph{higher-order core} fragment---that
+models higher-order functions and so equips the language with a higher-order
+syntax.
+These additions are explicitly framed as a transition towards the forthcoming
+version 3, whose base logic is to be a higher-order logic with polymorphic and
+dependent types.
