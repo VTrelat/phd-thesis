@@ -141,6 +141,48 @@
   \leanlisting@next}
 \makeatother
 
+% SMT-LIB v2 listings language. Keyword classes mirror the Lean style: class 1
+% (commands) uses keywordcolor, class 2 (sorts) uses sortcolor, class 3 (logical
+% core and binders) uses tacticcolor. Hyphenated commands such as declare-fun are
+% matched by making '-' a letter for this language; line comments start with ';'.
+\lstdefinelanguage{SMTLIB}{
+  sensitive=true,
+  alsoletter={-},
+  morekeywords=[1]{
+    set-logic, set-info, set-option, get-info, get-option,
+    declare-sort, define-sort, declare-const, declare-fun,
+    define-fun, define-fun-rec, define-funs-rec,
+    declare-datatype, declare-datatypes,
+    assert, check-sat, check-sat-assuming,
+    get-model, get-value, get-assignment, get-assertions,
+    get-proof, get-unsat-core, get-unsat-assumptions,
+    push, pop, reset, reset-assertions, echo, exit},
+  morekeywords=[2]{
+    Bool, Int, Real, Array, BitVec, String, RoundingMode,
+    Float16, Float32, Float64, Float128, FloatingPoint},
+  morekeywords=[3]{
+    and, or, not, xor, ite, distinct, let, forall, exists,
+    match, par, as, true, false},
+  morecomment=[l]{;},
+  morestring=[b]",
+}
+
+% SMT-LIB code blocks: same beige aesthetic as leanlisting, but uncounted and
+% untitled so the box can be dropped inline (e.g. inside an example).
+\newtcblisting{smtlisting}{
+  listing only,
+  listing options={language=SMTLIB, mathescape=false, keepspaces=true,
+    columns=fullflexible, gobble=0, breaklines=true,
+    breakautoindent=false, breakindent=0pt},
+  breakable,
+  enhanced,
+  colback=beige!30,
+  colframe=beige!90!black,
+  arc=3pt,
+  boxrule=1pt,
+  left=4pt, right=4pt, top=2pt, bottom=2pt,
+}
+
 \usetikzlibrary{arrows, arrows.meta, shapes, positioning, calc, fit, shadings}
 \tikzset{
   node distance=1.8cm,
