@@ -1,0 +1,80 @@
+% List of Notations
+% \regnotation{symbol} is called on the first occurrence of each
+% notation throughout the manuscript.  Sort keys and chapter groups are derived
+% automatically; no manual sort key is required.
+
+\renewcommand{\nomname}{List of Notations}
+
+% Page number: right-aligned, hyperlinked to the \hypertarget placed by
+% \regnotation at the call site.
+\makeatletter
+\renewcommand{\pagedeclaration}[1]{\hfill\hyperlink{notat:\nom@currentlinkkey}{#1}}
+\makeatother
+
+% These affect the outer list (chapter-header items); ignored inside multicols
+% where \@item is overridden.
+\nomitemsep -2pt
+\renewcommand{\nomlabel}[1]{\footnotesize#1\hfil}
+
+% Layout: chapter headers span full text width; entries flow in 3 columns.
+%
+% Why we override \@item inside multicols:
+%   multicols calls \@parboxrestore, which contains \everypar{} — this clears
+%   the outer nomencl list's \everypar hook that is responsible for unboxing
+%   \@labels and placing symbol labels.  Without the hook, labels accumulate
+%   in \@labels but are never placed, and end up at arbitrary positions.
+%
+%   Solution: inside each chapter's multicols block, redefine \@item to a
+%   simple paragraph-based renderer:
+%     \par\noindent  <symbol in \labelwidth box>  \ignorespaces
+%   The item body that follows (\nomeqref + \nompageref) then appends
+%   \hfill\hyperlink{page} to complete the line.  No \everypar needed.
+%   The redefinition is group-local to multicols and reverts on \end{multicols}.
+\newcounter{nomchapcount}
+\renewcommand{\nompreamble}{%
+  \setcounter{nomchapcount}{0}%
+  \setlength{\columnsep}{3em}%
+  \small%
+}
+\renewcommand{\nompostamble}{\end{multicols}}
+
+\makeatletter
+\renewcommand{\nomgroup}[1]{%
+  \ifcsname nomchapterno@#1\endcsname
+    \stepcounter{nomchapcount}%
+    \ifnum\value{nomchapcount}>1\relax
+      % Close previous chapter's 3-column block; add inter-chapter spacing.
+      \par\end{multicols}\addvspace{14pt}%
+    \fi
+    % \item[] satisfies the list environment.  Patch \@item's side-effects
+    % (wrong \@labels skips, wrong \parshape) before \everypar fires.
+    \item[]\relax
+    \global\setbox\@labels\hbox{}%
+    \parshape \@ne \z@ \hsize
+    \setlength\@totalleftmargin\z@
+    \leftskip\z@
+    % Full-width chapter header.
+    \noindent\hbox to \hsize{%
+      \normalfont\playfaircoverfamily\normalsize\bfseries\color{venn-dark}%
+      Chapter~\csname nomchapterno@#1\endcsname
+      \kern0.5em\textemdash\kern0.5em
+      \csname nomchaptertitle@#1\endcsname
+      \kern0.6em
+      \leaders\hrule
+        height \dimexpr0.45ex+0.1pt\relax
+        depth  \dimexpr0.1pt-0.35ex\relax
+      \hfill\kern0pt%
+    }\par\nopagebreak
+    % Open 3-column block and install the paragraph-based \@item renderer.
+    % \labelwidth controls the symbol column width (≈49.5mm column total;
+    % 20mm for symbol leaves ≈27mm for \hfill + page number).
+    \begin{multicols}{3}%
+    \setlength\labelwidth{20mm}%
+    \def\@item[##1]{%
+      \par\noindent
+      \makebox[\labelwidth][l]{\footnotesize##1}\ignorespaces}%
+  \fi
+}
+\makeatother
+
+\printnomenclature
