@@ -7,30 +7,24 @@ push @extra_lualatex_options, '-synctex=1', '-interaction=nonstopmode';
 push @extra_xelatex_options, '-synctex=1', '-interaction=nonstopmode';
 $clean_ext .= '.nav .snm .vrb .synctex.gz';
 
-$file_line_error //= 1;
-if ($file_line_error) {
-    push @extra_pdflatex_options, '-file-line-error';
-    push @extra_lualatex_options, '-file-line-error';
-    push @extra_xelatex_options, '-file-line-error';
-}
+# $file_line_error //= 1;
+# if ($file_line_error) {
+#     push @extra_pdflatex_options, '-file-line-error';
+#     push @extra_lualatex_options, '-file-line-error';
+#     push @extra_xelatex_options, '-file-line-error';
+# }
 
 $pdf_mode = 4;
 $bibtex_use = 1;
 
-@default_files = ('main');
-
-# ---------------------------------------------------------------------------
-# No-proofs build: latexmk -noproofs
-# Replaces every proof body with "Proof. Skipped." and writes thesis-noproofs.pdf.
-# Usage: latexmk           → thesis.pdf
-#        latexmk -noproofs → thesis-noproofs.pdf
-# ---------------------------------------------------------------------------
-my $noproofs = 0;
-@ARGV = grep { $_ eq '-noproofs' ? do { $noproofs = 1; 0 } : 1 } @ARGV;
-if ($noproofs) {
-    $jobname = 'thesis-noproofs';
-    $pre_tex_code = '\def\skipproofs{}';
-    &alt_tex_cmds;  # switches engine template from %S to %P (pretex + \input)
-} else {
-    $jobname = 'thesis';
+# nomencl: run makeindex on .nlo to produce .nls (Index of Notations).
+# must=1 so latexmk always rebuilds .nls when .nlo exists, even on first run.
+add_cus_dep('nlo', 'nls', 1, 'makenlo2nls');
+sub makenlo2nls {
+    system("makeindex '$_[0].nlo' -s nomencl.ist -o '$_[0].nls' -t '$_[0].nlg'");
 }
+# Track .nlo as generated so latexmk cleans it up with -C.
+push @generated_exts, 'nlo', 'nls', 'nlg';
+
+@default_files = ('main');
+$jobname = 'thesis';
