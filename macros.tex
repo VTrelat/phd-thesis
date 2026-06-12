@@ -1,5 +1,9 @@
 \newcommand{\mkchapter}[1]{%
   \chapter{#1}%
+  % Save chapter number for the List of Notations (\nomgroup in notations.tex).
+  % \chapter increments the counter first, so \Alph{chapter} is already correct.
+  \expandafter\xdef\csname nomchapterno@\Alph{chapter}\endcsname{\arabic{chapter}}%
+  \expandafter\gdef\csname nomchaptertitle@\Alph{chapter}\endcsname{#1}%
   \noindent\textcolor{venn-light}{\rule{\textwidth}{0.8pt}}%
   \vskip 4pt
   \begingroup
@@ -21,6 +25,73 @@
   \hypersetup{colorlinks=true,linkcolor=blue}%
   \clearpage%
 }
+
+% Register a notation for the Index of Notations (no inline display).
+% #1 = sort key (e.g. B01 — first char = group, rest = order within group)
+% #2 = math expression (without $...$; these are added automatically)
+% #3 = short description
+\newcommand{\notation}[3]{\nomenclature[#1]{$#2$}{#3}}
+
+% Global counter: incremented on every \regnotation call, never reset.
+% Its value (padded to three digits) forms the within-chapter order in the sort key.
+\newcounter{regnotationcnt}
+
+% Internal: expands to the automatic sort key — chapter letter (A, B, C, …)
+% followed by the current counter value zero-padded to three digits.
+% Example: second notation called while in chapter 3 → "C002".
+% The leading letter is the group key consumed by \nomgroup.
+\newcommand{\regnotautokey}{%
+  \Alph{chapter}%
+  \ifnum\value{regnotationcnt}<10 00\else
+  \ifnum\value{regnotationcnt}<100 0\fi\fi
+  \arabic{regnotationcnt}%
+}
+
+% \regnotation{symbol}
+% Call on the FIRST occurrence of each notation in the text.
+% Displays the symbol inline and registers it in the List of Notations
+% with its chapter group and a hyperlinked page number.
+% An explicit sort key can be passed as an optional first argument
+% (e.g.\ \regnotation[Z99]{...}) as an escape hatch.
+%
+% \regnotationsym{symbol} — display-only variant, no side effects.
+% Used internally by \denval (and similar) to avoid double-registration
+% when the term argument is re-expanded for subscripts/types.
+\newcommand{\regnotationsym}[2][]{\ensuremath{#2}}
+\newcommand{\regnotation}[2][]{%
+  \stepcounter{regnotationcnt}%
+  \def\regnotsortkey{#1}%
+  \ifx\regnotsortkey\empty
+    \def\regnotsortkey{\regnotautokey}%
+  \fi
+  \edef\regnotsortkey{\regnotsortkey}%  % expand to a plain string (e.g. "B003")
+  \hypertarget{notat:\regnotsortkey}{}% % PDF anchor at the call site
+  \ensuremath{#2}%
+  \nomenclature[\regnotsortkey]{$#2$}{}%
+}
+
+% ── Hyperlink plumbing for the List of Notations ─────────────────────────────
+%
+% \@@@nomenclature is nomencl's internal writer (called by \nomenclature after
+% \makenomenclature).  We patch it to embed the sort key as \nomeqref's argument
+% instead of \theequation.  This gives us a side-channel to carry the sort key
+% into the .nls typesetting phase, where \nomeqref stores it globally and
+% \pagedeclaration uses it to build a \hyperlink back to the call site.
+\makeatletter
+\def\@@@nomenclature[#1]#2#3{%
+  \def\@tempa{#2}\def\@tempb{#3}%
+  \protected@write\@nomenclaturefile{}%
+    {\string\nomenclatureentry{#1\nom@verb\@tempa @[{\nom@verb\@tempa}]%
+        \begingroup\nom@verb\@tempb\protect\nomeqref{#1}%
+        |nompageref}{\thepage}}%
+  \endgroup
+  \@esphack}
+\def\nom@currentlinkkey{}
+\renewcommand{\nomeqref}[1]{%
+  \gdef\nom@currentlinkkey{#1}%
+  \if@printeqref\eqdeclaration{#1}\fi
+  \ignorespaces}
+\makeatother
 
 \newcommand\eg{\textit{e.g.\@}\xspace}
 \newcommand\ie{\textit{i.e.\@}\xspace}
@@ -70,6 +141,8 @@
 \newcommand{\injtfunB}{\mathbin{\,\bop{↣}}}
 \newcommand{\surjpfunB}{\mathbin{\,\bop{⤀}}}
 \newcommand{\surjtfunB}{\mathbin{\,\bop{↠}}}
+\newcommand{\bijpfunB}{\mathbin{\,\bop{⤖}}}
+\newcommand{\bijtfunB}{\mathbin{\,\bop{⤗}}}
 \newcommand{\cupB}{\mathbin{\,\bop{\cup}}}
 \newcommand{\capB}{\mathbin{\,\bop{\cap}}}
 \newcommand{\appB}{\mathord{\bop{@}\mkern-1mu}}
@@ -96,7 +169,7 @@
 % SMT type image of a B type
 \newcommand{\toSMT}[1]{{#1}^{\scalebox{0.45}{\textsf{S}}}}
 \newcommand{\stype}[3]{\ensuremath{#1 \sop{\vdash} #2 : #3}}
-\newcommand{\satype}[3]{\ensuremath{#1 \saop{\vdash}' #2 : #3}}
+\newcommand{\satype}[3]{\ensuremath{#1 \saop{\vdash} #2 : #3}}
 \newcommand{\btype}[3]{\ensuremath{#1 \bop{\vdash} #2 : #3}}
 \newcommand{\batype}[3]{\ensuremath{#1 \baop{\vdash} #2 : #3}}
 \newcommand{\blue}[1]{\textcolor{blue}{#1}}
@@ -130,12 +203,58 @@
 \newcommand{\toS}{\mathrel{\sop{\to}}}
 \newcommand{\timesS}{\mathbin{\sop{\times}}}
 \newcommand{\lamS}{\sop{\lambda}}
-\newcommand{\appS}{\mathop{\sop{@}}\mkern-4mu}
+\newcommand{\appSop}{\mathop{\sop{@}}}
+\newcommand{\appS}[2]{\appSop #1\ #2}
+\newcommand{\appSa}[2]{\aop{\appSop}\ #1\ #2}
 \newcommand{\iteS}{\sop{\mathsf{ite}}}
-\newcommand{\someS}{\sop{\mathsf{some}}}
-\newcommand{\someZ}{\zop{\mathsf{some}}}
-\newcommand{\optS}{\sop{\mathsf{option}}}
+\newcommand{\someS}{\mathord{\sop{\mathsf{some}}}\, }
+\newcommand{\someSa}{\mathord{\saop{\mathsf{some}}}\, }
+\newcommand{\someZ}{\zop{\mathsf{some}}\, }
+\newcommand{\optS}{\mathord{\sop{\mathsf{option}}}\,}
 \newcommand{\optZ}{\zop{\mathsf{option}}}
+
+% ---------------------------------------------------------------------------
+% SMT-LIB object language
+% ---------------------------------------------------------------------------
+% Abstract (PHOAS) form of an SMT symbol: append a prime. Robust for any
+% nucleus (avoids double-superscript on already-superscripted atoms).
+\newcommand{\aop}[1]{\mathord{{#1}^{\prime}}}
+\newcommand{\abin}[1]{\mathbin{{#1}^{\prime}}}
+% SMT types (function/pair/option types reuse \toS, \timesS, \optS).
+\newcommand{\boolS}{\sop{\mathsf{bool}}}
+\newcommand{\intS}{\sop{\mathsf{int}}}
+\newcommand{\unitS}{\sop{\mathsf{unit}}}
+\newcommand{\relS}{\mathbin{\,\sop{\leftrightarrow}}}
+% SMT term operators.
+\newcommand{\notS}{\mathop{\sop{\neg}}}
+\newcommand{\impS}{\mathrel{\,\sop{\Rightarrow}}}
+\newcommand{\leS}{\mathrel{\,\sop{\le}}}
+\newcommand{\addS}{\mathbin{\,\sop{+}}}
+\newcommand{\subS}{\mathbin{\,\sop{-}}}
+\newcommand{\mulS}{\mathbin{\,\sop{*}}}
+\newcommand{\forallS}{\mathord{\sop{\forall}}}
+\newcommand{\existsS}{\mathord{\sop{\exists}}}
+% SMT term constructors (word-like; \mathord so priming is safe).
+\newcommand{\theS}{\mathord{\sop{\mathsf{the}}}\,}
+\newcommand{\theSa}{\mathord{\saop{\mathsf{the}}}\,}
+\newcommand{\noneS}{\mathord{\sop{\mathsf{none}}}}
+\newcommand{\pairS}[2]{\mathord{\sop{\mathsf{pair}}}\ #1\ #2}
+\newcommand{\pairSa}[2]{\mathord{\saop{\mathsf{pair}}}\ #1\ #2}
+\newcommand{\fstS}{\mathord{\sop{\mathsf{fst}}}\, }
+\newcommand{\fstSa}{\mathord{\saop{\mathsf{fst}}}\, }
+\newcommand{\sndS}{\mathord{\sop{\mathsf{snd}}}\, }
+\newcommand{\sndSa}{\mathord{\saop{\mathsf{snd}}}\, }
+\newcommand{\distinctS}{\mathord{\sop{\mathsf{distinct}}}\, }
+\newcommand{\distinctSa}{\mathord{\saop{\mathsf{distinct}}}\, }
+\newcommand{\asS}{\mathord{\sop{\mathsf{as}}}}
+\newcommand{\unitvalS}{\mathord{\sop{(\,)}}}
+% ZF helpers specific to the SMT model.
+\newcommand{\funsZ}{\mathbin{\,\zop{\to}}}
+\newcommand{\noneZ}{\zop{\mathsf{none}}}
+\newcommand{\theZ}{\zop{\mathsf{the}}}
+\newcommand{\fstZ}{\zop{\pi_1}}
+\newcommand{\sndZ}{\zop{\pi_2}}
+\newcommand{\IsFunc}{\ensuremath{\mathsf{IsFunc}}}
 
 \newcommand{\eqZ}{\mathrel{\zop{=}}}
 % \newcommand{\inZ}{\mathrel{\zop{\in}}}
@@ -184,11 +303,16 @@
 \newcommand{\pf}[2]{{\mathcolor{cover-cream}{\wp}}^{#1}_{#2}}
 \NewDocumentCommand{\denval}{m o o}{%
   \def\snd{\IfNoValueTF{#2}{\tau_{#1}}{#2}}%
+  % \begingroup/\endgroup scope the \let so it does not leak out.
+  \begingroup
   \langle%
-  #1,\,%
+  #1,%                              % first (and only) real \regnotation call
+  \let\regnotation\regnotationsym   % silence subsequent re-expansions of #1
+  \,%
   \snd,\,%
   \IfNoValueTF{#3}{\pf{\snd}{#1}}{#3}%
   \rangle
+  \endgroup
 }
 
 \renewcommand{\qed}{\hfill\ensuremath{\blacksquare}}
@@ -208,6 +332,8 @@
 \newcommand{\mgf}[1]{\ensuremath{{#1}^{\top}}}
 
 \newcommand{\leaninl}{\lstinline[language=lean]}
+\newcommand{\smtinl}{\lstinline[language=SMTLIB, mathescape=true]}
+\newcommand{\binl}{\lstinline[language=b, mathescape=true]}
 
 \newcommand{\BEerBase}{https://vtrelat.github.io/BEer/docs/}
 \newcommand{\beerref}[1]{\BEerBase#1}

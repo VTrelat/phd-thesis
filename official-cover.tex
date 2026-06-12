@@ -2,21 +2,26 @@
 %% Title page inspired by the thesul.cls layout (D. Roegel, LORIA).
 %% Adapted for the thesis's scrbook + thesis-style.sty setup.
 %%
-%% Layout summary (top → bottom):
-%%   [Header]   UL logo (left) | Doctoral school (right) + rule
-%%   [Body]     Title · Kind · Defense date · Diploma · Author
-%%   [Jury]     Composition du jury (tabular)
-%%   [Footer]   Rule + Lab name
 
-\begin{titlepage}
-  \newgeometry{top=20mm, bottom=20mm, inner=20mm, outer=20mm}%
+% Use \clearpage (not titlepage) so scrbook does not insert a \cleardoublepage
+% that would push this page to a recto, creating a blank page between the covers.
+\clearpage
+\begingroup
   \setstretch{1.0}%
 
   % ── Utility lengths ──────────────────────────────────────────────────────
   \newlength{\TPrule}%
   \setlength{\TPrule}{0.5pt}%
 
+  % ── Symmetric margins for the cover page (inner ≠ outer in body) ─────────
+  % \newgeometry calls \clearpage internally; \thispagestyle must come after
+  % so it targets the actual cover page, not the intermediate empty one.
+  \newgeometry{outer=1in, inner=1in, top=1.2in, bottom=1.2in}%
+  \thispagestyle{empty}%
+
   % ── Page body ────────────────────────────────────────────────────────────
+  % \noindent prevents \parindent from shifting the full-width minipage right.
+  \noindent
   \begin{minipage}[t][\textheight][s]{\textwidth}
 
     % ── Header: UL logo + doctoral school + rule ────────────────────────────
@@ -108,4 +113,5 @@
   \end{minipage}% end page body
 
   \restoregeometry
-\end{titlepage}
+\endgroup
+\clearpage

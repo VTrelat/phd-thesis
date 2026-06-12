@@ -42,7 +42,7 @@
   \label{rule:#1-#2}%
 }
 \NewDocumentCommand{\typingrule}{ o m m m m }{%
-  \infer*[right={\IfNoValueTF{#1}{\texttt{#3}}{#1}}]
+  \infer*[right={\small\IfNoValueTF{#1}{\texttt{#3}}{#1}}]
     {#4}
     {#5\text{\rulelabel{#2}{#3}}}%
 }
@@ -306,6 +306,14 @@
   colback=blue!5,
   borderline west={2pt}{0pt}{blue!70},
   before upper={\setlength{\parskip}{4pt}\textbf{\textcolor{dark-blue}{Proof.}}\enspace},
+  after upper={\unskip\nobreak\hspace*{1em}\hfill\small\ensuremath{\mathcolor{dark-blue}{\qed}}},
+}
+
+\NewTColorBox{proofconstruct}{ }{%
+  envbase,
+  colback=blue!5,
+  borderline west={2pt}{0pt}{blue!70},
+  before upper={\setlength{\parskip}{4pt}\textbf{\textcolor{dark-blue}{Proof construction.}}\enspace},
   after upper={\unskip\nobreak\hspace*{1em}\hfill\small\ensuremath{\mathcolor{dark-blue}{\qed}}},
 }
 

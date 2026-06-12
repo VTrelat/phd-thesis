@@ -1,3 +1,396 @@
 \section{Semantics}
 \label{sec:smt-semantics}
 
+As for the source language, the semantics of SMT developed in this work is
+\emph{denotational}: each term is assigned a value in the set-theoretic domain of
+the ZFLean framework of \Cref{ch:zflean}.
+Concrete terms are interpreted after abstraction to PHOAS, as described in
+\Cref{subsec:smt-syntax-change-repr}.
+
+\subsection{Interpretation of SMT types}
+\label{subsec:smt-type-interp}
+
+We first interpret SMT types as ZFC sets, denoted \(\interpZ{\cdot}\).
+
+\begin{definition}[Type interpretation][SMT.SMTType.toZFSet][SMT/Semantics.html\#SMT.SMTType.toZFSet]
+  \label{def:smt-type-interp}
+  The function \(\interpZ{\cdot} : \mathsf{SMTType} \to \mathsf{ZFSet}\) is
+  defined by structural recursion:
+  \[
+    \begin{array}{rclcrcl}
+      \interpZ{\boolS}              & = & \Zbool, & \qquad &
+      \interpZ{\intS}               & = & \Zint,                                  \\[2pt]
+      \interpZ{\unitS}              & = & \{\emptyset\}, & \qquad &
+      \interpZ{\alpha \timesS \beta}& = & \interpZ{\alpha} \timesZ \interpZ{\beta}, \\[2pt]
+      \interpZ{\alpha \toS \beta}   & = & \interpZ{\alpha} \regnotation{\funsZ} \interpZ{\beta}, & \qquad &
+      \interpZ{\optS\tau}           & = & \regnotation{\optZ}(\interpZ{\tau}),
+    \end{array}
+  \]
+  where \(\funsZ\) denotes the set of total functions (functional graphs) between
+  two sets, and \(\optZ\) the option encoding.
+\end{definition}
+
+The option encoding tags its contents with a Boolean discriminant:
+\[
+  \optZ(S) \;=\; \bigl(\{\regnotation{\botZ}\} \timesZ \{\emptyset\}\bigr)
+                 \;\cupZ\; \bigl(\{\topZ\} \timesZ S\bigr),
+\]
+so that the absent value is \(\regnotation{\noneZ} \triangleq \pairZ{\botZ}{\emptyset}\) and a
+present value \(x \in S\) is \(\regnotation{\someZ}\,x \triangleq \pairZ{\topZ}{x}\); the
+extractor \(\regnotation{\theZ}\) returns the second component of a present value and a default
+otherwise.
+
+As on the source side, the set-theoretic interpretation is appropriate only if
+SMT types are inhabited.
+
+\begin{lemma}[Nonemptiness][SMT.SMTType.toZFSet\_nonempty][SMT/Semantics.html\#SMT.SMTType.toZFSet_nonempty]
+  \label{thm:smt-type-nonempty}
+  Interpretations of SMT types are non-empty: \(\forall \tau,\, \interpZ{\tau} \neq \emptyset\).
+\end{lemma}
+\begin{proof}
+  By structural induction on \(\tau\). The sets \(\Zbool\), \(\Zint\), and
+  \(\{\emptyset\}\) are non-empty by construction; the function space is
+  non-empty because the constant graph at any codomain element is total; the
+  option set contains \(\noneZ\); and the Cartesian product of two non-empty sets
+  is non-empty.
+\end{proof}
+
+The proof is constructive: it exhibits a canonical inhabitant
+\(d_{\tau} \in \interpZ{\tau}\) at each type---the set-theoretic image of the
+default term \(\spec{\tau}\) of \Cref{def:smt-default}. These canonical
+inhabitants are available as
+{\small\leancodeptr{SMT.SMTType.defaultZFSet}{SMT/Semantics.html\#SMT.SMTType.defaultZFSet}}
+and supply default values for empty binder scopes in the denotation below.
+
+\subsection{Semantic domain}
+\label{subsec:smt-sem-domain}
+
+We now define the semantic domain of SMT terms. As for the source language
+(\Cref{subsec:b-sem-domain}), we constrain the domain to carry intrinsic sorts,
+so that denotations are defined only for \emph{well-sorted} values. This
+correct-by-construction design removes all type-correctness side conditions from
+the denotation clauses, leaving only the genuine partiality of partial
+operations.
+
+\begin{definition}[Semantic domain][SMT.Dom][SMT/Semantics.html\#SMT.Dom]
+  \label{def:smt-dom}
+      The semantic domain is the dependent sum
+  \[
+    \mathsf{Dom} \triangleq
+    \sum_{X : \mathsf{ZFSet}}\sum_{\tau : \mathsf{SMTType}}\, X \in \interpZ{\tau}.
+  \]
+\end{definition}
+
+Elements of \(\mathsf{Dom}\) are dependent triples, denoted \(\denval{X}[\tau]\),
+consisting of a ZFC set \(X\), an SMT type \(\tau\), and a proof
+\(\pf{\tau}{X} : X \in \interpZ{\tau}\). As before, we write ``\(\irrelprf\)'' for
+the proof component when it is irrelevant. The intrinsic sort of an element is its
+second component; the canonical inhabitant of \Cref{thm:smt-type-nonempty}
+equips \(\mathsf{Dom}\) with a representative \(\denval{d_\tau}[\tau]\) of every
+sort, which is precisely the \emph{richness} required by the determinism result
+of \Cref{thm:smt-typing-det}.
+
+\subsection{Denotation}
+\label{subsec:smt-denote}
+
+The denotation is a partial function over PHOAS terms parameterized by the
+semantic domain, following the trick of \Cref{subsec:phoas-for-semantics}.
+
+\begin{definition}[Denotation][SMT.denote][SMT/Semantics.html\#SMT.denote]
+  \label{def:smt-denote}
+    The denotation function is defined by structural recursion over PHOAS terms as
+  the partial function
+  \[
+    \regnotation{\interpS{\cdot}} : \mathsf{PHOAS.Term}\,\mathsf{Dom} \rightharpoonup \mathsf{Dom}.
+  \]
+\end{definition}
+
+The defining equations are detailed below, written \(\interpS{t} \triangleq
+\denval{X}[\tau]\); in each case the membership proof \(\pf{\tau}{X}\) is
+constructed alongside the value.
+
+\paragraph{Variables and literals.}
+The PHOAS trick makes variables denote themselves: for \(v : \mathsf{Dom}\),
+\(\interpS{v} \triangleq v\). For an integer \(n\), a Boolean \(b\), and the unit
+value,
+\[
+  \interpS{n} \triangleq \denval{\zop{n}}[\intS],\quad
+  \interpS{b} \triangleq \denval{\zop{b}}[\boolS],\quad
+  \interpS{\unitvalS} \triangleq \denval{\emptyset}[\unitS],
+\]
+where \(\zop{n}\) and \(\zop{b}\) are the ZFC encodings of integers and Booleans.
+
+\paragraph{Pairs and projections.}
+Given \(\interpS{t} = \denval{X}[\alpha]\) and \(\interpS{s} = \denval{Y}[\beta]\),
+\[
+  \interpS{{\pairS{t}{s}}} \triangleq \denval{\pairZ{X}{Y}}[\alpha \timesS \beta],
+\]
+using Kuratowski pairs. Projections are defined when the argument has a pair
+sort: given \(\interpS{t} = \denval{T}[\alpha \timesS \beta]\),
+\[
+  \interpS{\fstS t} \triangleq \denval{\fstZ(T)}[\alpha], \qquad
+  \interpS{\sndS t} \triangleq \denval{\sndZ(T)}[\beta],
+\]
+where \(\fstZ, \sndZ\) are the set-theoretic projections; the membership proofs
+follow from \(T \in \interpZ{\alpha} \timesZ \interpZ{\beta}\).
+
+\paragraph{Arithmetic.}
+Given \(\interpS{t} = \denval{X}[\intS]\) and \(\interpS{s} = \denval{Y}[\intS]\)
+(otherwise the denotation is undefined), arithmetic lifts the corresponding ZFC
+operations:
+\[
+  \interpS{t \addS s} \triangleq \denval{X \addZ Y}[\intS],\quad
+  \interpS{t \subS s} \triangleq \denval{X \subZ Y}[\intS],\quad
+  \interpS{t \mulS s} \triangleq \denval{X \mulZ Y}[\intS],
+\]
+and comparison yields a Boolean: \(\interpS{t \leS s} \triangleq \denval{X \leqZ Y}[\boolS]\).
+
+\paragraph{Boolean connectives.}
+Given denotations of the expected sorts, the primitive connectives lift their ZFC
+counterparts in the two-element Boolean algebra \(\Zbool\):
+\begin{align*}
+  \interpS{t \eqS s}  & \triangleq \denval{X \eqZ Y}[\boolS] && \text{when the two sorts agree,} \\
+  \interpS{t \andS s} & \triangleq \denval{X \andZ Y}[\boolS] && \text{when both sorts are } \boolS, \\
+  \interpS{\notS t}   & \triangleq \denval{\negZ X}[\boolS] && \text{when the sort is } \boolS.
+\end{align*}
+Disjunction, implication, and the existential quantifier are interpreted through
+their definitions as derived forms (\Cref{def:smt-derived}).
+
+\paragraph{Options and unit.}
+Given \(\interpS{t} = \denval{T}[\tau]\), the option constructors are interpreted
+by the tagged encoding of \Cref{def:smt-type-interp}:
+\[
+  \interpS{\someS t} \triangleq \denval{\someZ\,T}[\optS\tau],\qquad
+  \interpS{\noneS_{\tau}} \triangleq \denval{\noneZ}[\optS\tau].
+\]
+The extractor is defined when its argument has an option sort: given
+\(\interpS{t} = \denval{T}[\optS\tau]\),
+\[
+  \interpS{\theS t} \triangleq \denval{\theZ\,T}[\tau],
+\]
+where \(\theZ\) returns the wrapped value of a present option and the canonical
+default \(d_{\tau}\) otherwise; the latter case is harmless, since the adequacy
+results of \Cref{subsec:smt-sem-properties} guarantee a present value whenever
+the source obligation is well-defined.
+
+\paragraph{Distinctness.}
+Distinctness of a family is the iterated, pairwise conjunction asserting that no
+element equals any later one, folded in \(\Zbool\):
+\begin{equation*}
+  \mathsf{distinct}(\,) \triangleq \topZ, \qquad
+  \mathsf{distinct}(x, \vec x) \triangleq (x \notin \vec x) \andZ \mathsf{distinct}(\vec x),
+\end{equation*}
+and \(\interpS{\distinctS \vec t} \triangleq \denval{\mathsf{distinct}(\interpS{t_1}, \dots, \interpS{t_k})}[\boolS]\)
+when every \(t_i\) denotes.
+
+\paragraph{Application.}
+Application is the only genuinely partial operation, and is interpreted by graph
+lookup. Given \(\interpS{f} = \denval{F}[\sigma \toS \tau]\) and
+\(\interpS{x} = \denval{X}[\sigma']\), the denotation is defined when the sorts
+match (\(\sigma = \sigma'\)), \(F\) is a functional graph from
+\(\interpZ{\sigma}\) to \(\interpZ{\tau}\), and \(X\) lies in its domain; letting
+\(Y\) be the unique value with \(\pairZ{X}{Y} \in F\),
+\[
+  \interpS{\appSa{f}{x}} \triangleq \denval{Y}[\tau].
+\]
+Both the uniqueness of \(Y\) and the membership \(Y \in \interpZ{\tau}\) follow
+from \(F\) being a functional graph.
+
+\begin{remark}
+  \label{rem:smt-wd}
+  This is the only well-definedness side condition in the SMT semantics. The
+  source language additionally requires finiteness for cardinality, minimum, and
+  maximum (\Cref{sec:b-wd}); SMT-LIB has no such operators in the fragment
+  considered, and its function spaces are total, so the denotation is partial
+  only at application---and even there, the adequacy results below show that the
+  side condition is automatically satisfied for well-typed terms whose function
+  argument is supplied within its domain.
+\end{remark}
+
+\paragraph{Binders.}
+Binder constructs rely on the PHOAS representation, exactly as in
+\Cref{subsec:b-denote}. For a binder of arity \(n\) with type vector
+\(\vec\tau\), write \(\mathcal{D} \coloneq \interpZ{\vec\tau^{\timesS}}\) for the
+carrier of the argument tuple. Each \(z \in \mathcal{D}\) decomposes into
+components \(z_i \in \interpZ{\tau_i}\) and induces a family of domain values
+\(\vec z = (\denval{z_i}[\tau_i])_i\); the scoped denotation of the body is the
+function on \(\mathcal{D}\) obtained by interpreting the body at \(\vec z\).
+
+\emph{Lambda abstraction} denotes as the graph of the scoped body. Writing
+\(\Phi(z)\) for the (set component of the) body denotation at the tuple \(z\), and
+\(\gamma\) for its sort,
+\[
+  \interpS{\lamS \vec\tau \cdot e}
+  \triangleq
+  \denval{\{\, \pairZ{z}{y} \in \mathcal{D} \timesZ \interpZ{\gamma} \mid y = \Phi(z) \,\}}[\vec\tau^{\timesS} \toS \gamma].
+\]
+The return sort \(\gamma\) is computed on the fly from the body at the canonical
+default tuple \((\denval{d_{\tau_i}}[\tau_i])_i\), which exists by
+\Cref{thm:smt-type-nonempty}; this also covers the case
+\(\mathcal{D} = \emptyset\), where no genuine argument is available.
+
+\emph{Universal quantification} denotes as the bounded infimum of the body values
+over the domain, taken in the two-element Boolean algebra:
+\[
+  \interpS{\forallS \vec\tau \cdot P}
+  \triangleq
+  \denval{\bigcap \{\, y \in \Zbool \mid \exists z \in \mathcal{D},\ y = \Phi(z) \,\}}[\boolS].
+\]
+When \(\mathcal{D}\) is finite, this is the finite conjunction
+\(\bigandZ_{z \in \mathcal{D}} \Phi(z)\); the intersection form extends it to
+arbitrary domains, and the empty-domain case yields \(\topZ\), expressing vacuous
+truth.
+
+\emph{Existential quantification} is the derived form
+\(\existsS \vec\tau \cdot P \triangleq \notS(\forallS \vec\tau \cdot \notS P)\),
+and denotes accordingly.
+
+\subsection{Basic properties}
+\label{subsec:smt-sem-properties}
+
+The denotation enjoys the same two fundamental properties as on the source side:
+\emph{type adequacy} and \emph{totality} for well-typed terms, together
+resembling the soundness and completeness of the semantics with respect to the
+type system.
+
+\paragraph{Type adequacy.}
+Adequacy states that whenever a term denotes, the intrinsic sort carried by its
+denotation coincides with the sort assigned by any typing derivation. It rests on
+the determinism of the type system (\Cref{thm:smt-typing-det}).
+
+\begin{theorem}[Denotation typing-soundness][SMT.PHOAS.denote\_welltyped\_eq][SMT/Reasoning/Lemmas.html\#SMT.PHOAS.denote_welltyped_eq]
+  \label{thm:smt-denote-type-det}
+  Let \(t : \mathsf{PHOAS.Term}\,\mathsf{Dom}\) be a term admitting a typing
+  \(\satype{\Gamma}{t}{\tau_0}\) under a well-formed context \(\Gamma\). If
+  \(\interpS{t} = \denval{V}[\tau][\irrelprf]\), then \(\tau = \tau_0\).
+\end{theorem}
+\begin{proof}
+  By induction on \(t\). The key observation is that the sort carried by a
+  denotation is constructed from the subterm denotations by the very same
+  combinator that the typing rules use to combine subterm sorts. The induction
+  therefore reduces to inverting each constructor and identifying the carried
+  sort with the assigned one: literals and the unit value carry fixed sorts;
+  variables read their sort from the well-formed context; compound non-binders
+  combine the sorts of their subterms, which match by the induction hypotheses.
+  Universal quantification and the Boolean connectives always carry \(\boolS\).
+  For lambda abstraction, the codomain sort is the body sort computed by the
+  denotation, which the induction hypothesis identifies with the sort \(\gamma\)
+  of the typing premise; the argument sort is the same tuple sort in both, so the
+  two function sorts agree.
+\end{proof}
+
+In other words, a term cannot denote a value of two distinct sorts: the static
+sort fully determines the sort tag of the denotation whenever the latter exists.
+This matters in a set-theoretic setting, where the same set may inhabit several
+sorts---for instance the encoding of an integer may coincide with that of an
+option or a pair.
+
+\paragraph{Totality.}
+Totality is the converse existence statement: well-typed terms have a denotation,
+of the expected sort. As on the source side, the abstraction of a concrete term
+denotes provided the renaming is sort-compatible with the typing context and
+covers the term's free variables. We record the two conditions.
+
+\begin{definition}[Covering and sort-compatible renaming][SMT.RenamingContext.CoversFV, .RespectsTypeContext][
+    SMT/Reasoning/Defs.html\#SMT.RenamingContext.CoversFV,
+    SMT/Reasoning/Defs.html\#SMT.RenamingContext.RespectsTypeContext]
+  \label{def:smt-renaming-conditions}
+  A renaming \(\Delta : \mathcal{V} \rightharpoonup \mathsf{Dom}\) \emph{covers}
+  a term \(t\) if it is defined on every free variable of \(t\), and is
+  \emph{sort-compatible} with a context \(\Gamma\) if, whenever
+  \(\Gamma(v) = \tau\), the value \(\Delta(v)\) is defined and carries intrinsic
+  sort \(\tau\).
+\end{definition}
+
+\begin{theorem}[Denotation typing-completeness][SMT.RenamingContext.denote\_exists\_of\_typing][SMT/Reasoning/Basic/DenotationTotality.html\#SMT.RenamingContext.denote_exists_of_typing]
+  \label{thm:smt-denote-complete}
+  Let \(\Gamma\) be a concrete typing context, \(t\) a concrete SMT term with
+  \(\stype{\Gamma}{t}{\tau}\), and \(\Delta\) a renaming that covers \(t\) and is
+  sort-compatible with \(\Gamma\). Then \(\aterm{t}{\Delta}\) has a denotation
+  carrying sort \(\tau\): there is a set \(T \in \interpZ{\tau}\) with
+  \[
+    \interpS{\aterm{t}{\Delta}} = \denval{T}[\tau].
+  \]
+\end{theorem}
+\begin{proof}
+  By induction on the typing derivation \(\stype{\Gamma}{t}{\tau}\). The argument
+  splits into four groups of cases.
+
+  \smallskip\noindent\emph{Variables and literals.}
+  For a variable, sort-compatibility supplies a domain value \(\Delta(v)\) of
+  sort \(\tau\); abstraction maps \(\mathsf{var}\ v\) to it, and a variable
+  denotes itself. Literals and the unit value are immediate, with the membership
+  proofs constructed in \Cref{subsec:smt-denote}.
+
+  \smallskip\noindent\emph{Compound non-partial constructors.}
+  The induction hypothesis applied to each subterm yields a witness denotation
+  whose sort matches the corresponding typing premise. By type adequacy
+  (\Cref{thm:smt-denote-type-det}), each sort case analysis inside the denotation
+  clause selects the success branch. The witness set is then assembled by the
+  relevant ZFC closure lemma: Cartesian products and projections for pairs,
+  closure of \(\Zint\) and \(\Zbool\) under the arithmetic and Boolean
+  operations, the tagged encoding for the option constructors, and the folded
+  conjunction for distinctness. The derived connectives \(\orS\), \(\impS\), and
+  \(\existsS\) reduce to their definitions and are covered by the corresponding
+  primitive cases.
+
+  \smallskip\noindent\emph{Application.}
+  The induction hypothesis gives
+  \(\interpS{f} = \denval{F}[\sigma \toS \tau]\) and
+  \(\interpS{x} = \denval{X}[\sigma]\). Since \(F \in \interpZ{\sigma \toS \tau} =
+  \interpZ{\sigma} \funsZ \interpZ{\tau}\), it is a functional graph with domain
+  \(\interpZ{\sigma}\), which contains \(X\); the well-definedness side condition
+  of the application clause is therefore satisfied, and the unique \(Y\) with
+  \(\pairZ{X}{Y} \in F\) provides the witness, with
+  \(\pf{\tau}{Y} : Y \in \interpZ{\tau}\) following from
+  \(\pairZ{X}{Y} \in F \subseteq \interpZ{\sigma} \timesZ \interpZ{\tau}\).
+
+  \smallskip\noindent\emph{Binders.}
+  We treat the three binder cases uniformly. Inversion of the binder typing rule
+  supplies, for some arity \(n \geq 1\), a type vector \(\vec\tau\) and a body
+  \(\varphi\) (a comprehension predicate, a quantified body, or an abstraction
+  body) such that the body is well-typed under \(\Gamma[\vec v:\vec\tau]\) for
+  every family of variables \(\vec v\) carrying the sorts \(\vec\tau\), with sort
+  \(\boolS\) for universal quantification and some \(\gamma\) for lambda
+  abstraction. The argument proceeds in four steps.
+  \begin{enumerate}[label=(\arabic*), nosep]
+    \item \emph{Domain.} The carrier \(\mathcal{D} = \interpZ{\vec\tau^{\timesS}}\)
+          is the product of the component carriers; each tuple
+          \(z \in \mathcal{D}\) decomposes into components
+          \(z_i \in \interpZ{\tau_i}\).
+    \item \emph{Body at typed tuples.} Each \(z\) induces a family
+          \(\vec z = (\denval{z_i}[\tau_i])_i\) of the prescribed sorts; the
+          induction hypothesis, applied to the body under
+          \(\Gamma[\vec z:\vec\tau]\)---well-formed because each \(z_i\) carries
+          sort \(\tau_i\)---yields a body denotation of sort \(\boolS\)
+          (respectively \(\gamma\)). The canonical default tuple of
+          \Cref{thm:smt-type-nonempty} provides the same data when
+          \(\mathcal{D} = \emptyset\).
+    \item \emph{Side conditions.} The denotation clause for binders is guarded by
+          parametric body denotation (the body denotes, with the expected sort,
+          at every typed tuple); Steps (1)--(2) and adequacy discharge this guard,
+          so the denotation is defined.
+    \item \emph{Witness.} Writing \(\Phi\) for the scoped body denotation, the
+          witness is assembled by separation: the graph
+          \(\{\, \pairZ{z}{y} \in \mathcal{D} \timesZ \interpZ{\gamma} \mid y =
+          \Phi(z) \,\}\) for lambda, which lies in
+          \(\interpZ{\vec\tau^{\timesS} \toS \gamma}\); the bounded infimum
+          \(\bigcap\{\, y \in \Zbool \mid \exists z \in \mathcal{D},\ y = \Phi(z)
+          \,\}\) for universal quantification (and \(\topZ\) when
+          \(\mathcal{D} = \emptyset\)), which lies in \(\Zbool\); and the negation
+          of the corresponding universal denotation for the existential.
+  \end{enumerate}
+  In each case the constructed witness belongs to \(\interpZ{\tau}\), providing
+  \(\pf{\tau}{T}\) and concluding the proof.
+\end{proof}
+
+Two corollaries record the immediate consequences used downstream: a well-typed
+term with a sort-compatible, covering renaming always denotes
+({\small\leancodeptr{SMT.RenamingContext.denote\_isSome\_of\_typing}{SMT/Reasoning/Basic/DenotationTotality.html\#SMT.RenamingContext.denote_isSome_of_typing}}),
+and the sort of its denotation is the statically assigned one
+({\small\leancodeptr{SMT.RenamingContext.denote\_type\_of\_typing}{SMT/Reasoning/Basic/DenotationTotality.html\#SMT.RenamingContext.denote_type_of_typing}}).
+
+The syntax, typing, and semantics of this chapter form the target-language
+contract against which the encoder of \Cref{ch:beer} is proved correct: every
+B proof obligation is mapped to an SMT term whose denotation, in the shared ZFC
+universe, equals that of its source.

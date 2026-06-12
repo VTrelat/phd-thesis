@@ -41,17 +41,17 @@
 
 \frontmatter
 
-% \iftrue
-%   \include{cover.tex}
-%   \let\svCDP\cleardoublepage\let\cleardoublepage\clearpage
-%   \include{official-cover.tex}
-%   \let\cleardoublepage\svCDP
-% \fi
+% \input{cover.tex}
+\input{official-cover.tex}
+\null\thispagestyle{empty}\cleardoublepage
 
 \begingroup
 \hypersetup{linkcolor=black}
 \tableofcontents
 \endgroup
+
+% Blank page after TOC before mainmatter.
+% \null\thispagestyle{empty}\cleardoublepage
 
 \mainmatter
 
@@ -78,6 +78,8 @@
 \include{chapters/conclusion.tex}
 
 \backmatter
+
+\input{chapters/notations.tex}
 
 \include{chapters/appendices.tex}
 

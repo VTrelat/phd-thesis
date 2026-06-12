@@ -5,9 +5,10 @@
 We define an inductive relation $\sqsubseteq$ and an inductive binary operator $\castpath{}{}$ on $\mathsf{SMTType}$.
 
 \begin{definition}[Castable relation][castable]
-The castable relation $\sqsubseteq$ is defined inductively, as follows:
+  \label{def:castable}
+  The castable relation $\sqsubseteq$ is defined inductively, as follows:
 \begin{mathpar}
-\infer*[right=\texttt{refl}]{\alpha = \mathsf{int} \lor \alpha = \mathsf{bool} \lor \alpha = \mathsf{unit}}{\castable{\alpha}{\alpha}}
+\infer*[right=\texttt{refl}]{\alpha = \mathsf{int} \lor \alpha = \mathsf{bool} \lor \alpha = \mathsf{unit}}{\regnotation{\castable{\alpha}{\alpha}}}
 \and
 \infer*[right=\texttt{opt}]{\castable{\alpha}{\alpha'}}{\castable{(\mathsf{option}\ \alpha)}{(\mathsf{option}\ \alpha')}}
 \and
@@ -22,9 +23,10 @@ The castable relation $\sqsubseteq$ is defined inductively, as follows:
 \end{definition}
 
 \begin{definition}[Cast path][castPath]
-The cast path $\castpath{}{}$ is defined inductively, as follows:
+  \label{def:castpath}
+  The cast path $\castpath{}{}$ is defined inductively, as follows:
 \begin{mathpar}
-\infer*[right=\texttt{refl}]{\alpha = \mathsf{int} \lor \alpha = \mathsf{bool} \lor \alpha = \mathsf{unit}}{\castpath{\alpha}{\alpha}}
+\infer*[right=\texttt{refl}]{\alpha = \mathsf{int} \lor \alpha = \mathsf{bool} \lor \alpha = \mathsf{unit}}{\regnotation{\castpath{\alpha}{\alpha}}}
 \and
 \infer*[right=\texttt{opt}]{\castpath{\alpha}{\alpha'}}{\castpath{(\mathsf{option}\ \alpha)}{(\mathsf{option}\ \alpha')}}
 \and
@@ -73,7 +75,8 @@ The structure induced by $\castable{}{}$ is neither a lattice, nor is it bounded
 However, every type $\alpha : \mathsf{SMTType}$ admits two normal forms called the \emph{least} and \emph{most general forms} of $\alpha$.
 
 \begin{definition}[Most general form]
-  The most general form of $\alpha : \mathsf{SMTType}$, denoted $\mgf{\alpha}$ or $\mathsf{mgf}(\alpha)$, is defined inductively on $\alpha$, as follows:
+  \label{def:mgf}
+    The most general form of $\alpha : \mathsf{SMTType}$, denoted $\regnotation{\mgf{\alpha}}$ or $\mathsf{mgf}(\alpha)$, is defined inductively on $\alpha$, as follows:
   \begin{align*}
     \mathsf{int}, \mathsf{bool}, \mathsf{unit} &: \mgf{\alpha} \triangleq \alpha\\
     \gamma \toS \mathsf{option}\ \delta        &: \mgf{\alpha} \triangleq (\mgf{\gamma} \timesS \mgf{\delta}) \toS \mathsf{bool}\\
@@ -84,7 +87,8 @@ However, every type $\alpha : \mathsf{SMTType}$ admits two normal forms called t
 Intuitively, the most general form of a type is obtained by loosening all inner functional types to relational types.
 
 \begin{definition}[Least general form]
-  The least general form of $\alpha : \mathsf{SMTType}$, denoted $\lgf{\alpha}$ or $\mathsf{lgf}(\alpha)$, is defined structurally on $\alpha$, as follows:
+  \label{def:lgf}
+    The least general form of $\alpha : \mathsf{SMTType}$, denoted $\regnotation{\lgf{\alpha}}$ or $\mathsf{lgf}(\alpha)$, is defined structurally on $\alpha$, as follows:
   \begin{align*}
     \mathsf{int}, \mathsf{bool}, \mathsf{unit} &: \lgf{\alpha} \triangleq \alpha\\
     (\gamma \timesS \delta) \toS \mathsf{bool} &: \lgf{\alpha} \triangleq \lgf{\gamma} \toS \mathsf{option}\ \lgf{\delta} \\

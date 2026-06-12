@@ -1,13 +1,13 @@
-\section{Mechanised Correctness}
-\label{sec:beer-mechanised-correctness}
+\section{Mechanized Correctness}
+\label{sec:beer-mechanized-correctness}
 
 \subsection{Union case}
 \label{sec:union-case}
 
-Recall that a B set of type $\setB \alpha$ is encoded as a characteristic predicate of SMT type $\toSMT{\alpha} \toS \mathsf{bool}$, where $\toSMT{\alpha}$ denotes the SMT type image of $\alpha$.
+Recall that a B set of type $\setB \alpha$ is encoded as a characteristic predicate of SMT type $\regnotation{\toSMT{\alpha}} \toS \mathsf{bool}$, where $\toSMT{\alpha}$ denotes the SMT type image of $\alpha$.
 For any such predicate $F$, the retraction
 \[
-\retr{\setB \alpha}(F) \;=\; \bigl\{ x \in \interpZ{\alpha} \;\big|\; \appZ F\bigl(\canon{\alpha}(x)\bigr) \eqZ \topZ \bigr\}
+\regnotation{\retr{\setB \alpha}}(F) \;=\; \bigl\{ x \in \interpZ{\alpha} \;\big|\; \appZ F\bigl(\regnotation{\canon{\alpha}}(x)\bigr) \eqZ \topZ \bigr\}
 \]
 recovers the B-level set, where $\canon{\alpha} : \interpZ{\alpha} \to \interpZ{\toSMT{\alpha}}$ is the canonical isomorphism.
 

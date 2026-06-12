@@ -7,16 +7,16 @@ first-order representation of these constructs is useful at the parser boundary,
 the concrete syntax of the input artifacts.
 However, the same representation is inconvenient for proofs: substitution, freshness, alpha-renaming,
 and capture-avoidance quickly become a large part of the formal development.
-For this reason, \emph{parametric higher-order abstract syntax} (PHOAS) will be an important
+For this reason, \inlremark[\emph{parametric higher-order abstract syntax} (PHOAS)]{reference} will be an important
 representation design in the following.
 
 \subsection{Deep and shallow embeddings}
 
 When formalizing a language in a theorem prover, one must first decide which parts of the object language are kept as syntax and which parts are identified directly with objects of the meta-language.
-This is the distinction between \emph{deep} and \emph{shallow} embedding.
+This is the distinction between \emph{deep} and \emph{shallow} embeddings.
 
 A representation is deep for a given construct when occurrences of that construct are retained as object-language syntax.
-For example, in a first-order abstract syntax (FOAS) representation with named variables, application, and lambda abstraction may be represented by constructors of the following respective shape:
+For example, in a deeply embedded, first-order abstract syntax (FOAS) representation, with named variables, application, and lambda abstraction may be represented by constructors of the following respective shape:
 \[
 \begin{array}{rcl}
   \mathsf{var} &:& \mathsf{Name} \to \mathsf{Term},\\
@@ -40,7 +40,7 @@ What cannot be inspected syntactically is precisely the component that has been 
 
 \subsection{Higher Order Abstract Syntax}
 
-Higher-order abstract syntax (HOAS) changes the representation of binders by replacing the first-order body syntax with a meta-level function,
+Higher-order abstract syntax (HOAS)~\cite{pfenning1988hoas} changes the representation of binders by replacing the first-order body syntax with a meta-level function,
 therefore making the representation of binders shallow.
 Instead of storing a name and a body term as in FOAS, the binder constructor takes a function:
 \[
@@ -66,7 +66,7 @@ On the right, the displayed \(\lambda\) is a meta-language function: the body is
 \end{example}
 
 This direct representation is often not accepted as an ordinary inductive datatype.
-Many proof assistants and assisted theorem-proving systems that provide inductive datatypes enforce a strict-positivity condition on inductive definitions.
+Most proof assistants that provide inductive datatypes enforce a strict-positivity condition on inductive definitions.
 Every recursive occurrence of the inductive type being defined must occur only in positive positions, meaning positions where constructors build new data rather than consume data of the type being defined.
 This restriction is what makes the generated induction and recursion principles sound: without it, an inductive declaration could encode circular or contravariant uses of itself that no longer describe well-founded syntax.
 
@@ -88,7 +88,7 @@ One could define the following HOAS term:
 \]
 which does not correspond to any term in the object language.
 \end{example}
-Thus ordinary HOAS requires either a meta-language designed for HOAS, as in logical-framework presentations of HOAS~\cite{pfenning1988hoas}, or extra restrictions and adequacy arguments before it can be used as a faithful inductive representation of syntax.
+Thus ordinary HOAS requires either a meta host-language designed for HOAS, as in logical-framework presentations of HOAS~\cite{pfenning1988hoas}, or extra restrictions and adequacy arguments before it can be used as a faithful inductive representation of syntax.
 
 \subsection{Parametric Higher-Order Abstract Syntax}
 
@@ -165,6 +165,8 @@ What PHOAS removes is the administrative layer around variables: lookup, freshne
 The semantic clauses can focus on the mathematical meaning of the object-language constructors.
 
 This thesis therefore uses two complementary representations.
-First-order syntax is used where the development must stay close to concrete input artifacts.
-Higher-order syntax is used where reasoning would otherwise be obscured by administrative overhead about names.
+First-order syntax is used where the development must stay close to concrete input artifacts,
+namely in the actual implementation of the translations.
+Higher-order syntax is used where reasoning would otherwise be obscured by administrative overhead
+about names, \ie in the foundations of semantics and in the correctness arguments.
 Later chapters make this split explicit for the source language formalization, and the correctness arguments rely on the cleaner semantic interface provided by the PHOAS layer.

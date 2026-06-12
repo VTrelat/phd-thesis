@@ -47,7 +47,7 @@ extensions, and domain-specific proof procedures can be implemented in the same
 environment as the formal development.
 
 \begin{example}[inductive data and recursion]
-Defining a polymorphic type for representing binary trees and a recursive function computing its number of internal nodes can be done as follows.
+Defining a polymorphic type for representing binary trees and a recursive function counting their internal nodes can be done as follows.
 
 \begin{leanlisting}
 inductive Tree (α : Type u) : Type u where
@@ -80,8 +80,7 @@ def indicesOf {α : Type u} (xs : Array α) (x : α) : Set α :=
   { i : Fin xs.size | xs[i] = x }
 \end{leanlisting}
 
-If validity of an index cannot be determined by the kernel automatically, the proof of its validity can still be supplied via
-\leaninl{xs[i]'(by ...)}.
+If validity of an index cannot be determined by the kernel automatically, the proof of its validity can still be supplied via \leaninl{xs[i]'hi}, where \leaninl{hi : i < xs.size} is a proof of the index's validity.
 
 \end{example}
 
@@ -114,13 +113,13 @@ theorem and_swap' (p q : Prop) : p ∧ q → q ∧ p := by
 \label{subsec:lean-foundations}
 
 Lean's kernel is based on an intensional dependent type theory in the family of
-the Calculus of Inductive Constructions.
+the \inlremark[Calculus of Inductive Constructions]{reference}.
 Lean has a non-cumulative hierarchy of universes:
 the universe of propositions is the first sort, \ie \leaninl{Prop : Sort 0},
 and other types live in higher sorts; for any universe level \leaninl{u}, \leaninl{Type u}, defined as \leaninl{Sort (u + 1)}, lives in \leaninl{Type (u + 1)}.
 
 Moreover, Lean is classical by construction in the presence of choice:
-by Diaconescu's theorem, choice and functional extensionality entail excluded middle, thus making Lean's
+by \inlremark[Diaconescu's theorem]{reference}, choice and functional extensionality entail excluded middle, thus making Lean's
 logic classical.
 However, the logic remains constructive in the absence of choice, and it still is possible to work in a \emph{computable} fragment of Lean by avoiding choice and the \leaninl{Classical} module.
 If a definition happens to depend on choice, the kernel will not be able to compute it and ask to mark it as \leaninl{noncomputable}.

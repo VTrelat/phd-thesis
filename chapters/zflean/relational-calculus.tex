@@ -10,7 +10,7 @@ Those tactics are called \inlinelean|zrel|, \inlinelean|zpfun|, and \inlinelean|
 
 \begin{definition}[converse, identity, composition][ZFSet.Id, ZFSet.inv, ZFSet.composition][ZFLean/Functions.html\#ZFSet.Id, ZFLean/Functions.html\#ZFSet.inv, ZFLean/Functions.html\#ZFSet.composition]
   \label{def:rel-basic}
-  Let $R\subseteq A\times B$ and $S\subseteq B\times C$ be relations.
+                Let $R\subseteq A\times B$ and $S\subseteq B\times C$ be relations.
   \begin{itemize}
     \item The \emph{identity relation} $\Id{A}$ on $A$ is defined as:
           \begin{equation*}
@@ -34,7 +34,7 @@ Those tactics are called \inlinelean|zrel|, \inlinelean|zpfun|, and \inlinelean|
 
 \begin{definition}[Domain, range, image][ZFSet.Dom, ZFSet.Ran, ZFSet.Image][ZFLean/Functions.html\#ZFSet.Dom, ZFLean/Functions.html\#ZFSet.Ran, ZFLean/Functions.html\#ZFSet.Image]
   \label{def:dom-range-image}
-  For a relation $R\subseteq A\times B$, its \emph{domain}, \emph{range}, and \emph{image} of a set $X\subseteq A$ are defined as:
+          For a relation $R\subseteq A\times B$, its \emph{domain}, \emph{range}, and \emph{image} of a set $X\subseteq A$ are defined as:
   \begin{align*}
     \begin{array}{rcl}
       \Dom(R)      & \triangleq & \{ x\in A \mid \exists\, y\in B,\, (x,y)\in R \}          \\
@@ -50,7 +50,7 @@ Finally, we define partial functions as functional relations without totality re
 \begin{definition}[Partial functions][ZFSet.IsPFunc][ZFLean/Functions.html\#ZFSet.IsPFunc]
   A set $f$ is said to be a partial function from set $A$ to set $B$, written $\mathsf{IsPFunc}(f,A,B)$\footnotemark, if it is \emph{functional}:
   \begin{equation*}
-    \IsPFunc(f, A, B) \triangleq f \subseteq A \times B \,\land\, \left(\forall\, x \in A,\, \forall\, y \in B,\, \forall\, z \in B,\, (x,y) \in f \land (x,z) \in f \implies y = z\right)
+    \regnotation{\IsPFunc}(f, A, B) \triangleq f \subseteq A \times B \,\land\, \left(\forall\, x \in A,\, \forall\, y \in B,\, \forall\, z \in B,\, (x,y) \in f \land (x,z) \in f \implies y = z\right)
   \end{equation*}
 \end{definition}
 \footnotetext{The order of arguments is voluntarily changed compared to $\IsFunc$, so that in Lean, one may write \inlinelean|f.IsPFunc A B|.}

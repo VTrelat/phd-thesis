@@ -1,4 +1,4 @@
-\usepackage[a4paper, inner=.8in, outer=1.4in, top=1.4in, bottom=1.4in]{geometry}
+\usepackage[a4paper, inner=.8in, outer=1.2in, top=1.2in, bottom=1.2in]{geometry}
 \usepackage{fancyhdr}
 \usepackage{microtype}
 \usepackage{xcolor}
@@ -22,6 +22,9 @@
 \usepackage{unicode-math}
 \usepackage{enumitem}
 \usepackage{dsfont}
+\usepackage[intoc,refpage]{nomencl}  % List of Notations (see \regnotation in macros.tex)
+\usepackage{multicol}        % two-column layout for the notation index
+\makenomenclature
 
 \setmainfont{Fira Sans}
 \setsansfont{Fira Sans}
@@ -159,10 +162,14 @@
     push, pop, reset, reset-assertions, echo, exit},
   morekeywords=[2]{
     Bool, Int, Real, Array, BitVec, String, RoundingMode,
-    Float16, Float32, Float64, Float128, FloatingPoint},
+    Float16, Float32, Float64, Float128, FloatingPoint,
+    Pair, Option, Unit},
   morekeywords=[3]{
+    match, par, as,
     and, or, not, xor, ite, distinct, let, forall, exists,
-    match, par, as, true, false},
+    pair, fst, snd,
+    some, none, the,
+    true, false},
   morecomment=[l]{;},
   morestring=[b]",
 }
@@ -174,6 +181,58 @@
   listing options={language=SMTLIB, mathescape=false, keepspaces=true,
     columns=fullflexible, gobble=0, breaklines=true,
     breakautoindent=false, breakindent=0pt},
+  breakable,
+  enhanced,
+  colback=beige!30,
+  colframe=beige!90!black,
+  arc=3pt,
+  boxrule=1pt,
+  left=4pt, right=4pt, top=2pt, bottom=2pt,
+}
+
+\lstdefinelanguage{b} {
+morekeywords=[1]{MACHINE, REFINEMENT, IMPLEMENTATION, REFINES, SEES, INCLUDES, IMPORTS, EXTENDS, SETS, CONSTANTS, VARIABLES, ASSERTIONS, PROPERTIES, INVARIANT, OPERATIONS, INITIALISATION, PRE, IF, THEN, END, ANY, WHERE},
+morekeywords=[2]{NATURAL, NAT, NATURAL1, NAT1, INTEGER, INT, BOOL, BOOL, POW, POW1, FIN, FIN1, card, min, max},
+morecomment=[l]{//},
+showstringspaces=false,
+mathescape=true,
+keepspaces=true,
+breaklines=true,
+numbers=none,
+keywordstyle=[1]\small\itshape\textcolor{keywordcolor},
+keywordstyle=[2]\small\textcolor{blue},
+commentstyle=\textcolor{commentcolor},
+identifierstyle={\ttfamily\textcolor{black}},
+columns=[l]fullflexible,
+literate=
+	{∈}{{\ensuremath{\in}}}1
+  {∉}{{\ensuremath{\notin}}}1
+  {∧}{{\ensuremath{\land}}}1
+  {∨}{{\ensuremath{\lor}}}1
+  {¬}{{\ensuremath{\lnot}}}1
+  {⇒}{{\ensuremath{\implies}}}1
+  {⇔}{{\ensuremath{\iff}}}1
+  {≠}{{\ensuremath{\neq}}}1
+  {≤}{{\ensuremath{\leq}}}1
+  {≥}{{\ensuremath{\geq}}}1
+  {→}{{\ensuremath{\to}}}1
+  {↔}{{\ensuremath{\leftrightarrow}}}1
+  {∅}{{\ensuremath{\varnothing}}}1
+  {∪}{{\ensuremath{\cup}}}1
+  {∩}{{\ensuremath{\cap}}}1
+  {⊆}{{\ensuremath{\subseteq}}}1
+  {⊂}{{\ensuremath{\subset}}}1
+  {⇒}{{\ensuremath{\Rightarrow}}}1
+  {∀}{{\ensuremath{\forall}}}1
+  {∃}{{\ensuremath{\exists}}}1
+  {↣}{{\ensuremath{\tinj}}}1,
+extendedchars=true
+}
+
+\newtcblisting{blisting}{
+  listing only,
+  listing options={language=b, mathescape=true, keepspaces=true,
+    columns=fullflexible, breaklines=true},
   breakable,
   enhanced,
   colback=beige!30,
@@ -238,17 +297,29 @@
 \newlength{\vennCY}      % y of circle centres (negative = below TikZ origin)
 \newlength{\vennNumY}    % y baseline of the chapter number
 
+% Small Venn geometry for starred chapters (title overlaid on small circles)
+\newlength{\svennR}      % small circle radius
+\newlength{\svennLx}     % x of left (dark) circle centre
+\newlength{\svennRx}     % x of right (light) circle centre
+\newlength{\svennCY}     % y of small circle centres (positive = above the title baseline)
+
 \AtBeginDocument{%
   \setlength{\vennR}    {\dimexpr 25\textwidth/100\relax}%
   % Left centre: circle bleeds past paper left edge by ~8mm
   \setlength{\vennLx}   {\dimexpr\vennR - 28mm\relax}%
-  \setlength{\vennRx}   {\dimexpr\vennLx + 37\textwidth/100\relax}%
+  \setlength{\vennRx}   {\dimexpr\vennLx + \textwidth/100*37\relax}%
   % Colour-split point = left boundary of right circle
   \setlength{\vennMidX} {\dimexpr\vennRx - \vennR\relax}%
   % Circles start just below the TikZ origin (top of bounding box)
   \setlength{\vennCY}   {\dimexpr -\vennR - 4mm\relax}%
   % Number baseline: ~0.6R above circle centre → sits in upper quarter of right circle
   \setlength{\vennNumY} {\dimexpr\vennCY + 6\vennR/10\relax}%
+  % --- Small Venn (starred chapters), margin-aligned: no left bleed ---
+  % Circles sit just ABOVE the title (which stays fully readable on the cream page).
+  \setlength{\svennR}   {4mm}%                              % small radius
+  \setlength{\svennLx}  {-.25\svennR}%                          % dark circle left edge at the text margin (x=0)
+  \setlength{\svennRx}  {\dimexpr\svennLx + 14\svennR/10\relax}% % centres 1.4R apart (Venn overlap)
+  \setlength{\svennCY}  {16mm}%                             % centres above the title baseline (clear of the cap line)
 }
 
 \makeatletter
@@ -289,11 +360,36 @@
   \nobreak\vskip 10\p@
 }
 
-% Starred chapters (\chapter*{...}): plain title, no Venn decoration.
+% Starred chapters (\chapter*{...}): title overlaid on two small Venn circles
+% (dark left, light right), in the same two-tone style as numbered chapters.
+% The circles are small and the title sits on top of them, overflowing to the right.
 \renewcommand{\@makeschapterhead}[1]{%
-  \vspace*{40\p@}%
-  {\playfaircoverfamily\bfseries\Huge\raggedright\textcolor{venn-dark}{#1}\par}%
-  \nobreak\vskip 40\p@
+  \vspace*{10mm}%
+  \noindent
+  \begin{tikzpicture}%
+    % Title baseline sits at the TikZ origin (y=0); the circles float above it.
+    \useasboundingbox
+      (0pt, -8mm)
+      rectangle (\textwidth, \dimexpr\svennCY + \svennR + 2mm\relax);
+    % --- Small circles, above the title ---
+    \fill[venn-dark]                    (\svennLx, \svennCY) circle (\svennR);
+    \fill[venn-light, fill opacity=.9] (\svennRx, \svennCY) circle (\svennR);
+    % --- Title on the baseline, fully readable on the cream page ---
+    \node[anchor=base west, inner sep=0pt] at (0pt, 0pt)
+      {{\playfaircoverfamily\bfseries\Huge\textcolor{venn-dark}{#1}}};
+    % --- Two-tone accent where ascenders kiss the circles ---
+    \begin{scope}
+      \clip (\svennLx, \svennCY) circle (\svennR);
+      \node[anchor=base west, inner sep=0pt] at (0pt, 0pt)
+        {{\playfaircoverfamily\bfseries\Huge\textcolor{venn-textlight}{#1}}};
+    \end{scope}
+    \begin{scope}
+      \clip (\svennRx, \svennCY) circle (\svennR);
+      \node[anchor=base west, inner sep=0pt] at (0pt, 0pt)
+        {{\playfaircoverfamily\bfseries\Huge\textcolor{venn-textdark}{#1}}};
+    \end{scope}
+  \end{tikzpicture}%
+  \par\nobreak\vskip 24\p@
 }
 
 % Section/subsection counter colour (unchanged)
@@ -368,4 +464,5 @@
 \SetBNFConfig{
   comment = {//},
   single-line-delim = {\&\&},
+  or-sym = {~~~|~~~}
 }
