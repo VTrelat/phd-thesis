@@ -23,8 +23,15 @@
 \usepackage{enumitem}
 \usepackage{dsfont}
 \usepackage[intoc,refpage]{nomencl}  % List of Notations (see \regnotation in macros.tex)
+\usepackage{multibib}               % separate bibliography for author's publications
+\usepackage{fontawesome}            % \faFileTextO for publication citation marker
+% In-text publication citations: \faFileTextO~[n] in blue
 \usepackage{multicol}        % two-column layout for the notation index
 \makenomenclature
+
+\newcites{pub}{List of Publications}
+\let\origcitepub\citepub
+\renewcommand{\citepub}[1]{{\color{pink}\faFileTextO~\origcitepub{#1}}}
 
 \setmainfont{Fira Sans}
 \setsansfont{Fira Sans}

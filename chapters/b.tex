@@ -1,5 +1,20 @@
-\mkchapter{Formalization of B Proof Obligations}
+\mkchapter{Formal Foundations of the B Mathematical Language}
 \label{ch:b}
+
+This chapter develops a formal account of a curated fragment of the B mathematical
+language, covering the types, expressions, and predicates that appear in B proof
+obligations.
+The presentation proceeds in the following sections.
+\Cref{sec:b-syntax} introduces two complementary syntactic representations: a concrete,
+first-order syntax faithful to the raw proof-obligation format, and an abstract
+syntax suited to semantic reasoning.
+\Cref{sec:b-typing} defines the typing relation over both representations, annotating
+terms with their B types and preparing the ground for the semantic layer.
+\Cref{sec:b-wd} introduces the well-definedness predicate, which captures the semantic
+side conditions imposed by partial B operations.
+Finally, \Cref{sec:b-semantics} gives a denotational semantics for the abstract syntax,
+built over the ZFLean set-theoretic framework of \Cref{ch:zflean}; this semantic layer
+is the foundation on which the certified encoding of \Cref{ch:beer} rests.
 
 \input{chapters/b/syntax.tex}
 \input{chapters/b/typing.tex}

@@ -342,16 +342,6 @@
   \href{\beerref{#2}}{\texttt{#1}}%
 }
 
-
-\NewDocumentCommand{\inlremark}{o m}{%
-  \IfNoValueTF{#1}{%
-    \textcolor{red!80!black}{[#2]}%
-  }{%
-    \highLight[red!12]{#1}%
-    \textcolor{red!80!black}{ [#2]}%
-  }%
-}
-
 % Underset with underbrace in math mode
 \NewDocumentCommand{\undernote}{m m}{%
   \ensuremath{\underset{#2}{\underbrace{#1}}}

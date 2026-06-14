@@ -1,14 +1,23 @@
 \section{Semantics}
 \label{sec:b-semantics}
 
-The semantics of B developed in this work is \inlremark[\emph{denotational}]{reference} and is defined over the ZFLean framework developed in \Cref{ch:zflean}.
-each term is assigned a value in a set-theoretic domain using the ZFLean framework
-developed in \Cref{ch:zflean}.
-Denotational semantics provides the compositional mathematical objects required
-to assign meanings to B terms, which is the central concern of the following chapters;
-the emphasis is on \emph{what} a B expression computes, not on \emph{how} it is
-evaluated---compared to, say, an \inlremark[operational semantics]{reference}.
-Concrete terms are interpreted after abstraction to PHOAS, as described in \Cref{sec:b-syntax}.
+Introduced by Scott and Strachey~\cite{scottStrachey1971}, \emph{denotational semantics} assigns to
+every syntactic construct a mathematical object---its \emph{denotation}---in a \emph{compositional}
+manner: the meaning of a compound term is determined solely by the meanings of its sub-terms.
+Scott's domain theory underpins the framework, providing the mathematical structure needed to
+interpret recursive definitions as least fixed points of continuous operators.
+Stoy's textbook~\cite{stoy1977} gives a thorough and remarkably accessible account of this
+approach; the semantics developed here is denotational and draws inspiration from this book,
+though it follows the B-Book~\cite{abrial1996bbook} closely in its treatment of B constructs.
+
+For the expression and predicate fragment, the B-Book's semantics is essentially denotational
+in character: B types denote sets, expressions of a given type denote elements of the
+corresponding set, and predicates denote truth values, all defined compositionally.
+The main departure concerns \emph{substitutions}, whose meanings are given as predicate
+transformers rather than direct functions on state.
+The emphasis throughout is on \emph{what} a B expression computes, not \emph{how} it is
+evaluated---in contrast to an operational semantics~\cite{plotkin2004sos}---and concrete
+terms are interpreted, after abstraction to PHOAS (as described in \Cref{sec:b-syntax} over the ZFLean framework of \Cref{ch:zflean}.
 
 \subsection{Interpretation of B types}
 \label{subsec:b-type-interp}
@@ -579,7 +588,6 @@ denotation, with the expected type.
   \(\pf{\tau}{T}\), which concludes the proof.
 \end{proof}
 
-The syntax, typing, and semantics described in this chapter form the source-language
-contract used by the correctness arguments in the following chapters.
-
-\inlremark[]{Add a proper conclusion to this chapter.}
+\inlremark[
+  The syntax, typing, and semantics described in this chapter form the source-language contract used by the correctness arguments in the following chapters.\citepub{beer2025}
+]{Add a proper conclusion to this chapter.} 

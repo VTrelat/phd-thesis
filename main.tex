@@ -4,6 +4,7 @@
 
 \input{preamble.tex}
 \input{macros.tex}
+\input{edcomment.tex}
 
 
 % \includeonly{chapters/introduction}
@@ -50,6 +51,8 @@
 \tableofcontents
 \endgroup
 
+\listofedcomments
+
 % Blank page after TOC before mainmatter.
 % \null\thispagestyle{empty}\cleardoublepage
 
@@ -84,6 +87,16 @@
 \include{chapters/appendices.tex}
 
 
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{List of Publications}
+\bibliographystylepub{plain}
+\nocitepub{*} % TODO: remove this
+\bibliographypub{publications}
+
+\cleardoublepage
+\phantomsection
+\addcontentsline{toc}{chapter}{Bibliography}
 \bibliographystyle{plain}
 \bibliography{references}
 
