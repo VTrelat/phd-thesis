@@ -1,0 +1,112 @@
+\makeatletter
+
+%% ── Heading renderers ────────────────────────────────────────────────────────
+\newcommand{\edc@rendchap}[2]{%
+  \medskip\par\noindent
+  {\large\bfseries\sffamily Chapter~#1\quad #2}\par\nopagebreak\smallskip
+}
+\newcommand{\edc@rendsec}[2]{%
+  \smallskip\par\noindent\hspace{1em}{\bfseries #1\enspace #2}\par\nopagebreak
+}
+\newcommand{\edc@rendsubsec}[1]{%
+  \par\noindent\hspace{2em}{\small\itshape #1}\par\nopagebreak
+}
+
+%% ── Single pending-head state (shared by remarks and missing refs) ───────────
+\gdef\edc@pchap{}\gdef\edc@psec{}\gdef\edc@psubsec{}
+\gdef\edc@lastsubsec{??init}
+\newcommand\edc@flushpending{%
+  \ifx\edc@pchap\@empty\else\edc@pchap\gdef\edc@pchap{}\fi
+  \ifx\edc@psec\@empty\else\edc@psec\gdef\edc@psec{}\fi
+  \ifx\edc@psubsec\@empty\else\edc@psubsec\gdef\edc@psubsec{}\fi
+}
+\newcommand{\edc@chapmark}[2]{%
+  \gdef\edc@pchap{\edc@rendchap{#1}{#2}}%
+  \gdef\edc@psec{}\gdef\edc@psubsec{}\gdef\edc@lastsubsec{??reset}%
+}
+\newcommand{\edc@secmark}[2]{%
+  \gdef\edc@psec{\edc@rendsec{#1}{#2}}%
+  \gdef\edc@psubsec{}\gdef\edc@lastsubsec{??reset}%
+}
+\newcommand{\edc@subsecmark}[1]{%
+  \def\@edc@tmp{#1}\ifx\@edc@tmp\edc@lastsubsec\else
+    \gdef\edc@lastsubsec{#1}%
+    \gdef\edc@psubsec{\edc@rendsubsec{#1}}%
+  \fi
+}
+
+%% ── Entry commands (written into .edc) ───────────────────────────────────────
+\newcommand{\edcremarkentry}[2]{%   red: inline remark (N)
+  \edc@flushpending
+  \par\noindent\hspace{3em}%
+  \hyperlink{inlremark-#1}{\textcolor{red!80!black}{\textbf{(#1)}}}%
+  \nobreak\leaders\hbox{$\m@th\mkern2mu\cdot\mkern2mu$}\hfill\nobreak
+  \hbox{p.\,#2}\par
+}
+\newcommand{\edcrefentry}[2]{%      blue: missing reference [N]
+  \edc@flushpending
+  \par\noindent\hspace{3em}%
+  \hyperlink{addref-#1}{\textcolor{blue}{\textbf{[#1]}}}%
+  \nobreak\leaders\hbox{$\m@th\mkern2mu\cdot\mkern2mu$}\hfill\nobreak
+  \hbox{p.\,#2}\par
+}
+
+%% ── Unified list ─────────────────────────────────────────────────────────────
+\newcommand{\listofedcomments}{%
+  \begingroup
+    \chapter*{List of Editorial Comments}%
+    \gdef\edc@pchap{}\gdef\edc@psec{}\gdef\edc@psubsec{}%
+    \gdef\edc@lastsubsec{??init}%
+    \@starttoc{edc}%
+  \endgroup
+}
+
+%% ── Chapter/section hooks: write structural markers into .edc ────────────────
+\let\edc@origchaptermark\chaptermark
+\renewcommand*{\chaptermark}[1]{%
+  \edc@origchaptermark{#1}%
+  \addtocontents{edc}{\protect\edc@chapmark{\thechapter}{#1}}%
+}
+\let\edc@origsectionmark\sectionmark
+\renewcommand*{\sectionmark}[1]{%
+  \edc@origsectionmark{#1}%
+  \addtocontents{edc}{\protect\edc@secmark{\thesection}{#1}}%
+}
+
+%% ── User-facing commands ─────────────────────────────────────────────────────
+
+\newcounter{inlremark}
+\NewDocumentCommand{\inlremark}{o m}{%
+  \IfNoValueTF{#1}{%
+    \highLight[red!12]{\textcolor{red!80!black}{#2}}%
+  }{%
+    \stepcounter{inlremark}%
+    \hypertarget{inlremark-\theinlremark}{}%
+    \ifnum\value{subsection}>0
+      \addtocontents{edc}{\protect\edc@subsecmark{\thesubsection}}%
+    \fi
+    \addtocontents{edc}{\protect\edcremarkentry{\theinlremark}{\thepage}}%
+    \highLight[red!12]{#1}%
+    \textcolor{red!80!black}{\xspace(\theinlremark)}%
+    \marginline{\parbox[t]{1.0in}{\footnotesize\raggedright%
+      \textcolor{red!80!black}{(\theinlremark)\enspace#2}}}%
+  }%
+}
+
+\newcounter{addref}
+\NewDocumentCommand{\addreference}{o}{%
+  \IfNoValueTF{#1}{%
+    \textcolor{blue}{[ref]}%
+  }{%
+    \stepcounter{addref}%
+    \hypertarget{addref-\theaddref}{}%
+    \ifnum\value{subsection}>0
+      \addtocontents{edc}{\protect\edc@subsecmark{\thesubsection}}%
+    \fi
+    \addtocontents{edc}{\protect\edcrefentry{\theaddref}{\thepage}}%
+    \highLight[blue!20]{#1}%
+    \textcolor{blue}{\xspace[\theaddref]}%
+  }%
+}
+
+\makeatother
