@@ -97,8 +97,8 @@ which extends superposition to higher-order logic---originate in the first-order
 theorem-proving (ATP) tradition, whose canonical target is validity in quantified
 logic with equality.
 What separates the two traditions is thus emphasis rather than kind: historically
-ATPs prioritise quantified first- and higher-order reasoning with equality,
-whereas SMT solvers prioritise efficient, combinable decision procedures for rich
+ATPs prioritize quantified first- and higher-order reasoning with equality,
+whereas SMT solvers prioritize efficient, combinable decision procedures for rich
 quantifier-free theories, and a sustained line of work continues to bring the two
 closer together.
 
@@ -115,7 +115,7 @@ language serve the ATP community, spanning clause normal form, the typed
 first-order form, and the typed higher-order form~\cite{sutcliffe2017tptp}, and
 underpin the CASC competition.
 The \emph{SMT-LIB} standard~\cite{smtlib2.7} plays the analogous role for SMT: it
-fixes a many-sorted first-order logic, a catalogue of theories and of named
+fixes a many-sorted first-order logic, a catalog of theories and of named
 \emph{logics}---such as \texttt{QF\_LIA} or \texttt{QF\_UFLRA}, which jointly
 select a syntactic fragment and a theory combination---and a command language by
 which a script declares sorts and symbols, asserts formulas, and queries the
@@ -133,7 +133,7 @@ integer can be both positive and below \(1\); any SMT solver implementing
 \end{smtlisting}
 \end{example}
 
-A development of direct relevance is the recent evolution of the standard towards
+A development of direct relevance is the recent evolution of the standard toward
 higher-order logic.
 Until version 2.6~\cite{smtlib2.6}, the SMT-LIB language was strictly many-sorted and
 first-order: functions could be neither partially applied, nor passed as
@@ -145,6 +145,6 @@ While remaining backward compatible with 2.6, it adds a form of prenex
 significantly, a theory of \emph{maps}---the \emph{higher-order core} fragment---that
 models higher-order functions and so equips the language with a higher-order
 syntax.
-These additions are explicitly framed as a transition towards the forthcoming
+These additions are explicitly framed as a transition toward the forthcoming
 version 3, whose base logic is to be a higher-order logic with polymorphic and
 dependent types.

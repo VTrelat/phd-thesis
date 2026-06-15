@@ -69,7 +69,7 @@ The reason for this design choice is to avoid set-theoretic pathologies related 
 and provide baked-in typing constraints directly in the semantics, thus circumventing some
 well-definedness side conditions---actually, all conditions related to type-correctness---in the
 denotation clauses.
-This is highly motivated by the idea of obtaining a \emph{correct-by-construction} design.
+This is highly motivated by the idea of obtaining a \emph{correct-by-construction} design, and is standard practice in mechanized semantics with intrinsically typed syntax~\cite{allais2018syntaxes}.
 
 \begin{remark}
   This design choice only removes case analysis on type-correctness from the denotation clauses, but does not eliminate the need for semantic well-definedness side conditions related to partial operations, like in domain-application or cardinality, which are still present in the semantics and are discussed below.
@@ -191,18 +191,19 @@ Those equations witness the fact that the B language is rooted in set theory.
 \begin{align*}
   \interpB{S \prodB T} & \triangleq \denval{S' \timesZ T'}[\setB(\tau \prodB \sigma)] \\
   \interpB{\powB(S)}   & \triangleq \denval{\powZ(S')}[\setB(\setB\tau)]
-  \intertext{
-    \begin{proofconstruct}
-      Using that \(\interpZ{\setB(\tau \prodB \sigma)} \triangleq \powZ(\interpZ{\tau} \timesZ \interpZ{\sigma})\), we show
-      \begin{align*}
-        \undernote{S' \timesZ T' \in \interpZ{\setB(\tau \prodB \sigma)}}{\pf{\setB(\tau \prodB \sigma)}{S' \timesZ T'}} & \iff S' \timesZ T' \in \powZ(\interpZ{\tau} \timesZ \interpZ{\sigma})                                                          \\[-18pt]
-                                                                                                                         & \iff S' \timesZ T' \subseteq \interpZ{\tau} \timesZ \interpZ{\sigma}                                                           \\
-                                                                                                                         & \iff S' \subseteq \interpZ{\tau} \land T' \subseteq \interpZ{\sigma}                                                           \\
-                                                                                                                         & \iff \undernote{S' \in \powZ(\interpZ{\tau})}{\pf{\tau}{S'}} \land \undernote{T' \in \powZ(\interpZ{\sigma})}{\pf{\sigma}{T'}}
-      \end{align*}
-      Likewise, we construct the proof \(\pf{\setB(\setB\tau)}{\powZ(S')}\).
-    \end{proofconstruct}
-    When \(\tau = \sigma\),}
+\end{align*}
+\begin{proofconstruct}
+  Using that \(\interpZ{\setB(\tau \prodB \sigma)} \triangleq \powZ(\interpZ{\tau} \timesZ \interpZ{\sigma})\), we show
+  \begin{align*}
+    \undernote{S' \timesZ T' \in \interpZ{\setB(\tau \prodB \sigma)}}{\pf{\setB(\tau \prodB \sigma)}{S' \timesZ T'}} & \iff S' \timesZ T' \in \powZ(\interpZ{\tau} \timesZ \interpZ{\sigma})                                                          \\[-18pt]
+                                                                                                                     & \iff S' \timesZ T' \subseteq \interpZ{\tau} \timesZ \interpZ{\sigma}                                                           \\
+                                                                                                                     & \iff S' \subseteq \interpZ{\tau} \land T' \subseteq \interpZ{\sigma}                                                           \\
+                                                                                                                     & \iff \undernote{S' \in \powZ(\interpZ{\tau})}{\pf{\tau}{S'}} \land \undernote{T' \in \powZ(\interpZ{\sigma})}{\pf{\sigma}{T'}}
+  \end{align*}
+  Likewise, we construct the proof \(\pf{\setB(\setB\tau)}{\powZ(S')}\).
+\end{proofconstruct}
+When \(\tau = \sigma\),
+\begin{align*}
   \interpB{S \cupB T}  & \triangleq \denval{S' \regnotation{\cupZ} T'}[\setB\tau]                   \\
   \interpB{S \capB T}  & \triangleq \denval{S' \regnotation{\capZ} T'}[\setB\tau]
 \end{align*}
@@ -247,11 +248,12 @@ Cardinality is defined under finiteness conditions, like minimum and maximum, wh
 Given \(\interpB{S} = \denval{S'}[\setB\tau]\) such that \(\leancodeptr{IsFinite}{ZFLean/Functions.html\#ZFSet.IsFinite}\ S'\), we define:
 \begin{align*}
   \interpB{\cardB{S}} & \triangleq \denval{\regnotation{\cardZ{S'}}}[\intB]
-  \intertext{
-    \begin{proofconstruct}
-      By definition, \(\cardZ{S'}\) is defined, when \(S'\) is finite, as the unique natural number \(n\), lifted as integer, such that there exists a bijection between \(S'\) and the set \(\{0, 1, \ldots, n-1\}\); in particular, \(\cardZ{S'} \in \Zint = \interpZ{\intB}\).
-    \end{proofconstruct}
-    Moreover, when \(\tau = \intB\) and \(S' \neq \emptyset\),}
+\end{align*}
+\begin{proofconstruct}
+  By definition, \(\cardZ{S'}\) is defined, when \(S'\) is finite, as the unique natural number \(n\), lifted as integer, such that there exists a bijection between \(S'\) and the set \(\{0, 1, \ldots, n-1\}\); in particular, \(\cardZ{S'} \in \Zint = \interpZ{\intB}\).
+\end{proofconstruct}
+Moreover, when \(\tau = \intB\) and \(S' \neq \emptyset\),
+\begin{align*}
   \interpB{\minB(S)}  & \triangleq \denval{\regnotation{\minZ}(S')}[\intB]  \\
   \interpB{\maxB(S)}  & \triangleq \denval{\regnotation{\maxZ}(S')}[\intB]
 \end{align*}
@@ -588,6 +590,11 @@ denotation, with the expected type.
   \(\pf{\tau}{T}\), which concludes the proof.
 \end{proof}
 
-\inlremark[
-  The syntax, typing, and semantics described in this chapter form the source-language contract used by the correctness arguments in the following chapters.\citepub{beer2025}
-]{Add a proper conclusion to this chapter.} 
+\subsection{Conclusion}
+
+This chapter has established the formal foundations of the B mathematical language required by the rest of this work.
+A dual syntactic representation was introduced: a concrete first-order syntax for parsing proof obligations, and an abstract syntax suited to semantic reasoning without variable-capture issues.
+A typing relation and a well-definedness predicate capturing the semantic side conditions of partial operations complete the static layer.
+The denotational semantics, built over the ZFLean set-theoretic framework, rests on a semantic domain with intrinsic B types: a correct-by-construction design that eliminates all type-correctness side conditions from the denotation clauses and confines partiality to genuine semantic conditions.
+The two key properties---typing-soundness (\Cref{thm:b-denote-type-det}) and typing-completeness (\Cref{thm:b-denote-complete})---assert that well-typed, well-defined terms always denote a value of their statically assigned type, and that no term can denote values of two distinct types.
+The syntax, typing, and semantics of this chapter together form the source-language contract against which the certified encoding of \Cref{ch:beer} is verified. 

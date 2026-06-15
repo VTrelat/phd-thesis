@@ -5,11 +5,16 @@ As mentioned in \Cref{subsec:b-type-system}, the B mathematical language does no
 intrinsic type system; rather, it describes a typing relation that constrains the form of expressions.
 The purpose of our type system is twofold: proof obligations rely on an internal representation
 of B types that we check at runtime, and the semantics of B terms is more readily defined and
-analysed when terms are annotated with their types, thereby avoiding type inference
+analyzed when terms are annotated with their types, thereby avoiding type inference
 computations and the usual technicalities of untyped semantics.
 
 This section describes the typing rules for concrete and abstract B syntax.
 We consider the basic type system defined in \Cref{def:b-types}.
+
+\begin{remark}
+  This typing discipline is \emph{Church-style} in the sense of Harper~\cite{harper2016pfpl}: terms carry type annotations and, as developed in \Cref{sec:b-semantics}, the semantic domain is defined only over well-typed values, so ill-typed terms are simply not inhabitants of the domain.
+  This contrasts with \emph{Curry-style} (extrinsic) typing, where a single untyped term universe is given and typing is an external predicate imposed on top.
+\end{remark}
 
 
 \subsection{Concrete typing rules}
