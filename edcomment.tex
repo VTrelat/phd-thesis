@@ -73,6 +73,9 @@
   \addtocontents{edc}{\protect\edc@secmark{\thesection}{#1}}%
 }
 
+%% ── Highlighting (fallback for lua-ul's \highLight; no line-breaking) ────────
+\NewDocumentCommand{\highLight}{O{yellow} m}{\colorbox{#1}{#2}}
+
 %% ── User-facing commands ─────────────────────────────────────────────────────
 
 \newcounter{inlremark}
