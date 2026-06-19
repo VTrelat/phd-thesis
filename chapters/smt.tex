@@ -1,6 +1,23 @@
 \mkchapter{Formalization of SMT-LIB 2.7}
 \label{ch:smt}
 
+This chapter formalizes a targeted fragment of SMT-LIB 2.7~\cite{smtlib2.7} sufficient
+to serve as the target language of BEer.
+Its structure deliberately mirrors that of \Cref{ch:b}: each section has a direct
+counterpart on the source side, and the differences are precisely those imposed by
+the gap between the set-theoretic B language and the many-sorted first-order logic
+of SMT-LIB.
+\Cref{sec:smt-syntax} introduces the syntactic categories: SMT types, a concrete
+first-order representation of terms that closely follows the surface syntax of
+SMT-LIB~2.7, and the PHOAS representation used for semantic reasoning.
+\Cref{sec:smt-typing} develops the type system for both representations and
+establishes the structural properties used in the correctness arguments.
+\Cref{sec:smt-semantics} gives the denotational semantics in the shared ZFC
+universe of \Cref{ch:zflean}, and proves type adequacy and totality for
+well-typed terms.
+This chapter forms the target-language contract against which the
+encoder of \Cref{ch:beer} is verified.
+
 \input{chapters/smt/syntax.tex}
 \input{chapters/smt/typing.tex}
 \input{chapters/smt/semantics.tex}

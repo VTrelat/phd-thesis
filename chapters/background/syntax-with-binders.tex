@@ -135,10 +135,10 @@ The variable case performs a lookup in \(\rho\).
 The binder cases extend \(\rho\), and the proof must repeatedly show that the extension is fresh, that substitution agrees with lookup, and that renamed variables do not change meaning.
 
 In the PHOAS semantics, the variable type is chosen to be the semantic domain \(\mathcal{D}\) itself.
-The denotation has the schematic shape of a \emph{partial} function from syntax to semantics:
+The denotation has the schematic shape of a \emph{partial} function from syntax to semantics, denoted:
 \[
   \lBrack \cdot \rBrack :
-    \mathsf{Term}\ \mathcal D \rightharpoonup \mathcal D.
+    \mathsf{Term}\ \mathcal D \regnotation{\rightharpoonup} \mathcal D.
 \]
 The variable case is immediate; there is no lookup and no external valuation:
 \[

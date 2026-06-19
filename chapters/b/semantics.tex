@@ -79,13 +79,13 @@ This is highly motivated by the idea of obtaining a \emph{correct-by-constructio
   \label{def:b-dom}
       The semantic domain is the following dependent sum type:
   \[
-    \regnotation{\mathsf{Dom}} \triangleq
+    \regnotation{\BDom} \triangleq
     \sum_{X : \mathsf{ZFSet}}\sum_{\tau : \mathsf{BType}}\,
     X \in \interpZ{\tau}
   \]
 \end{definition}
 
-Elements in \(\mathsf{Dom}\) are therefore dependent triples, denoted \(\regnotation{\denval{X}[\tau]}\),
+Elements in \(\BDom\) are therefore dependent triples, denoted \(\regnotation{\denval{X}[\tau]}\),
 containing a ZFC set \(X\), a B type \(\tau\) and a proof \(\pf{\tau}{X} : X \in \interpZ{\tau}\).
 
 \begin{note}
@@ -104,7 +104,7 @@ The denotation function is therefore a partial function---due to B containing pa
   The denotation function is defined by structural recursion over PHOAS terms as the partial function
   \[
     \begin{array}{rcccc}
-      \regnotation{\interpB{\cdot}} & : & \mathsf{PHOAS.Term}\,\mathsf{Dom} & \rightharpoonup & \mathsf{Dom}     \\
+      \regnotation{\interpB{\cdot}} & : & \mathsf{PHOAS.Term}\,\BDom & \rightharpoonup & \BDom     \\
                       &   & t                                 & \mapsto         & \denval{X}[\tau]
     \end{array}
   \]
@@ -116,7 +116,7 @@ In each case, the construction of the proof \(\pf{\tau}{X}\) is detailed.
 
 \paragraph{Literals and constants.}
 The immediate consequence of our choice of representation is that variables denote themselves.
-For any variable \(v : \mathsf{Dom}\),
+For any variable \(v : \BDom\),
 \[
   \interpB{v} \triangleq v
 \]
@@ -279,7 +279,7 @@ Definedness assumptions are the following:
   \item \(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^{\times}]\), where \(\tau^{\times}\) is a product type \(\tau_1 \prodB \cdots \prodB \tau_n\) of the binder's arity;
   \item For any family of variables \(\vec x = (x_1, \cdots, x_n)\) of the binder's arity such that each of the \(x_i\) carries the B type \(\tau_i\), and such that \(\pairZ{x_1}{\cdots, x_n} \in \mathcal{D}\), \(P(\vec x)\) has a denotation.
 \end{itemize}
-We can therefore define the following scoped denotation \(\mathfrak{P} : \mathsf{ZFSet} \to \mathsf{Dom}\) of the body \(P\), for any set argument \(z\), by the following case distinction:
+We can therefore define the following scoped denotation \(\mathfrak{P} : \mathsf{ZFSet} \to \BDom\) of the body \(P\), for any set argument \(z\), by the following case distinction:
 \begin{description}
   \item[if \(z \in \mathcal{D}\):] \(z\) can be written as an \(n\)-ary set-level tuple \(\pairZ{z_1}{\cdots, z_n}\).
         It easily follows from \(\pf{\setB\tau^\times}{\mathcal{D}}\) that each \(z_i\) belongs to \(\interpZ{\tau_i}\), thereby constructing \(\pf{\tau_i}{z_i}\).
@@ -320,7 +320,7 @@ the body. The definition is quite similar to set comprehension, with the technic
   \item \(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^{\times}]\) as before;
   \item For any family of variables \(\vec x = (x_1, \cdots, x_n)\) of the binder's arity such that each of the \(x_i\) carries the B type \(\tau_i\), and such that \(\pairZ{x_1}{\cdots, x_n} \in \mathcal{D}\), \(E(\vec x)\) has a denotation.
 \end{itemize}
-We define the following scoped denotation \(\mathcal{E} : \mathsf{ZFSet} \to \mathsf{Dom}\) of the body \(E\), for any set argument \(z\), by distinguishing whether \(\mathcal{D}\) is empty or not:
+We define the following scoped denotation \(\mathcal{E} : \mathsf{ZFSet} \to \BDom\) of the body \(E\), for any set argument \(z\), by distinguishing whether \(\mathcal{D}\) is empty or not:
 \begin{description}
   \item[if \(\mathcal{D} = \emptyset\):] in this case, we cannot directly compute the return type of the body, as we have no element in the domain to plug in it; however, we can still define a dummy family of variables from the domain's type, and use it to compute the return type of the body. We have no guarantee that the body has a denotation for this family of variables, and even if it does, the denotation might be ill-typed.
         \begin{note}
@@ -408,7 +408,7 @@ with respect to a type system.
 
 \begin{theorem}[Denotation typing-soundness][denote\_welltyped\_eq][B/Reasoning/Lemmas.html\#denote_welltyped_eq]
   \label{thm:b-denote-type-det}
-  Let \(t : \mathsf{PHOAS.Term}\,\mathsf{Dom}\) be a well-typed PHOAS term, and \(\Gamma\) be a
+  Let \(t : \mathsf{PHOAS.Term}\,\BDom\) be a well-typed PHOAS term, and \(\Gamma\) be a
   well-formed typing context. Then, if \(t\) can be assigned a B type in \(\Gamma\), any denotation
   of \(t\) must carry the same type:
   \[
@@ -439,7 +439,7 @@ denotation, with the expected type.
 \begin{theorem}[Denotation typing-completeness][B.denote\_exists\_of\_typing][B/Reasoning/DenotationTotality.html\#B.denote_exists_of_typing]
   \label{thm:b-denote-complete}
   Let \(\Gamma\) be a well-formed abstract typing context, and let
-  \(t : \mathsf{PHOAS.Term}\,\mathsf{Dom}\) be a well-defined PHOAS term such that
+  \(t : \mathsf{PHOAS.Term}\,\BDom\) be a well-defined PHOAS term such that
   \(\batype{\Gamma}{t}{\tau}\). Then \(t\) has a denotation carrying type \(\tau\), \ie there
   exists a set \(T \in \interpZ{\tau}\) such that
   \[

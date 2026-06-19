@@ -36,7 +36,11 @@
   \setlength{\columnsep}{3em}%
   \small%
 }
-\renewcommand{\nompostamble}{\end{multicols}}
+\renewcommand{\nompostamble}{%
+  \ifnum\value{nomchapcount}>0\relax
+    \end{multicols}%
+  \fi
+}
 
 \makeatletter
 \renewcommand{\nomgroup}[1]{%

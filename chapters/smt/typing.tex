@@ -1,15 +1,16 @@
 \section{Type System}
 \label{sec:smt-typing}
 
-Unlike the B mathematical language, SMT-LIB is intrinsically many-sorted: its
-type system is part of the language definition rather than an auxiliary device.
-The type system serves the same two purposes as on the source side, however:
-proof obligations are checked against an internal representation of SMT types at
-runtime, and the semantics of \Cref{sec:smt-semantics} is defined on typed terms,
-thereby avoiding type inference and the technicalities of an untyped semantics.
-
+We introduce a type system for SMT terms, both in the concrete and abstract syntax.
 This section describes the typing rules for concrete and abstract SMT syntax,
 over the type system of \Cref{def:smt-types}.
+Then, we prove basic structural properties of both type systems and connect them
+via a context abstraction that lifts concrete typing derivations to the PHOAS setting.
+
+Unlike the B mathematical language, SMT-LIB is intrinsically many-sorted: its
+type system is part of the language definition rather than an auxiliary device.
+It nonetheless serves the same two purposes as on the source side, as detailed in \Cref{sec:b-typing}.
+
 
 \subsection{Concrete typing rules}
 \label{subsec:smt-concrete-typing}
@@ -33,8 +34,8 @@ For a body \(t\), bound variables \(\vec v\), and SMT types \(\vec\tau\), we wri
   \tag{Bind\textsuperscript{S} def.}
   \label{eq:def-bind-smt}
 \end{equation}
-where \(\mathsf{bv}(t)\) denotes the bound variables of \(t\). We further write
-\(\vec\tau^{\timesS} \coloneq \tau_1 \timesS \cdots \timesS \tau_n\) for the
+where \(\mathsf{bv}(t)\) denotes the bound variables of \(t\). We further keep the notation
+\(\tau^{\times} \coloneq \tau_1 \timesS \cdots \timesS \tau_n\) for the
 right-nested pair SMT type associated with \(\vec\tau\).
 
 \begin{definition}[Concrete typing rules][SMT.Typing][SMT/Typing.html\#SMT.Typing]
@@ -63,7 +64,7 @@ right-nested pair SMT type associated with \(\vec\tau\).
   \begin{mathpar}
     \typingrule{smt-concrete-typing}{lambda}
       {\mathsf{Bind}(\Gamma,\vec v,\vec\tau,t) \quad \stype{\Gamma[\vec v:\vec\tau]}{t}{\gamma}}
-      {\stype{\Gamma}{\lamS \vec v : \vec\tau \cdot t}{\tau^{\timesS} \toS \gamma}}
+      {\stype{\Gamma}{\lamS \vec v : \vec\tau \cdot t}{\tau^{\times} \toS \gamma}}
     \and
     \typingrule{smt-concrete-typing}{forall}
       {\mathsf{Bind}(\Gamma,\vec v,\vec\tau,P) \quad \stype{\Gamma[\vec v:\vec\tau]}{P}{\boolS}}
@@ -75,7 +76,7 @@ right-nested pair SMT type associated with \(\vec\tau\).
   \end{mathpar}
   where \(\Gamma[\vec v:\vec\tau]\) denotes the context extension of \(\Gamma\) with the bindings
   \(v_i : \tau_i\) for each \(v_i\) in \(\vec v\) and corresponding \(\tau_i\) in \(\vec\tau\), and
-  \(\tau^{\timesS}\) is the right-nested pair SMT type associated with \(\vec\tau\).
+  \(\tau^{\times}\) is the right-nested pair SMT type associated with \(\vec\tau\).
   \paragraph{Logic.}
   \begin{mathpar}
     \typingrule{smt-concrete-typing}{eq}
@@ -106,7 +107,7 @@ right-nested pair SMT type associated with \(\vec\tau\).
       {\forall t \in \vec t,\; \stype{\Gamma}{t}{\tau}}
       {\stype{\Gamma}{\distinctS \vec t}{\boolS}}
   \end{mathpar}
-  \paragraph{Options, pairs, and unit.}
+  \paragraph{Options and pairs.}
   \begin{mathpar}
     \typingrule{smt-concrete-typing}{some}
       {\stype{\Gamma}{t}{\tau}}
@@ -153,10 +154,26 @@ right-nested pair SMT type associated with \(\vec\tau\).
 \end{definition}
 
 \begin{remark}
-  The lambda rule assigns the curried SMT type \(\vec\tau^{\timesS} \toS \gamma\):
-  an \(n\)-ary abstraction is typed as a unary function on the right-nested pair
-  of its argument SMT types. This is the typing counterpart of the tuple encoding
-  used pervasively in the translation of B binders (\Cref{ch:beer}).
+  \label{rem:smt-lambda-uncurried}
+  The SMT type \(\tau^{\times} \toS \gamma\) assigned to an \(n\)-ary abstraction
+  is \emph{uncurried}: the binder is typed as a unary function whose domain is the
+  right-nested product \(\tau^{\times}\) of its argument SMT types. This is a
+  deliberate departure from SMT-LIB, whose own treatment of \(\lambda\)-abstraction
+  is the classical, curried discipline of higher-order logic: the multi-ary form
+  \(\mathtt{lambda}\ ((x_1 : \tau_1)\, \cdots\, (x_n : \tau_n))\ t\) abbreviates the nesting
+  of unary abstractions
+  \(\mathtt{lambda}\ (x_1 : \tau_1)\ \bigl(\cdots \bigl(\mathtt{lambda}\ (x_n : \tau_n)\ t\bigr) \cdots\bigr)\),
+  sorted with the right-associative binary arrow as
+  \(\tau_1 \toS \cdots \toS \tau_n \toS \gamma\).
+
+  We adopt the uncurried, tuple-based convention instead. It is the natural
+  mathematical reading of a binder---a function of several variables \emph{is} a
+  function of one tuple-valued variable; it keeps application total, since a
+  function is always applied to a single tupled argument and never partially; and
+  it aligns the SMT image of a B binder with the tuple encoding used pervasively in
+  \Cref{ch:beer}. No expressiveness is lost, the two presentations being related by
+  the standard currying isomorphism
+  \((\tau_1 \timesS \cdots \timesS \tau_n) \toS \gamma \,\cong\, \tau_1 \toS \cdots \toS \tau_n \toS \gamma\).
 \end{remark}
 
 \subsection{Properties of the concrete type system}
@@ -214,37 +231,54 @@ a term; bindings for variables absent from the term may be discarded.
   \]
 \end{theorem}
 \begin{proof}
-  By induction on the derivation \(\stype{\Xi}{t}{\tau}\). In the variable
-  case \(t = \mathsf{var}\ v\), the hypothesis gives \(v \in \Gamma\); since
+  By induction on the derivation \(\stype{\Xi}{t}{\tau}\).
+  
+  In the variable case \(t = \mathsf{var}\ v\),
+  the hypothesis gives \(v \in \Gamma\); since
   \(\Gamma \subseteq \Xi\) and \(\Xi(v) = \tau\), the two contexts
-  agree on \(v\), and the variable rule applies under \(\Gamma\). Constants and
-  compound non-binder terms are immediate using inversion lemmas. For a binder, the
-  induction hypothesis is applied to the body under the contexts extended by the
+  agree on \(v\), and the variable rule applies under \(\Gamma\).
+  
+  Constants are immediate; compound non-binder terms follow from the induction
+  hypotheses on their subterms.
+  
+  For a binder, the induction hypothesis is applied to the body under the contexts extended by the
   bound variables, \(\Gamma[\vec v:\vec\tau] \subseteq \Xi[\vec{v}:\vec\tau]\); a free variable of the body is either bound by the binder---and
   hence present in the extension---or free in the whole term, and thus in
-  \(\Gamma\). The freshness side condition \(\mathsf{Bind}\) is preserved
-  because it constrains only the bound variables, which are unchanged.
+  \(\Gamma\). The freshness side condition \(\mathsf{Bind}\) is preserved because the
+  bound variables, fresh for \(\Xi\), remain fresh for the smaller context \(\Gamma\);
+  its remaining conjuncts concern only the bound variables and are unchanged.
 \end{proof}
 
 \begin{theorem}[Weakening][SMT.Typing.weakening][SMT/Typing.html\#SMT.Typing.weakening]
   \label{thm:smt-weakening}
   Let \(\Gamma, \Xi\) be typing contexts with
   \(\Gamma \subseteq \Xi\), let \(t\) be a concrete SMT term, and let
-  \(\tau\) be an SMT type. If \(\stype{\Gamma}{t}{\tau}\), then
+  \(\tau\) be an SMT type. If \(\stype{\Gamma}{t}{\tau}\) and no bound variable of
+  \(t\) occurs in \(\Xi\)---equivalently, in \(\Xi \setminus \Gamma\), since
+  \(\mathsf{bv}(t)\) is already disjoint from \(\Gamma\) by
+  \Cref{lem:smt-bv-disjoint}---then
   \[
     \stype{\Xi}{t}{\tau}.
   \]
 \end{theorem}
 \begin{proof}
-  By induction on the derivation \(\stype{\Gamma}{t}{\tau}\), with the same reasoning as for
-  strengthening.
+  By induction on the derivation \(\stype{\Gamma}{t}{\tau}\); the non-binder cases are
+  immediate.
+  
+  In a binder case, the freshness premise of \(\mathsf{Bind}\) \eqref{eq:def-bind-smt} under \(\Xi\)
+  is exactly the added hypothesis, and it propagates to the body, whose bound variables
+  remain fresh for the extension \(\Xi[\vec v:\vec\tau]\): they avoid \(\Xi\) by
+  hypothesis and avoid the binder's own variables by \(\mathsf{Bind}\). This is the sole
+  point of departure from strengthening: enlarging the context can violate binder
+  freshness, whence the side condition.
 \end{proof}
 
 \subsection{Abstract typing rules}
 \label{subsec:smt-abstract-typing}
 
 Abstract typing is defined over the PHOAS syntax. Abstract typing contexts are again
-partial functions \(\Gamma : \mathcal{V} \rightharpoonup \mathsf{SMTType}\).
+partial functions \(\Gamma : \mathcal{V} \rightharpoonup \mathsf{SMTType}\) where
+\(\mathcal{V}\) is a parameterized variable type.
 Abstract judgments are written \(\satype{\Gamma}{t}{\tau}\) and are available as the
 inductive predicate {\small\leancodeptr{SMT.PHOAS.Typing}{SMT/HOTyping/Rules.html\#SMT.PHOAS.Typing}}.
 
@@ -253,18 +287,18 @@ The non-binder rules are identical to their concrete counterparts. As in
 bound variables: variable management is delegated to Lean's meta-level, and the
 body is typed under any extension of the context with arbitrary families of
 variables carrying the prescribed SMT type---in practice, \(\mathcal{V}\) is equipped
-with an intrinsic type-assignment function, formalized by a type class
-{\small\leancodeptr{SMT.PHOAS.HasType}{SMT/HOTyping/Def.html\#SMT.PHOAS.HasType}}.
+with an intrinsic type-assignment function, mirroring the the constraint enforced on
+the source side.
 
 We illustrate the binder rules with the lambda rule; the universal rule is
-analogous. Given a type vector \(\vec\tau : \mathsf{Fin}\,n \to
-\mathsf{SMTType}\) with \(n > 0\), an SMT type \(\gamma\), and a scope
+analogous. Given a family of SMT types \(\vec\tau : \mathsf{Fin}\,n \to
+\mathsf{SMTType}\) with \(n > 0\), an SMT type \(\gamma\), and a scope 
 \(e : (\mathsf{Fin}\,n \to \mathcal{V}) \to \mathsf{Term}\,\mathcal{V}\):
 
 \begin{mathpar}
   \typingrule{smt-abstract-typing}{lambda}
   {\forall \vec v,\, \satype{\Gamma[\vec v:\vec\tau]}{e(\vec v)}{\gamma}}
-  {\satype{\Gamma}{\lamS \vec\tau \cdot e}{\tau^{\timesS} \toS \gamma}}
+  {\satype{\Gamma}{\lamS \vec\tau \cdot e}{\tau^{\times} \toS \gamma}}
 \end{mathpar}
 where the vector \(\vec v\) of variables ranges over all families of variables carrying the
 expected SMT types.
@@ -276,7 +310,7 @@ with the same names as their concrete counterparts, \eg\@
 \etc
 
 \paragraph{Determinism.}
-A central property of the abstract type system is determinism: a term has at most
+A basic expected property of the abstract type system is determinism: a term has at most
 one SMT type in a given context. It is the type-level invariant on which the semantic
 adequacy result of \Cref{thm:smt-denote-type-det} rests.
 
@@ -289,7 +323,10 @@ adequacy result of \Cref{thm:smt-denote-type-det} rests.
 \begin{proof}
   By induction on \(t\). Since the same unique inversion rule applies to both derivations in
   each case, the result follows from the induction hypothesis and the injectivity of type
-  constructors.
+  constructors. In a binder case, the induction hypothesis is applied to the body
+  instantiated at a fixed family of variables carrying the bound sorts---which exists
+  because the variable type provides a representative of every sort---thereby discharging
+  the quantification over admissible variable families.
 \end{proof}
 
 \subsection{Abstracting concrete typing}
@@ -297,9 +334,8 @@ adequacy result of \Cref{thm:smt-denote-type-det} rests.
 
 The two type systems are connected by a context abstraction that lifts concrete
 typing derivations to the PHOAS setting. As in \Cref{subsec:b-typing-abstraction},
-the variable type \(\mathcal{V}\) is constrained, so that any abstract variable carries an
-intrinsic SMT type---instantiated in practice with the semantic domain \(\mathsf{Dom}\) defined
-later in \Cref{def:smt-dom}, irrelevant here.
+the variable type \(\mathcal{V}\) is, in practice, instantiated with a semantic domain satisfying
+the constraint mentioned earlier.
 
 Recall that a renaming, or valuation when instantiated with the semantic domain, is a partial map
 \(\Delta : \mathsf{String} \rightharpoonup \mathcal{V}\). We first abstract typing contexts.
@@ -368,8 +404,8 @@ SMT type-compatible with \(\Gamma\).
   \(\Gamma(v) = \tau\); SMT type-compatibility yields a domain value
   \(\Delta(v)\) of intrinsic SMT type \(\tau\), and by
   \Cref{def:smt-context-abstraction} the abstract context maps it to
-  \(\aterm{\Gamma}{\Delta}(v) = \Gamma(v) = \tau\). Since
-  \(\aterm{\mathsf{var}\ v}{\Delta} = \Delta(v)\), the abstract variable rule
+  \(\aterm{\Gamma}{\Delta}(v) \triangleq \Gamma(v) = \tau\). Since
+  \(\aterm{\mathsf{var}\ v}{\Delta} \triangleq \Delta(v)\), the abstract variable rule
   concludes. Constants carry no free variables and are immediate.
 
   For compound non-binders, combining rule inversion with induction hypotheses

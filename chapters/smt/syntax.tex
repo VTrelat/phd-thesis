@@ -14,9 +14,6 @@ The development deliberately mirrors that of the source language, so that the tw
 sides of the encoding are described by parallel constructions; the differences
 are precisely those dictated by the gap between the set-theoretic B language and
 the many-sorted first-order language of SMT-LIB.
-Note that the formalization of this fragment of SMT-LIB is deliberately small and purposedly only
-covers the logical and arithmetic fragments of the language---\ie formulas---thereby greatly
-simplifying the type system.
 
 \subsection{SMT types}
 \label{subsec:smt-type-system}
@@ -30,8 +27,8 @@ Note that this type system is tailored to the our specific formalization needs a
 attempt to capture the full generality of SMT-LIB's sort system, which includes user-defined
 sorts and polymorphic type constructors.
 
-In order to simplify the type system even further, we make use of SMT-LIBv2.7's support for
-polymorphic data-types to encode pairs and options.
+In order to simplify the type system even further, we make use of SMT-LIB's recent support
+(version 2.7) for polymorphic data-types to encode pairs and options.
 In the formalization, they are treated as primitive type constructors, and SMT encodings always
 import a prelude containing those definitions. In practice, they are implemented as follows:
 
@@ -53,7 +50,7 @@ import a prelude containing those definitions. In practice, they are implemented
 \medskip
 
 In the following, we write \(\tau \timesS \sigma\) for the pair sort \smtinl{Pair $\tau$ $\sigma$} and \(\optS\tau\) for the option sort \smtinl{Option $\tau$}.
-Note that since the term constructor \smtinl{none} is polymorphic, it must be annotated with its sort when used in practice, so as to allow solvers to determine its sort; this is achieved by using the operator \smtinl{as}, as illustrated in the following example.
+Note that since the term constructor \smtinl{none} is polymorphic, it must be annotated with its sort when used in practice, to allow solvers to determine its sort; this is achieved by using the operator \smtinl{as}, as illustrated in the following example.
 
 \begin{example}[SMT-LIB pairs and options]
   \label{ex:smt-pairs-options}
@@ -98,9 +95,11 @@ Let \(\mathcal{V}\) be the type of variable names---in practice, the type \leani
     | $\mathsf{var}\ v$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ // Atoms
     | $\regnotation{\appS{t}{s}}$ // Higher-order application
     | $\regnotation{\lamS \vec v : \vec\tau \cdot t}$ && $\regnotation{\forallS \vec v : \vec\tau \cdot t}$ && $\regnotation{\existsS \vec v : \vec\tau \cdot t}$ // Binders
-    | $t \regnotation{\eqS} s$ && $t \regnotation{\andS} s$ && $t \regnotation{\orS} s$ && $\regnotation{\notS t}$ && $t \regnotation{\impS} s$ && $\regnotation{\iteS}\ t\ s\ r$ // Logic
+    | $t \regnotation{\eqS} s$ && $t \regnotation{\andS} s$ && $t \regnotation{\orS} s$  // Logic
+    | $\regnotation{\notS t}$ && $t \regnotation{\impS} s$ && $\regnotation{\iteS}\ t\ s\ r$
     | $\regnotation{\someS} t$ && $\regnotation{\theS} t$ && $\regnotation{\noneS}$ && $\regnotation{\asS}\ t\ \tau$ // Options
-    | $\regnotation{\pairS{t}{s}}$ && $\regnotation{\fstS} t$ && $\regnotation{\sndS} t$ && $\regnotation{\distinctS} \vec t$ // Pairs and distinctness
+    | $\regnotation{\pairS{t}{s}}$ && $\regnotation{\fstS} t$ && $\regnotation{\sndS} t$ // Pairs
+    | $\regnotation{\distinctS} \vec t$ // Distinctness
     | $t \regnotation{\leS} s$ && $t \regnotation{\addS} s$ && $t \regnotation{\subS} s$ && $t \regnotation{\mulS} s$ // Arithmetic
   \end{bnf}
 \end{definition}
@@ -127,19 +126,21 @@ vector and a scope
 
   \begin{bnf}[colspec = {l@{}l@{\kern6pt}c@{\kern6pt}ll}]
     \leaninl{SMT.PHOAS.Term} $\,∋\, t, s$ ::=
-    | $\mathsf{var}\ v$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ && $\appSa{t}{s}$ // Atoms and application
+    | $\mathsf{var}\ v$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ // Atoms
+    | $\appSa{t}{s}$ // Application
     | $\aop{\lamS} \vec\tau \cdot e$ && $\aop{\forallS} \vec\tau \cdot e$ // Binders
     | $t \abin{\eqS} s$ && $t \abin{\andS} s$ && $\aop{\notS} t$ && $\aop{\iteS}\ t\ s\ r$ // Logic
     | $\someSa t$ && $\theSa t$ && $\aop{\noneS}_{\tau}$ && $\regnotation{\aop{\unitvalS}}$ // Options and unit
-    | $\pairSa{t}{s}$ && $\fstSa t$ && $\sndSa t$ && $\distinctSa \vec t$ // Pairs and distinctness
+    | $\pairSa{t}{s}$ && $\fstSa t$ && $\sndSa t$ // Pairs
+    | $\distinctSa \vec t$ // Distinctness
     | $t \abin{\leS} s$ && $t \abin{\addS} s$ && $t \abin{\subS} s$ && $t \abin{\mulS} s$ // Arithmetic
   \end{bnf}
 \end{definition}
 
 \begin{remark}
   As in \Cref{subsec:b-abstract-syntax}, the arity \(n\) of a binder is implicit
-  and inferred from the type of its scope, so binders need not be annotated with
-  their arity when writing terms.
+  and inferred from the type of its type family \(\vec \tau\) and scope \(e\),
+  so binders need not be annotated with their arity when writing terms.
 \end{remark}
 
 Unlike the source language, the concrete syntax given in \Cref{def:smt-basic-syntax} is not minimal:
@@ -147,12 +148,12 @@ several logical connectives and the existential quantifier are definable from a 
 and are treated as derived forms in the abstract syntax of \Cref{def:smt-abstract-syntax}.
 The reason for this choice is that we want fine-grained control over the concrete layer, since it
 is the one emitted by the encoder; the abstract layer, on the other hand, is only used at proof
-level and it is therefore preferable to keep it as small as possible, so as to minimize the number
+level, and it is therefore preferable to keep it as small as possible to minimize the number
 of cases in proofs.
 Of course, this means that we have to factor out some of the concrete constructors into derived
 forms, thereby involving meta-level (semantic) considerations upon which one might want to get
 a better grip.
-Thus, we record the defining equations here, as they also fix the intended reading of the
+We therefore record the defining equations here, as they also fix the intended reading of the
 corresponding concrete constructors.
 
 \begin{definition}[Derived connectives][SMT.PHOAS.Term.or, .imp, .exists][
@@ -168,31 +169,10 @@ corresponding concrete constructors.
   \end{align*}
 \end{definition}
 
-We also get rid of the annotation construct \(\asS\) in the abstract syntax, since in our case, it is only used when resolving a \(\noneS\) type, which we make primitive as \(\noneS_{\tau}\), in the following informal sense:
+We also get rid of the annotation construct \(\asS\) in the abstract syntax, since in our case, it is only used when resolving a \(\noneS\) type, which we make primitive as a constructor \(\aop{\noneS}_{\tau}\), in the following informal sense:
 \[
   \aop{\noneS}_{\tau} \;\approx\; \asS\ \noneS\ (\optS\tau).
 \]
-
-SMT types admit canonical inhabitants at the abstract term level, playing the role that
-the carrier embedding \(\lift{\cdot}\) of \Cref{def:btype-to-term} plays on the
-source side. They supply default values for empty scopes in the semantics.
-
-\begin{definition}[Default inhabitants][SMT.SMTType.default][SMT/Semantics.html\#SMT.SMTType.default]
-  \label{def:smt-default}
-  The default inhabitant \(\mathsf{default}(\tau)\) of an SMT type \(\tau\) is defined by
-  structural recursion:
-  \[
-    \mathsf{default}(\tau) \triangleq
-    \begin{cases}
-      0 &\text{ if } \tau = \intS,\\
-      \mathsf{false} &\text{ if } \tau = \boolS,\\
-      \aop{\unitvalS} &\text{ if } \tau = \unitS, \\
-      \aop{\noneS}_{\alpha} &\text{ if } \tau = \optS\alpha,\\
-      \pairSa{\mathsf{default}(\tau)}{\mathsf{default}(\sigma)} &\text{ if } \tau = \tau \timesS \sigma,\\
-      \aop{\lamS}\, (\_ : \alpha) \cdot \mathsf{default}(\beta) &\text{ if } \tau = \alpha \toS \beta.
-    \end{cases}
-  \]
-\end{definition}
 
 \begin{note}
   In contrast with the bounded binders of B, which range over a domain
@@ -221,10 +201,11 @@ except at variables.
   \]
   for a binder with type vector \(\vec\tau\) and scope \(e\),
   \[
-    (\lamS \vec\tau \cdot e)[v \leftarrow s] \triangleq \lamS \vec\tau \cdot (\lambda \vec x \mapsto (e\,\vec x)[v \leftarrow s]),
+    (\lamS \vec\tau \cdot e)[v \leftarrow s] \triangleq \lamS \vec\tau \cdot (\pink{\lambda} \vec x \mapsto (e\,\vec x)[v \leftarrow s]),
   \]
   and analogously for the universal binder; all remaining clauses are
   homomorphic on subterms.
+  Note that the \(\pink{\lambda}\) is a Lean meta-level binding.
 \end{definition}
 
 \subsection{Changing representations}
@@ -240,6 +221,11 @@ pipeline.
 Since definitions are essentially the same as on the source side, we do not unfold them here.
 Abstraction of a concrete term \(t\) is defined structurally and also denoted \(\aterm{t}{\Delta}\),
 where \(\Delta\) is a valuation defined at least on the free variables of \(t\).
+\begin{note}
+  In order to avoid any ambiguity, this notation will be used either under the denotation function
+  \(\interpB{\cdot}\) or \(\interpS{\cdot}\) to explicitly indicate the underlying language, or on
+  a term that will be properly contextualized by the surrounding text.
+\end{note}
 The only different case was sketched above: the annotation construct \(\asS\) is abstracted as
 follows:
 \[

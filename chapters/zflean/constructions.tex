@@ -211,6 +211,7 @@ We also provide canonical set-theoretic representations for coproducts (disjoint
 These constructions carry less mathematical weight than the previous ones, but can be useful to model sum types and alternative partiality in a set-theoretic context.
 
 \begin{definition}[Sum][ZFSet.Sum][ZFLean/Sum.html\#ZFSet.Sum]
+  \label{def:zflean-sum}
   Given two sets $A,B : \mathsf{ZFSet}$, the \emph{sum}, or \emph{coproduct} type $A \uplus B$ is defined as the following extension (Lean subtype):
   \begin{equation*}
     A \uplus B \triangleq \{ {x : \mathsf{ZFSet} \,\slash\mkern-3mu\slash\, x \in (\{ \bot \} \times A) \cup (\{ \top \} \times B)} \}

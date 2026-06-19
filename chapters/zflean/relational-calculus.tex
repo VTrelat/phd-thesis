@@ -58,6 +58,7 @@ Finally, we define partial functions as functional relations without totality re
 We also derive predicates $\IsInjective$, $\IsSurjective$, and $\IsBijective$ in the usual sense, which all invoke the tactic \inlinelean|zfun| to discharge functional totality requirements.
 
 \subsection{Function evaluation and λ-abstraction}
+\label{subsec:zflean-func-eval-lambda}
 
 We now add two notions that make functions practical to use, namely function application and $\lambda$-abstraction.
 In a purely set-theoretic setting these are not primitive---a function \emph{is} its graph, and application is the derived operation that recovers the unique image of a point---yet they are indispensable in practice; we define them so as to keep standard mathematical notation while automating side-conditions as much as possible.

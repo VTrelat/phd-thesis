@@ -742,9 +742,9 @@ Given $\stype{\Gamma}{x}{\alpha}$ and a fresh variable $\lvar{x}$, we write
 \begin{note}
   Denotations return typed semantic objects. We write such an object as
   \[
-  \denval{X} : \sop{\mathsf{Dom}}
+  \denval{X} : \SDom
   \]
-  where $X$ is the underlying ZFC set, $\tau_X$ is an SMT type, $\pf{\tau_X}{X}$ witnesses $X\in\interpZ{\tau_X}$, and $\displaystyle\sop{\mathsf{Dom}} = \sum_{X, \tau_X} X \in \interpZ{\tau_X}$
+  where $X$ is the underlying ZFC set, $\tau_X$ is an SMT type, $\pf{\tau_X}{X}$ witnesses $X\in\interpZ{\tau_X}$, and $\displaystyle\SDom = \sum_{X, \tau_X} X \in \interpZ{\tau_X}$
 \end{note}
 
 \begin{remark}
@@ -766,7 +766,7 @@ Then:
 \]
 
 \item \emph{Witness existence.}
-For every valuation $\Delta : \sop{\mathcal{V}} \rightharpoonup \sop{\mathsf{Dom}}$ and every set $X$ such that
+For every valuation $\Delta : \sop{\mathcal{V}} \rightharpoonup \SDom$ and every set $X$ such that
 \[
 \interpS{\aterm{x}{\Delta}} = \denval{X}[\alpha],
 \]
@@ -780,7 +780,7 @@ there exists a set $X^!$ such that
 \]
 
 \item \emph{Definedness on typed targets.}
-For every valuation $\Delta : \sop{\mathcal{V}} \rightharpoonup \sop{\mathsf{Dom}}$ and every value $\denval{Y}[\beta]$---notice that $\tau_Y = \beta$---the interpretation
+For every valuation $\Delta : \sop{\mathcal{V}} \rightharpoonup \SDom$ and every value $\denval{Y}[\beta]$---notice that $\tau_Y = \beta$---the interpretation
 \[
 \interpS{\aterm{\spec{\lvar{x}}}{\Delta[\lvar{x} \mapsto \denval{Y}]}}
 \]
@@ -830,7 +830,7 @@ Routine bookkeeping about fresh variables, context insertion, weakening, and agr
 Assume $\stype{\Gamma}{x}{\alpha}$ and let $\mathbb{c} : \castpath{\alpha}{\alpha}$ be the reflexive cast path on $\alpha$.
 \begin{enumerate}
 \item $\stype{\Gamma[\lvar{x} \mapsto \alpha]}{\spec{\lvar{x}}}{\mathsf{bool}}$.
-\item For every valuation $\Delta : \sop{\mathcal{V}} \rightharpoonup \sop{\mathsf{Dom}}$ and every value $\denval{X}$ such that
+\item For every valuation $\Delta : \sop{\mathcal{V}} \rightharpoonup \SDom$ and every value $\denval{X}$ such that
 \[
 \interpS{\aterm{x}{\Delta}} = \denval{X},
 \]
@@ -855,7 +855,7 @@ In the reflexive case, the rule is simply
 \[
 \spec{\lvar{x}} \triangleq \lvar{x} \eqS x
 \]
-Fix a valuation $\Delta : \sop{\mathcal{V}} \rightharpoonup \sop{\mathsf{Dom}}$ and assume
+Fix a valuation $\Delta : \sop{\mathcal{V}} \rightharpoonup \SDom$ and assume
 \[
 \interpS{\aterm{x}{\Delta}} = \denval{X}
 \]
@@ -948,7 +948,7 @@ Assume $\stype{\Gamma}{x}{\alpha \toS \mathsf{option}\ \beta}$ and let
 Then the generic correctness theorem specializes to:
 \begin{enumerate}
 \item $\stype{\Gamma[\lvar{x} \mapsto (\alpha' \timesS \beta') \toS \mathsf{bool}]}{\spec{\lvar{x}}}{\mathsf{bool}}$.
-\item For every valuation $\Delta : \sop{\mathcal{V}} \rightharpoonup \sop{\mathsf{Dom}}$ and every value $\denval{X}$ such that
+\item For every valuation $\Delta : \sop{\mathcal{V}} \rightharpoonup \SDom$ and every value $\denval{X}$ such that
 \[
 \interpS{\aterm{x}{\Delta}} = \denval{X},
 \]
@@ -961,7 +961,7 @@ there exists a set $X^!$ such that
 &= \denval{\zop{\top}}[\mathsf{bool}].&
 \end{aligned}
 \]
-\item For every valuation $\Delta : \sop{\mathcal{V}} \rightharpoonup \sop{\mathsf{Dom}}$ and every set $Y$ such that $\tau_Y = (\alpha' \timesS \beta') \toS \mathsf{bool}$, the interpretation
+\item For every valuation $\Delta : \sop{\mathcal{V}} \rightharpoonup \SDom$ and every set $Y$ such that $\tau_Y = (\alpha' \timesS \beta') \toS \mathsf{bool}$, the interpretation
 \[
 \interpS{\aterm{\spec{\lvar{x}}}{\Delta[\lvar{x} \mapsto \denval{Y}]}}
 \]
