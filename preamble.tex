@@ -2,8 +2,7 @@
 \usepackage{fancyhdr}
 \usepackage{microtype}
 \usepackage{xcolor}
-\usepackage{luacolor}
-\usepackage{lua-ul}
+\usepackage{luacode}  % \begin{luacode*}...\end{luacode*} — Lua blocks safe from TeX tokenization
 \usepackage{amsmath,amssymb, amsthm, mathtools, bbold, xspace}
 \usepackage{booktabs}
 \usepackage{listings}
@@ -27,6 +26,8 @@
 \usepackage{fontawesome}            % \faFileTextO for publication citation marker
 % In-text publication citations: \faFileTextO~[n] in blue
 \usepackage{multicol}        % two-column layout for the notation index
+\usepackage{multiincludeonly}
+
 \makenomenclature
 
 \newcites{pub}{List of Publications}

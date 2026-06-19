@@ -161,6 +161,8 @@
 \NewDocumentCommand{\overloadB}{o}{\mathbin{\bop{\triangleleft\mkern-7.5mu{-}}\IfNoValueTF{#1}{}{_{#1}}}}
 \NewDocumentCommand{\dirprodB}{o}{\mathbin{\,\bop{\otimes}\IfNoValueTF{#1}{}{_{#1}}}}
 \newcommand{\intrangeB}[2]{#1\mathbin{\bop{..}}#2}
+\newcommand{\BDom}{{\bop{\mathsf{Dom}}}}
+\newcommand{\SDom}{{\sop{\mathsf{Dom}}}}
 \newcommand{\lift}[1]{{#1}^\uparrow}
 % retraction  η_α : ⟦α^S⟧ᶻ → ⟦α⟧ᶻ
 \newcommand{\retr}[1]{\eta_{#1}}
@@ -336,7 +338,18 @@
 \newcommand{\binl}{\lstinline[language=b, mathescape=true]}
 
 \newcommand{\BEerBase}{https://vtrelat.github.io/BEer/docs/}
-\newcommand{\beerref}[1]{\BEerBase#1}
+% LuaLaTeX: percent-encode non-ASCII bytes *before* hyperref sees the URL,
+% preventing double-encoding of Unicode declaration names (e.g. π₁ → %CF%80%E2%82%81).
+\begin{luacode*}
+function pct_encode(s)
+  return (s:gsub("([^\32-\126])", function(c)
+    return string.format("%%%02X", string.byte(c))
+  end))
+end
+\end{luacode*}
+\newcommand{\beerref}[1]{%
+  \BEerBase\directlua{tex.sprint(pct_encode("\luaescapestring{#1}"))}%
+}
 
 \NewDocumentCommand{\leancodeptr}{m m}{%
   \href{\beerref{#2}}{\texttt{#1}}%
