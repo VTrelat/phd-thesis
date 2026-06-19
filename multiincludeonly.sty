@@ -1,0 +1,28 @@
+% multiincludeonly.sty
+% Allows multiple \includeonly calls; arguments are accumulated and the
+% real \includeonly is invoked once at \begin{document} with the full list.
+%
+% Usage: \includeonly{chapters/foo}
+%        \includeonly{chapters/bar}   % both are active
+%
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{multiincludeonly}[2026/06/12 v1.0 Accumulating includeonly]
+
+\RequirePackage{etoolbox}
+
+\newcommand{\multiincludeonly@list}{}
+\let\multiincludeonly@real\includeonly
+
+\renewcommand{\includeonly}[1]{%
+	\ifx\multiincludeonly@list\empty%
+		\def\multiincludeonly@list{#1}%
+	\else%
+		\edef\multiincludeonly@list{\multiincludeonly@list,#1}%
+	\fi%
+}
+
+\AtEndPreamble{%
+	\ifx\multiincludeonly@list\empty\else%
+		\expandafter\multiincludeonly@real\expandafter{\multiincludeonly@list}%
+	\fi%
+}
