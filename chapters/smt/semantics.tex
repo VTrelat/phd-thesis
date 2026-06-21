@@ -69,7 +69,10 @@ We now define the semantic domain of SMT terms. As for the source language
 so that denotations are defined only for \emph{well-typed} values. This
 correct-by-construction design removes all type-correctness side conditions from
 the denotation clauses, leaving only the genuine partiality of partial
-operations.
+operations. The rationale for this type-carrying domain and the correct-by-construction
+discipline it follows---together with the discarded alternative of denoting typing
+derivations instead---is discussed in \Cref{subsec:b-denotation-design} and applies
+unchanged here.
 
 \begin{definition}[Semantic domain][SMT.Dom][SMT/Semantics.html\#SMT.Dom]
   \label{def:smt-dom}
@@ -350,152 +353,132 @@ the determinism of the type system (\Cref{thm:smt-typing-det}).
   type with the assigned one.
 \end{proof}
 
-This theorem deserves a few remarks.
-First, stated in other words, a term cannot be denoted by two values carrying distinct types:
-the static type provided by the \(\saop{\vdash}\)-derivation fully determines the type carried
-by the denotation whenever the latter exists.
-This matters in a set-theoretic setting, where the same set may inhabit several
-types.
-Overall, this theorem amounts to a sanity check on denotations: we know that typing
-is deterministic, and the fact \(\interpS{\cdot}\) \emph{is a function} is another way
-of stating that result.
+This result calls for two comments.
+First, it is the semantic counterpart of typing determinism: just as a well-typed
+term has a unique static type, its denotation---whenever defined---carries exactly
+that type. Equivalently, a term cannot be denoted by a value whose intrinsic type
+differs from the one assigned by its \(\saop{\vdash}\)-derivation. The guarantee is
+substantive in a set-theoretic setting, where a single set may inhabit several
+types; the theorem ensures that the static type alone fixes the type carried by the
+denotation, so that \(\interpS{\cdot}\) never ascribes conflicting types to a term.
 
-Second, theorem \Cref{thm:smt-denote-type-det} actually makes typing \emph{context-independent}. This may seem surprising, and one could think of a counterexample considering the following two derivations for the same variable \(x\) under two different contexts:
+Second, the result implies that, over well-formed contexts, the static type of a
+term is independent of the context in which it is derived. This may seem
+surprising: one might expect the same variable \(x\) to be typed differently under
+different contexts, as in
 \[
-  \satype{\{ x \mapsto \intS\}}{x}{\intS} \quad\text{and}\quad
-  \satype{\{ x \mapsto \boolS\}}{x}{\boolS},
+  \satype{\{ x \mapsto \intS\}}{\mathsf{var}\ x}{\intS} \quad\text{and}\quad
+  \satype{\{ x \mapsto \boolS\}}{\mathsf{var}\ x}{\boolS},
 \]
-and wondering what the denotation \(\interpS{x}\) would be.
-By definition, \(\interpS{x} \triangleq x\) 
+leaving the type carried by \(\interpS{\mathsf{var}\ x}\) ambiguous. The ambiguity is
+only apparent. By definition \(\interpS{\mathsf{var}\ x} \triangleq x\), where \(x\)
+is a triple \(\denval{X}[\tau][\irrelprf]\) carrying a fixed intrinsic type
+\(\tau\). Well-formedness (\Cref{def:smt-wftc}) requires every context to assign
+\(x\) precisely this intrinsic type, so the two contexts above cannot both be
+well-formed---one would demand \(\tau = \intS\), the other \(\tau = \boolS\)---and
+the denotation unambiguously carries \(\tau\). More generally, the variable rule is
+the only context-sensitive rule, and well-formedness pins every variable to its
+intrinsic type; the static type of a well-typed PHOAS term is therefore determined
+by the term alone.
 
 
 \paragraph{Totality.}
 Totality is the converse existence statement: well-typed terms have a denotation,
 of the expected type. As on the source side, the abstraction of a concrete term
-denotes provided the renaming is type-compatible with the typing context and
-covers the term's free variables. We record the two conditions.
-
-\begin{definition}[Covering and type-compatible renaming][SMT.RenamingContext.CoversFV, .RespectsTypeContext][
-    SMT/Reasoning/Defs.html\#SMT.RenamingContext.CoversFV,
-    SMT/Reasoning/Defs.html\#SMT.RenamingContext.RespectsTypeContext]
-  \label{def:smt-renaming-conditions}
-  A renaming \(\Delta : \mathcal{V} \rightharpoonup \SDom\) \emph{covers}
-  a term \(t\) if it is defined on every free variable of \(t\), and is
-  \emph{type-compatible} with a context \(\Gamma\) if, whenever
-  \(\Gamma(v) = \tau\), the value \(\Delta(v)\) is defined and carries intrinsic
-  type \(\tau\).
-\end{definition}
+has a denotation provided the typing context is well-formed and the renaming
+covers the term's free variables.
 
 \begin{theorem}[Denotation typing-completeness][SMT.RenamingContext.denote\_exists\_of\_typing][SMT/Reasoning/Basic/DenotationTotality.html\#SMT.RenamingContext.denote_exists_of_typing]
   \label{thm:smt-denote-complete}
   Let \(\Gamma\) be a concrete typing context, \(t\) a concrete SMT term with
-  \(\stype{\Gamma}{t}{\tau}\), and \(\Delta\) a renaming that covers \(t\) and is
-  type-compatible with \(\Gamma\). Then \(\aterm{t}{\Delta}\) has a denotation
-  carrying type \(\tau\): there is a set \(T \in \interpZ{\tau}\) with
+  \(\stype{\Gamma}{t}{\tau}\), and \(\Delta\) a renaming that covers the free variables of \(t\). 
+  Then \(\aterm{t}{\Delta}\) has a denotation carrying type \(\tau\), \ie
   \[
-    \interpS{\aterm{t}{\Delta}} = \denval{T}[\tau].
+    \exists\, T \in \interpZ{\tau},\; \interpS{\aterm{t}{\Delta}} = \denval{T}[\tau].
   \]
 \end{theorem}
 \begin{proof}
-  By induction on the typing derivation \(\stype{\Gamma}{t}{\tau}\). The argument
-  splits into four groups of cases.
+  By induction on the typing derivation \(\stype{\Gamma}{t}{\tau}\). We proceed by a case analysis divided into four groups.
 
-  \smallskip\noindent\emph{Variables and literals.}
+  \paragraph{Variables and literals.}
   For a variable, type-compatibility supplies a domain value \(\Delta(v)\) of
-  type \(\tau\); abstraction maps \(\mathsf{var}\ v\) to it, and a variable
-  denotes itself. Literals and the unit value are immediate, with the membership
+  type \(\tau\); abstraction maps \(\mathsf{var}\ v\) to it, variables are denoted by
+  themselves. Literals and the unit value are immediate, with the membership
   proofs constructed in \Cref{subsec:smt-denote}.
 
-  \smallskip\noindent\emph{Compound non-partial constructors.}
+  \paragraph{Compound non-partial constructors.}
   The induction hypothesis applied to each subterm yields a witness denotation
-  whose type matches the corresponding typing premise. By type adequacy
-  (\Cref{thm:smt-denote-type-det}), each type case analysis inside the denotation
-  clause selects the success branch. The witness set is then assembled by the
-  relevant ZFC closure lemma: Cartesian products and projections for pairs,
-  closure of \(\Zint\) and \(\Zbool\) under the arithmetic and Boolean
-  operations, the tagged encoding for the option constructors, and the folded
-  conjunction for distinctness. The derived connectives \(\orS\), \(\impS\), and
-  \(\existsS\) reduce to their definitions and are covered by the corresponding
-  primitive cases.
+  whose type matches the corresponding typing premise.
+  The witness set is then assembled by the relevant ZFC closure lemma.
 
-  \smallskip\noindent\emph{Application.}
+  \paragraph{Application.}
   The induction hypothesis gives
   \(\interpS{f} = \denval{F}[\sigma \toS \tau]\) and
   \(\interpS{x} = \denval{X}[\sigma]\). Since \(F \in \interpZ{\sigma \toS \tau} =
-  \interpZ{\sigma} \funsZ \interpZ{\tau}\), it is a functional graph with domain
-  \(\interpZ{\sigma}\), which contains \(X\); the well-definedness side condition
+  {\interpZ{\tau}}^{\interpZ{\sigma}}\) is a functional graph with domain
+  \(\interpZ{\sigma}\)---which contains \(X\)---the well-definedness side condition
   of the application clause is therefore satisfied, and the unique \(Y\) with
   \(\pairZ{X}{Y} \in F\) provides the witness, with
   \(\pf{\tau}{Y} : Y \in \interpZ{\tau}\) following from
   \(\pairZ{X}{Y} \in F \subseteq \interpZ{\sigma} \timesZ \interpZ{\tau}\).
 
-  \smallskip\noindent\emph{Binders.}
+  \paragraph{Binders.}
   We treat the three binder cases uniformly. Inversion of the binder typing rule
-  supplies, for some arity \(n \geq 1\), a type vector \(\vec\tau\) and a body
-  \(\varphi\) (a quantified body or an abstraction body) such that the body is
-  well-typed under \(\Gamma[\vec v:\vec\tau]\) for every family of variables
+  supplies, for some arity \(n \geq 1\), a type vector \(\vec\tau\) and a scoped body
+  \(\varphi\) well-typed under \(\Gamma[\vec v:\vec\tau]\) for every family of variables
   \(\vec v\) carrying the types \(\vec\tau\), with type \(\boolS\) for universal
   quantification and some \(\gamma\) for lambda abstraction.
   The argument proceeds in four steps.
-  \begin{enumerate}[label=(\arabic*), nosep]
-    \item \emph{Domain.} The carrier \(\mathcal{D} = \interpZ{\vec\tau^{\timesS}}\)
-          is the product of the component carriers; each tuple
-          \(z \in \mathcal{D}\) decomposes into components
-          \(z_i \in \interpZ{\tau_i}\).
-    \item \emph{Body at typed tuples.} Each \(z\) induces a family
-          \(\vec z = (\denval{z_i}[\tau_i])_i\) of the prescribed types.
-          The renaming context \(\Delta\) is extended to
-          \(\Delta' = \Delta[\vec v \leftarrow \vec z]\) via
-          {\small\leancodeptr{Function.updates}{Extra/Function.html\#Function.updates}};
-          the induction hypothesis, applied to the body under \(\Delta'\) ---
-          which respects \(\Gamma[\vec v:\vec\tau]\) by
-          \texttt{respectsTypeContext\_updates} --- yields a body denotation
-          of type \(\boolS\) (respectively \(\gamma\)).
-          (The domain \(\mathcal{D} = \interpZ{\vec\tau^{\timesS}}\) is non-empty,
-          since each factor \(\interpZ{\tau_i}\) is non-empty by
-          \Cref{thm:smt-type-nonempty} and a finite product of non-empty sets is
-          non-empty.)
-    \item \emph{Side conditions.}
-          For lambda abstraction, the denotation clause is guarded by two
-          conditions: that the body denotes for every typed argument tuple
-          (\texttt{body\_isSome}), and that the body's type is uniform across
-          all typed tuples (\texttt{body\_typ\_det}).
-          For universal quantification only the presence condition is needed,
-          since the body always has type \(\boolS\) and uniformity is trivial.
-          For existential quantification (a derived form), the analogous
-          presence condition is established on the negated body instead.
-          Step~(2) discharges the presence condition in each case; type adequacy
-          (\Cref{thm:smt-denote-type-det}) discharges the uniformity condition for
-          lambda by identifying the body type uniquely with \(\gamma\), regardless
-          of the tuple chosen.
-    \item \emph{Witness.} Writing \(\Phi\) for the scoped body denotation, the
-          witness is assembled by separation: the graph
-          \(\{\, \pairZ{z}{y} \in \mathcal{D} \timesZ \interpZ{\gamma} \mid y =
-          \Phi(z) \,\}\) for lambda, which lies in
-          \(\interpZ{\vec\tau^{\timesS} \toS \gamma}\); the bounded infimum
-          \(\bigcap\{\, y \in \Zbool \mid \exists z \in \mathcal{D},\ y = \Phi(z)
-          \,\}\) for universal quantification (and \(\topZ\) when
-          \(\mathcal{D} = \emptyset\)), which lies in \(\Zbool\); and the negation
-          of the corresponding universal denotation for the existential.
-  \end{enumerate}
-  In each case the constructed witness belongs to \(\interpZ{\tau}\), providing
-  \(\pf{\tau}{T}\) and concluding the proof.
+    
+  \smallskip\noindent\emph{Step 1: domain denotation.} The carrier \(\mathcal{D} = \interpZ{\tau^{\times}}\)
+    is the product of the component carriers; each tuple
+    \(z \in \mathcal{D}\) decomposes into components
+    \(z_i \in \interpZ{\tau_i}\).
+    
+  \smallskip\noindent\emph{Step 2: body denotation at typed tuples.} Each \(z\) induces a family
+    \(\vec z = (\denval{z_i}[\tau_i])_i\) of the prescribed types.
+    The renaming context \(\Delta\) is extended to
+    \(\Delta' \coloneq \Delta[\vec v \leftarrow \vec z]\);
+    the induction hypothesis, applied to the body under \(\Delta'\)
+    yields a body denotation of the right type, namely \(\boolS\)
+    for universal quantification and \(\gamma\) for lambda abstraction.
+    
+  \smallskip\noindent\emph{Step 3: discharging the side conditions of the denotation clause.}
+    For lambda abstraction, the denotation clause is guarded by two
+    conditions: that the body has a denotation for every typed argument
+    tuple, and that the body's type is uniform across all typed tuples.
+    For universal quantification only the presence condition is needed,
+    since the body always has type \(\boolS\) and uniformity is trivial.
+    For existential quantification (a derived form), the analogous
+    presence condition is established on the negated body instead.
+    Step 2 discharges the presence condition in each case; type adequacy
+    (\Cref{thm:smt-denote-type-det}) discharges the uniformity condition for
+    lambda by identifying the body type uniquely with \(\gamma\), regardless
+    of the tuple chosen.
+    
+  \smallskip\noindent\emph{Step 4: assembling the witness.} Writing \(\Phi\) for
+    the scoped body denotation---\ie informally, for any family of sets \(\vec z\),
+    \(\interpS{\varphi((\denval{z_i}[\tau_i][\irrelprf])_i)} = \denval{\Phi(z)}[\gamma][\irrelprf]\)
+    where \(\gamma\) matches the type of the body---the
+    witness is assembled by separation: the graph
+    \(\{\, \pairZ{z}{y} \in \mathcal{D} \timesZ \interpZ{\gamma} \mid y =
+    \Phi(z) \,\}\) for lambda, which lies in
+    \(\interpZ{\tau^{\times} \toS \gamma}\); the bounded infimum
+    \(\bigcap\{\, y \in \Zbool \mid \exists z \in \mathcal{D},\ y = \Phi(z)
+    \,\}\) for universal quantification, which lies in \(\Zbool\); and the negation
+    of the corresponding universal denotation for the existential.
+  
+  In each case the constructed witness belongs to \(\interpZ{\tau}\) as expected,
+  providing \(\pf{\tau}{T}\) and concluding the proof.
 \end{proof}
-
-Two corollaries record the immediate consequences used downstream: a well-typed
-term with a type-compatible, covering renaming always denotes
-({\small\leancodeptr{SMT.RenamingContext.denote\_isSome\_of\_typing}{SMT/Reasoning/Basic/DenotationTotality.html\#SMT.RenamingContext.denote_isSome_of_typing}}),
-and the type of its denotation is the statically assigned one
-({\small\leancodeptr{SMT.RenamingContext.denote\_type\_of\_typing}{SMT/Reasoning/Basic/DenotationTotality.html\#SMT.RenamingContext.denote_type_of_typing}}).
 
 This chapter has developed the formal target-language infrastructure for SMT-LIB 2.7.
 \Cref{sec:smt-syntax} introduced the syntactic categories: a concrete, first-order
 representation of terms that closely follows the surface syntax of SMT-LIB 2.7 and
-constitutes the deep embedding emitted by BEer; the PHOAS abstract representation used
-for semantic reasoning; and the derived connectives that keep the abstract layer minimal
-(\Cref{def:smt-derived}).
-\Cref{sec:smt-typing} gave typing rules for both representations, proved the inversion
-and structural lemmas, and established the determinism of the abstract type system
+constitutes the deep embedding emitted by BEer, and the PHOAS abstract representation used
+for semantic reasoning.
+\Cref{sec:smt-typing} gave typing rules for both representations, and established
+several structural properties, including the determinism of the abstract type system
 (\Cref{thm:smt-typing-det}), which underpins the adequacy result below.
 \Cref{sec:smt-semantics} assigned denotations in the shared ZFC universe, proved type
 adequacy (\Cref{thm:smt-denote-type-det}) and typing completeness
@@ -504,14 +487,9 @@ adequacy (\Cref{thm:smt-denote-type-det}) and typing completeness
 {\small\leancodeptr{SMT.RenamingContext.denote\_type\_of\_typing}{SMT/Reasoning/Basic/DenotationTotality.html\#SMT.RenamingContext.denote_type_of_typing}}).
 
 A key structural difference from the B chapter (\Cref{ch:b}) is that SMT function
-spaces are total: \(\interpZ{\sigma \toS \tau} = \interpZ{\sigma} \funsZ \interpZ{\tau}\)
+spaces are total: \(\interpZ{\sigma \toS \tau} = {\interpZ{\tau}}^{\interpZ{\sigma}}\)
 is the set of total functions, so the denotation is partial only at function application,
 and even there only due to the type-matching guard---a guard that completeness shows is
 automatically satisfied for well-typed terms. On the source side, by contrast, partiality
-arises at application, cardinality, minimum, and maximum, all requiring explicit
-well-definedness conditions.
-
-The syntax, typing, and semantics developed here form the target-language contract
-against which the encoder of \Cref{ch:beer} is verified: every B proof obligation is
-mapped to an SMT term whose denotation, in the shared ZFC universe, equals that of its
-source.
+arises at every partial operator, \eg application, cardinality, minimum, and maximum,
+all requiring explicit well-definedness conditions.
