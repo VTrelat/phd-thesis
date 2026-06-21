@@ -69,9 +69,10 @@ The reason for this design choice is to avoid set-theoretic pathologies related 
 and provide baked-in typing constraints directly in the semantics, thus circumventing some
 well-definedness side conditions---actually, all conditions related to type-correctness---in the
 denotation clauses.
-This is highly motivated by the idea of obtaining a \emph{correct-by-construction} design, and is standard practice in mechanized semantics with intrinsically typed syntax~\cite{allais2018syntaxes}.
+This yields a \emph{correct-by-construction} design, carrying typing as an invariant of the semantic domain rather than of the syntax---a discipline in the spirit of type- and scope-safe formalizations~\cite{allais2018syntaxes}.
 
 \begin{remark}
+  \label{rem:b-typecorrectness-only}
   This design choice only removes case analysis on type-correctness from the denotation clauses, but does not eliminate the need for semantic well-definedness side conditions related to partial operations, like in domain-application or cardinality, which are still present in the semantics and are discussed below.
 \end{remark}
 
@@ -92,6 +93,62 @@ containing a ZFC set \(X\), a B type \(\tau\) and a proof \(\pf{\tau}{X} : X \in
   When the proof is unused or irrelevant in a given context, we simply write ``\(\irrelprf\)'' in
   such triples, mimicking Lean notations.
 \end{note}
+
+\subsection{Denoting terms versus typing derivations}
+\label{subsec:b-denotation-design}
+
+Baking typing into \(\BDom\) (\Cref{def:b-dom}) is a deliberate design decision, and
+the discarded alternative deserves to be made explicit, namely what it recurses on: whether
+typing is supplied to the denotation as a separate derivation, or carried by the values
+it produces. The same discipline governs the target language, so the discussion below
+transfers verbatim to the SMT semantic domain (\Cref{subsec:smt-sem-domain}).
+
+\paragraph{Denoting upon typing derivations.}
+One option keeps typing and denotation as separate layers: the denotation recurses on a
+typing derivation and returns a bare set,
+\[
+  \interpB{\cdot} : (t : \mathsf{PHOAS.Term}\ \mathsf{ZFSet})
+    \to (h : \batype{\Gamma}{t}{\tau}) \rightharpoonup \mathsf{ZFSet},
+\]
+where the type \(\tau\) is supplied by the derivation \(h\) and then discarded by the
+output. The type system and the semantics are thereby fully decoupled, and each clause
+is pure set theory that computes no type. This modularity incurs a twofold cost. First,
+recursing on a proof-relevant derivation is a mechanization burden: the derivation must be
+threaded through every clause, and one must \emph{separately} prove that the resulting
+set does not depend on the chosen derivation, lest the meaning of a term be contingent
+on how it is typed. Second, the output is a bare set, so the basic guarantee ``a term of
+type \(\tau\) has a denotation within \(\interpZ{\tau}\)'' becomes an external lemma that must be
+re-established at every use site: lifted operations such as addition, multiplication, and
+set membership each require a separate proof that their arguments carry the expected type
+and that the result lands in the expected codomain. The clauses then accumulate
+type-correctness side conditions that obscure the genuine partiality of the semantics.
+
+\paragraph{Denoting terms into a type-carrying domain.}
+The option we retain carries typing in the codomain: the denotation maps a term to a
+value of \(\BDom\), \ie\ a triple \(\denval{X}[\tau]\) bundling a set, its type, and a
+membership proof \(\pf{\tau}{X}\), and recurses on the term alone. This pays a single,
+local price---\emph{redundancy}: the type \(\tau\) is both carried by the value and
+recomputed by the recursion, duplicating information the type system already fixes. In
+exchange, the denotation recurses structurally on the \emph{term}, with no reference to
+derivations; every value is well-typed by construction, with its membership proof
+\(\pf{\tau}{X}\) in tow; and all type-correctness side conditions vanish from the
+clauses, leaving only the genuine well-definedness conditions of partial operations
+(\Cref{rem:b-typecorrectness-only}).
+
+\paragraph{Rationale.}
+We retain the type-carrying domain because its redundancy is exactly what the metatheory
+turns into a guarantee rather than a liability. Type adequacy
+(\Cref{thm:b-denote-type-det}) shows that whenever a term denotes, the type carried by
+its denotation coincides with the one assigned by any typing derivation; totality
+(\Cref{thm:b-denote-complete}) establishes the converse, that well-typed terms denote at
+the expected type. Together they prove that set-level well-formedness and typing
+derivations describe the very same terms---the bridge on which the certified encoding of
+\Cref{ch:beer} ultimately rests. The carried type is thus never in conflict with the
+derivable one, and in return the semantics becomes a structural, side-condition-free
+function whose every output is certified well-typed. This realizes, at the level of the
+denotation, the \emph{correct-by-construction} discipline announced in
+\Cref{subsec:b-sem-domain}: well-typedness is maintained as an invariant of the semantic
+values rather than reconstructed after the fact.
 
 \subsection{Denotation}
 \label{subsec:b-denote}
