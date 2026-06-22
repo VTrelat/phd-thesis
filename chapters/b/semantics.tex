@@ -150,6 +150,19 @@ denotation, the \emph{correct-by-construction} discipline announced in
 \Cref{subsec:b-sem-domain}: well-typedness is maintained as an invariant of the semantic
 values rather than reconstructed after the fact.
 
+\begin{note}
+  In the sense of Reynolds~\cite{reynolds2000meaning}, the type interpretation
+  \(\interpZ{\cdot}\) is \emph{extrinsic}: each type denotes a subset \(\interpZ{\tau}\)
+  of the single universe \(\mathsf{ZFSet}\), and a value's well-typedness is the
+  membership assertion \(X \in \interpZ{\tau}\). The type-carrying domain \(\BDom\)
+  internalizes this assertion as a constructive proof \(\pf{\tau}{X}\), whereas the
+  discarded alternative---denoting typing derivations---is closer to the
+  \emph{intrinsic} reading, in which meaning is assigned to derivations. The
+  correspondence is by analogy, neither design being a pure instance; adequacy
+  (\Cref{thm:b-denote-type-det}) and totality (\Cref{thm:b-denote-complete}) reconcile
+  the two.
+\end{note}
+
 \subsection{Denotation}
 \label{subsec:b-denote}
 

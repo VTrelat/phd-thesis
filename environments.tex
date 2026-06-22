@@ -270,7 +270,7 @@
   envbase,
   colback=blue!5,
   borderline west={2pt}{0pt}{blue!70},
-  fontupper={\color{dark-blue}},
+  colupper=dark-blue,
   before upper={\stepcounter{thmcounter}\refstepcounter{remtype}\setlength{\parskip}{4pt}\textcolor{blue!70}{\textbf{Remark~\thethmcounter\if\relax\detokenize{#1}\relax\else~\textup{(#1)}\fi.}}\enspace},
 }
 
@@ -285,7 +285,7 @@
   envbase,
   colback=blue!10,
   borderline west={2pt}{0pt}{blue!70},
-  fontupper={\color{dark-blue}},
+  colupper=dark-blue,
   before upper={\setlength{\parskip}{4pt}\textcolor{blue}{\textbf{Fact.}}\enspace},
 }
 
@@ -323,7 +323,7 @@
 \NewTColorBox{subproof}{ }{%
   envbase,
   colback=blue!10,
-  fontupper={\color{dark-blue}},
+  colupper=dark-blue,
   borderline west={2pt}{0pt}{blue!70},
   before upper={\setlength{\parskip}{4pt}\textcolor{blue}{\textbf{Proof.}}\enspace},
   after upper={\unskip\nobreak\hspace*{1em}\hfill\small\ensuremath{\mathcolor{blue!70}{\qed}}},

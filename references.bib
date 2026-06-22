@@ -23,7 +23,8 @@
   title = {The {B}-Book: Assigning Programs to Meanings},
   publisher = {Cambridge University Press},
   address = {Cambridge},
-  year = {1996}
+  year = {1996},
+  doi = {10.1017/CBO9780511624162}
 }
 
 @book{schneider2001bmethod,
@@ -100,7 +101,7 @@
   title  = {Isabelle Documentation},
   year   = {2026},
   note   = {Accessed 29 April 2026},
-  url    = {https://isabelle.in.tum.de/doc/}
+  url    = {https://isabelle.in.tum.de/documentation.html}
 }
 
 @manual{RocqReferenceManual,
@@ -142,14 +143,17 @@ doi = {https://doi.org/10.1016/S0049-237X(08)71989-X},
 author = {Peter Aczel},
 }
 
-@techreport{agerholm-gordon-zfhol,
-  author      = {Sten Agerholm and Mike Gordon},
-  title       = {Experiments with {ZF} Set Theory in {HOL} and Isabelle},
-  institution = {BRICS, Department of Computer Science, University of Aarhus},
-  year        = {1995},
-  month       = {July},
-  number      = {RS-95-37},
-  url         = {https://tidsskrift.dk/brics/article/download/19940/17593/45293}
+@inproceedings{agerholm-gordon-zfhol,
+  author    = {Sten Agerholm and Michael J. C. Gordon},
+  title     = {Experiments with {ZF} Set Theory in {HOL} and Isabelle},
+  booktitle = {Higher Order Logic Theorem Proving and Its Applications (TPHOLs 1995)},
+  editor    = {E. Thomas Schubert and Phillip J. Windley and James Alves-Foss},
+  series    = {Lecture Notes in Computer Science},
+  volume    = {971},
+  pages     = {32--45},
+  publisher = {Springer},
+  year      = {1995},
+  doi       = {10.1007/3-540-60275-5_55},
 }
 
 @article{barras-set-theory,
@@ -177,11 +181,13 @@ author = {Peter Aczel},
 
 @article{CSB_thm,
   author  = {Cantor, Georg},
-  title   = {{Grundlagen einer allgemeinen Mannigfaltigkeitslehre}},
+  title   = {{Beitr\"{a}ge zur Begr\"{u}ndung der transfiniten Mengenlehre (Erster Artikel)}},
   journal = {Mathematische Annalen},
   volume  = {46},
+  number  = {4},
   year    = {1895},
-  pages   = {481--512}
+  pages   = {481--512},
+  doi     = {10.1007/BF02124929}
 }
 
 @inbook{DeBruijnTypes,
@@ -557,4 +563,137 @@ author = {Peter Aczel},
   volume    = {1889},
   pages     = {63--75},
   year      = {2017}
+}
+
+@article{reynolds2000meaning,
+  author  = {John C. Reynolds},
+  title   = {The Meaning of Types: From Intrinsic to Extrinsic Semantics},
+  journal = {BRICS Report Series},
+  volume  = {7},
+  number  = {32},
+  year    = {2000},
+  month   = jun,
+  issn    = {0909-0878},
+  doi     = {10.7146/brics.v7i32.20167},
+  url     = {https://tidsskrift.dk/brics/article/view/20167},
+}
+% ---------------------------------------------------------------------------
+% History and foundations of set theory (Chapter: Background, Set Theory)
+% ---------------------------------------------------------------------------
+@book{russell1903principles,
+  author    = {Russell, Bertrand},
+  title     = {The Principles of Mathematics},
+  publisher = {Cambridge University Press},
+  address   = {Cambridge},
+  year      = {1903},
+}
+
+@book{vanHeijenoort1967,
+  editor    = {van Heijenoort, Jean},
+  title     = {From {Frege} to {G{\"o}del}: A Source Book in Mathematical Logic, 1879--1931},
+  publisher = {Harvard University Press},
+  address   = {Cambridge, MA},
+  year      = {1967},
+}
+
+@article{zermelo1908untersuchungen,
+  author  = {Zermelo, Ernst},
+  title   = {Untersuchungen {\"u}ber die Grundlagen der Mengenlehre. {I}},
+  journal = {Mathematische Annalen},
+  volume  = {65},
+  number  = {2},
+  pages   = {261--281},
+  year    = {1908},
+  doi     = {10.1007/BF01449999},
+}
+
+@article{fraenkel1922grundlagen,
+  author  = {Fraenkel, Adolf},
+  title   = {Zu den Grundlagen der {Cantor}-{Zermelo}schen Mengenlehre},
+  journal = {Mathematische Annalen},
+  volume  = {86},
+  number  = {3},
+  pages   = {230--237},
+  year    = {1922},
+  doi     = {10.1007/BF01457986},
+}
+
+@incollection{skolem1922bemerkungen,
+  author    = {Skolem, Thoralf},
+  title     = {Einige Bemerkungen zur axiomatischen Begr{\"u}ndung der Mengenlehre},
+  booktitle = {Matematikerkongressen in Helsingfors den 4--7 Juli 1922, Den femte skandinaviska matematikerkongressen, Redog{\"o}relse},
+  publisher = {Akademiska Bokhandeln},
+  address   = {Helsinki},
+  pages     = {217--232},
+  year      = {1923},
+}
+
+@article{vonNeumann1925axiomatisierung,
+  author  = {von Neumann, John},
+  title   = {Eine Axiomatisierung der Mengenlehre},
+  journal = {Journal f{\"u}r die reine und angewandte Mathematik},
+  volume  = {154},
+  pages   = {219--240},
+  year    = {1925},
+  doi     = {10.1515/crll.1925.154.219},
+}
+
+@article{zermelo1930grenzzahlen,
+  author  = {Zermelo, Ernst},
+  title   = {{\"U}ber Grenzzahlen und Mengenbereiche: Neue Untersuchungen {\"u}ber die Grundlagen der Mengenlehre},
+  journal = {Fundamenta Mathematicae},
+  volume  = {16},
+  pages   = {29--47},
+  year    = {1930},
+  doi     = {10.4064/fm-16-1-29-47},
+}
+
+@book{jech2003set,
+  author    = {Jech, Thomas},
+  title     = {Set Theory},
+  edition   = {3rd millennium},
+  series    = {Springer Monographs in Mathematics},
+  publisher = {Springer},
+  address   = {Berlin},
+  year      = {2003},
+  doi       = {10.1007/3-540-44761-X},
+}
+
+@book{kunen2011set,
+  author    = {Kunen, Kenneth},
+  title     = {Set Theory},
+  series    = {Studies in Logic},
+  volume    = {34},
+  publisher = {College Publications},
+  address   = {London},
+  year      = {2011},
+}
+
+@article{zorn1935remark,
+  author  = {Zorn, Max},
+  title   = {A Remark on Method in Transfinite Algebra},
+  journal = {Bulletin of the American Mathematical Society},
+  volume  = {41},
+  number  = {10},
+  pages   = {667--670},
+  year    = {1935},
+  doi     = {10.1090/S0002-9904-1935-06166-X},
+}
+
+@book{godel1940consistency,
+  author    = {G{\"o}del, Kurt},
+  title     = {The Consistency of the Continuum Hypothesis},
+  series    = {Annals of Mathematics Studies},
+  number    = {3},
+  publisher = {Princeton University Press},
+  address   = {Princeton, NJ},
+  year      = {1940},
+}
+
+@book{cohen1966settheory,
+  author    = {Cohen, Paul J.},
+  title     = {Set Theory and the Continuum Hypothesis},
+  publisher = {W. A. Benjamin},
+  address   = {New York},
+  year      = {1966},
 }

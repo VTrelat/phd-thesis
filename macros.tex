@@ -298,6 +298,32 @@
 \newcommand{\ZintB}{\bop{\mathbb{Z}}}
 \newcommand{\ZboolB}{\bop{\mathbb{B}}}
 
+% ---------------------------------------------------------------------------
+% Set theory (background chapter) and shared relational / function vocabulary.
+% Plain meta-level set-theoretic notation, deliberately distinct from the
+% superscript-Z object-language operators above.  The relational macros below
+% (\Dom, \Ran, \Image, \Id, \IsInjective, ...) are the canonical definitions
+% reused by \Cref{ch:zflean}; \IsFunc and \IsPFunc are defined further down.
+% ---------------------------------------------------------------------------
+% Set-builder / separation:  \setcomp{z \in x}{\varphi(z)}  ->  { z in x | phi(z) }.
+\newcommand{\setcomp}[2]{\ensuremath{\{\, #1 \mid #2 \,\}}}
+% Ordered (Kuratowski) pair, written (x,y) to match \Cref{ch:zflean}.
+\newcommand{\opair}[2]{\ensuremath{(#1, #2)}}
+% Meta-level power set and von Neumann cumulative hierarchy (STIX covers P, V).
+\newcommand{\pow}{\mathcal{P}}
+\newcommand{\cumhier}{\mathcal{V}}
+\newcommand{\Ord}{\mathsf{Ord}}
+% Meta-level partial-function arrow (total functions reuse \to).
+\newcommand{\pfun}{\rightharpoonup}
+% Shared relational / function vocabulary (canonical home; reused in ZFLean).
+\def\Dom{\mathsf{Dom}}
+\def\Ran{\mathsf{Range}}
+\newcommand{\Image}[2]{#1[#2]}
+\newcommand{\Id}[1]{\mathds{1}_{#1}}
+\def\IsInjective{\mathsf{IsInjective}}
+\def\IsSurjective{\mathsf{IsSurjective}}
+\def\IsBijective{\mathsf{IsBijective}}
+
 \newcommand{\aterm}[2]{\ensuremath{\left\llparenthesis #1 \right\rrparenthesis_{#2}}}
 \newcommand{\interpS}[1]{\sop{\lBrack #1 \rBrack}}
 \newcommand{\interpB}[1]{\bop{\lBrack #1 \rBrack}}

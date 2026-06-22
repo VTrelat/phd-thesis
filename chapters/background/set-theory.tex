@@ -1,2 +1,295 @@
 \section{Set Theory}
 \label{sec:set-theory}
+
+\emph{Zermelo--Fraenkel set theory with the axiom of choice} (ZFC) is the
+standard first-order foundation of modern mathematics, and the theory in which
+the developments described in this thesis are ultimately expressed. We
+recall it here to fix the axioms and the vocabulary used in later chapters.
+After sketching how ZFC emerged from Zermelo's original axiomatization to its
+modern Zermelo--Fraenkel form, we state the theory formally and develop the
+derived notions of ordered pairs, relations, and functions. This section is a
+condensed introduction; Jech~\cite{jech2003set} and Kunen~\cite{kunen2011set}
+are standard, accessible textbooks on the subject.
+
+\subsection{From Naive to Axiomatic Set Theory}
+\label{subsec:set-theory-history}
+
+Set theory originates with Georg Cantor, who in the 1870s and 1880s was led, by
+his study of trigonometric series, to treat infinite collections as completed
+mathematical objects and to develop a theory of their sizes through cardinal and
+ordinal numbers. Cantor's informal conception is captured by his well-known
+description of a set as ``any collection into a whole of definite, distinct
+objects of our intuition or thought''~\cite{CSB_thm}. Two principles
+are implicit in this view: \emph{extensionality}, that a set is wholly
+determined by its members; and \emph{unrestricted comprehension}, that every
+property~$\varphi$ delimits a set $\{x \mid \varphi(x)\}$ of all objects
+satisfying it. This naive theory was extraordinarily productive and, taken at
+face value, inconsistent.
+
+The inconsistency was made explicit by Russell in 1901~\cite{russell1903principles}.
+Applying comprehension to the property $x \notin x$ yields the
+\emph{Russell set} $E = \{x \mid x \notin x\}$; asking whether $E \in E$ gives
+\[
+  E \in E \iff E \notin E,
+\]
+a contradiction, today commonly called \emph{Russell's paradox}.
+Related antinomies---Cantor's paradox of the largest cardinal
+and the Burali-Forti paradox of the largest ordinal---showed that the difficulty
+was not an isolated curiosity but a structural defect of unrestricted
+comprehension~\cite{vanHeijenoort1967}. A collection cannot be formed merely
+because a property describes it.
+
+The lasting response was to replace comprehension with axioms that delimit
+exactly which collections may be formed, while retaining enough strength to
+reconstruct ordinary mathematics. This is the axiomatic route opened by Zermelo
+and completed by Fraenkel, Skolem, and von Neumann, which we now follow.
+
+\subsection{Zermelo's Axiomatization}
+\label{subsec:set-theory-zermelo}
+
+The first successful axiomatization is due to
+Zermelo~\cite{zermelo1908untersuchungen}. It was motivated in part by the need to
+secure his 1904 proof of the well-ordering theorem and the axiom of choice on
+which it relied, then a matter of controversy. Zermelo's system comprises seven
+axioms: \emph{extensionality}; \emph{elementary sets}, providing the empty set
+and unordered pairs; \emph{separation}; \emph{power set}; \emph{union};
+\emph{choice}; and \emph{infinity}.
+
+Its decisive idea is the axiom of \emph{separation} (\emph{Aussonderung}), which
+tames comprehension by relativising it to a set already given: from a set $x$
+and a property $\varphi$ one may form the subset
+$\{z \in x \mid \varphi(z)\}$, but one may not conjure
+$\{z \mid \varphi(z)\}$ out of nothing. Russell's paradox thereby dissolves. The
+collection $\{z \in x \mid z \notin z\}$ is a harmless set, and the diagonal
+argument that produced $E$ now establishes only that this subset does not belong
+to $x$; hence no set $x$ contains all sets, and the universe of sets is not
+itself a set.
+
+Zermelo's theory has two well-known shortcomings, both addressed within the
+following two decades. First, the notion of a ``definite'' property~$\varphi$
+admissible in separation was left informal, with no precise delimitation of the
+permitted properties. Second, the system is too weak: it cannot prove the
+existence of the set $\{Z_0, Z_1, Z_2, \dots\}$, where $Z_0 = \mathbb{N}$ and
+$Z_{n+1} = \pow(Z_n)$, nor of cardinals such as $\aleph_\omega$. Sets whose
+construction requires iterating an operation along an arbitrary index lie beyond
+its reach.
+
+\subsection{Replacement, Foundation, and the Zermelo--Fraenkel System}
+\label{subsec:set-theory-zf}
+
+Both shortcomings were remedied, independently, by
+Fraenkel~\cite{fraenkel1922grundlagen} and Skolem~\cite{skolem1922bemerkungen}
+around 1922. Skolem proposed making ``definite property'' precise as a
+first-order formula in the language with equality and membership, thereby fixing
+the meaning of separation. They both added the axiom schema of
+\emph{replacement}: if a formula~$\varphi$ defines a functional relation, then
+the image of any set under it is again a set. Replacement supplies exactly the
+missing closure---$\{Z_n \mid n \in \mathbb{N}\}$ is the image of $\mathbb{N}$
+under $n \mapsto Z_n$---and with it the transfinite recursion and ordinal
+arithmetic that Zermelo's system could not justify.
+
+A final axiom, \emph{foundation} (or \emph{regularity}), was isolated by von
+Neumann~\cite{vonNeumann1925axiomatisierung} and incorporated into the system by
+Zermelo~\cite{zermelo1930grenzzahlen} in 1930. It asserts that membership is
+well-founded, outlawing infinite descending chains
+$\cdots \in x_2 \in x_1 \in x_0$ and, in particular, sets satisfying $x \in x$.
+Foundation introduces no new sets; instead it disciplines the universe,
+stratifying every set into the \emph{cumulative hierarchy} obtained by iterating
+the power-set operation through the ordinals (\Cref{subsec:set-theory-hierarchy}).
+This well-founded picture is precisely the one that the Lean model of
+\Cref{ch:zflean} reflects, where sets are realised as a well-founded inductive
+type.
+
+The resulting first-order theory is \emph{Zermelo--Fraenkel set theory} (ZF);
+adjoining the axiom of choice yields ZFC. It is formulated in classical
+first-order logic with equality over a single binary relation symbol~$\in$, and
+has become the de facto foundation of mainstream mathematics. We state it
+precisely.
+
+\subsection{The Axioms of ZF}
+\label{subsec:set-theory-axioms}
+
+We work in classical first-order logic with equality. The only non-logical
+symbol is a binary relation~$\in$, and every object of the theory is a
+\emph{set}; in particular, the elements of a set are themselves sets, and the
+universe contains nothing else (\emph{pure} set theory). We write $\vec p$ for a
+finite tuple $p_1, \cdots, p_n$ of set parameters, and use the standard
+abbreviations
+\[
+  x \subseteq y \;\;\coloneq\;\; \forall z,\, z \in x \to z \in y,
+  \qquad
+  x \neq y \;\;\coloneq\;\; \lnot\,(x = y),
+\]
+together with the \emph{bounded quantifiers} $\forall z \in x,\,\psi$ and
+$\exists z \in x,\,\psi$, abbreviating $\forall z,\,z \in x \to \psi$ and
+$\exists z,\,z \in x \land \psi$ respectively. In axioms~(\ref{ax:inf})
+and~(\ref{ax:found}) we also use the standard abbreviations $\regnotation{\varnothing}$ (the empty
+set), $\{y\}$, $x \cup y$, and $x \cap y$, each of which unfolds into a formula
+over $\in$ alone, but their use improves readability and reflects the way
+the axioms are applied in practice. The axioms of ZF are the following eight; the
+ninth, choice, stands apart and is presented in \Cref{subsec:set-theory-choice}.
+
+\begin{enumerate}[label=\textbf{(A\arabic*)}, ref=A\arabic*, leftmargin=3.4em, itemsep=0.8ex]
+
+  \item\label{ax:ext} \textbf{Extensionality.} Sets with the same elements are
+  equal,
+  \[
+    \forall x\, y,\,(\forall z,\,z \in x \leftrightarrow z \in y) \to x = y
+  \]
+
+  \item\label{ax:pair} \textbf{Pairing.} For all $x$ and $y$ there is a set
+  whose elements are exactly $x$ and $y$,
+  \[
+    \forall x\, y,\,\exists z,\,\forall w,\,w \in z \leftrightarrow (w = x \lor w = y)
+  \]
+
+  \item\label{ax:union} \textbf{Union.} For every set $x$ there is a set whose
+  elements are the elements of the elements of $x$,
+  \[
+    \forall x,\,\exists y,\,\forall z,\,z \in y \leftrightarrow (\exists w,\,w \in x \land z \in w)
+  \]
+  \begin{note}
+    Such a set \(y\) is unique by extensionality, and is denoted \(\bigcup x\).
+  \end{note}
+
+  \item\label{ax:pow} \textbf{Power set.} For every set $x$ there is a set whose
+  elements are exactly the subsets of $x$,
+  \[
+    \forall x,\,\exists y,\,\forall z,\,z \in y \leftrightarrow z \subseteq x
+  \]
+  \begin{note}
+    Such a set \(y\) is unique by extensionality, and is denoted \(\pow(x)\).
+  \end{note}
+
+  \item\label{ax:inf} \textbf{Infinity.} There is an \emph{inductive} set: one
+  containing $\varnothing$ and closed under the successor $y \mapsto y \cup \{y\}$,
+  \[
+    \exists x,\,\varnothing \in x \;\land\; (\forall y,\,y \in x \to y \cup \{y\} \in x)
+  \]
+
+  \item\label{ax:found} \textbf{Foundation.} Every non-empty set has a member
+  disjoint from it; equivalently, $\in$ is well-founded,
+  \[
+    \forall x,\, x \neq \varnothing \;\to\; (\exists y,\,y \in x \land y \cap x = \varnothing)
+  \]
+
+  \item\label{ax:sep} \textbf{Separation} \textup{(schema).} For every
+  formula $\varphi(z, \vec p\,)$ in which $y$ is not free, the subset of $x$ cut
+  out by $\varphi$ exists.
+  \[
+    \forall \vec p,\,\forall x,\,\exists y,\,\forall z,\;z \in y \leftrightarrow (z \in x \land \varphi(z, \vec p\,))
+  \]
+  \begin{note}
+    Such a set \(y\) is unique by extensionality, and is denoted \(\setcomp{z \in x}{\varphi(z, \vec p\,)}\).
+  \end{note}
+
+  \item\label{ax:repl} \textbf{Replacement} \textup{(schema).} For every
+  formula $\varphi(x, y, \vec p\,)$ in which $b$ is not free, if $\varphi$ is
+  functional in $y$ then the image of any set under it is a set:
+  \[
+    \forall \vec p,\; \mathrm{fun}(\varphi) \;\;\to\;\; \forall a,\,\exists b,\,\forall y,\; (y \in b \leftrightarrow \exists x,\,x \in a \land \varphi(x, y, \vec p\,)),
+  \]
+  where $\mathrm{fun}(\varphi)$ abbreviates the functionality condition
+  \(\forall x\, y\, y',\,\bigl(\varphi(x, y, \vec p\,) \land \varphi(x, y', \vec p\,)\bigr) \to y = y'\).
+
+  \begin{note}
+    In practice, this schema is used for mapping a set \(a\) along a function defined by
+    \(\varphi\); in this case the set \(b\) is denoted \(\setcomp{\varphi(x)}{x \in a}\).
+  \end{note}
+
+\end{enumerate}
+
+\paragraph{Redundancies and schemas.}
+Several axioms are stated for readability rather than independence. Separation is
+a consequence of replacement, and pairing follows from power set and replacement.
+They are nonetheless retained as primitive axioms for two reasons: they are
+elementary set-formation principles, whose derivation from replacement is an
+artificial detour; and they are exactly what remains in the weaker subsystems
+obtained by dropping or restricting replacement---notably Zermelo set theory,
+which already suffices for large parts of ordinary mathematics and is studied in
+its own right. A minimal presentation of ZF therefore retains only
+extensionality, union, power set, infinity, foundation, and replacement. Because
+first-order logic admits no quantification over formulas, separation and
+replacement cannot be single sentences: each is an \emph{axiom schema} denoting
+infinitely many instances, one per formula~$\varphi$. This is an essential
+feature of the first-order formulation---and the reason ZF, and a fortiori ZFC,
+is not finitely axiomatizable.
+
+\subsection{The Axiom of Choice}
+\label{subsec:set-theory-choice}
+
+Unlike the existence axioms of ZF, each of which specifies the elements of the
+set it asserts to exist, the axiom of choice asserts the existence of a set
+without determining its members. Adjoining it to ZF yields \emph{Zermelo--
+Fraenkel set theory with choice}, ZFC.
+
+\begin{enumerate}[label=\textbf{(A\arabic*)}, ref=A\arabic*, start=9, leftmargin=3.4em, itemsep=0.8ex]
+
+  \item\label{ax:choice} \textbf{Choice.} Every set of pairwise-disjoint
+  non-empty sets has a \emph{selector}---a set meeting each of its members in
+  exactly one element,
+  \[
+    \forall x,\,\mathrm{Disj}(x) \;\to\; \exists c,\,\forall y \in x,\,\exists! z,\,z \in c \land z \in y,
+  \]
+  where $\mathrm{Disj}(x)$ abbreviates
+  $\varnothing \notin x \;\land\; \forall y \in x,\,\forall y' \in x,\,(y \neq y' \to y \cap y' = \varnothing)$.
+
+\end{enumerate}
+
+The axiom genuinely extends bare ZF, being \emph{independent} of the other eight:
+if ZF is consistent, then so is ZF with choice, by G\"odel's constructible
+universe~\cite{godel1940consistency}, and so is ZF with the negation of choice, by
+Cohen's forcing~\cite{cohen1966settheory}. Choice is therefore neither provable
+nor refutable from (\ref{ax:ext})--(\ref{ax:repl}). This non-constructive
+character is the price of considerable strength: choice, or one of its
+equivalents, is what licenses such everyday principles as ``every vector space
+has a basis'' and ``every surjection has a right inverse'', and the bulk of
+modern mathematics is developed within ZFC.
+
+\paragraph{Choice and its equivalents.}
+The form of~(\ref{ax:choice}) above is Zermelo's. Over the axioms of ZF it is
+equivalent to the existence of a \emph{choice function} for every family of
+non-empty sets, to Zorn's lemma~\cite{zorn1935remark}, and to the well-ordering
+theorem; we use whichever formulation is convenient. The model of
+\Cref{ch:zflean} validates choice, so the developments of this thesis are free to
+appeal to it.
+
+\subsection{Natural Numbers, Ordinals, and the Cumulative Hierarchy}
+\label{subsec:set-theory-hierarchy}
+
+Infinity secures the natural numbers. Following von Neumann, each natural
+number is identified with the set of its predecessors: $0 \triangleq \varnothing$
+and $n + 1 \triangleq n \cup \{n\}$, so that $n = \{0, 1, \dots, n - 1\}$ and
+$m < n \iff m \in n$. The intersection of all inductive sets---a set, by
+separation inside any one of them---is the least inductive set
+$\regnotation{\omega} = \{0, 1, 2, \dots\}$, the set of natural numbers.
+
+\begin{example}[von Neumann naturals]
+The first few naturals are
+$0 = \varnothing$, $\;1 = \{0\}$, $\;2 = \{0, 1\}$, $\;3 = \{0, 1, 2\}$. Order is
+membership: $2 < 3$ because $2 \in 3$, and $2 \subseteq 3$ since every
+predecessor of $2$ is a predecessor of $3$.
+\end{example}
+
+More generally, the \emph{ordinals} $\regnotation{\Ord}$ are the transitive sets
+well-ordered by~$\in$; they index the \emph{cumulative hierarchy}
+\[
+  \regnotation{\cumhier}_0 \triangleq \varnothing,
+  \qquad
+  \cumhier_{\alpha + 1} \triangleq \pow(\cumhier_\alpha),
+  \qquad
+  \cumhier_\lambda \triangleq \textstyle\bigcup_{\alpha < \lambda} \cumhier_\alpha \quad (\lambda \text{ a limit ordinal}),
+\]
+whose union $\cumhier = \bigcup_{\alpha \in \Ord} \cumhier_\alpha$ is, by
+foundation, the entire universe: every set first appears at some stage
+$\cumhier_{\alpha + 1}$, its \emph{rank}. This well-founded, iterative picture is
+what the Lean model of \Cref{ch:zflean} renders constructive, representing sets
+as an inductively generated, $\in$-well-founded type quotiented by extensional
+equality.
+
+These axioms are all that the present work requires of its foundation. The B
+method, to which we now turn (\Cref{sec:b-method}), is built directly upon them:
+its expressions denote sets, and its relations, functions, and sequences are
+particular sets of pairs, assembled into a hierarchy of function spaces. We accordingly present the B
+language and the proof obligations it generates against this set-theoretic
+background.
