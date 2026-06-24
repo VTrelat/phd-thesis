@@ -56,7 +56,7 @@ and unordered pairs; \emph{separation}; \emph{power set}; \emph{union};
 \emph{choice}; and \emph{infinity}.
 
 Its decisive idea is the axiom of \emph{separation} (\emph{Aussonderung}), which
-tames comprehension by relativising it to a set already given: from a set $x$
+tames comprehension by relativizing it to a set already given: from a set $x$
 and a property $\varphi$ one may form the subset
 $\{z \in x \mid \varphi(z)\}$, but one may not conjure
 $\{z \mid \varphi(z)\}$ out of nothing. Russell's paradox thereby dissolves. The
@@ -97,7 +97,7 @@ Foundation introduces no new sets; instead it disciplines the universe,
 stratifying every set into the \emph{cumulative hierarchy} obtained by iterating
 the power-set operation through the ordinals (\Cref{subsec:set-theory-hierarchy}).
 This well-founded picture is precisely the one that the Lean model of
-\Cref{ch:zflean} reflects, where sets are realised as a well-founded inductive
+\Cref{ch:zflean} reflects, where sets are realized as a well-founded inductive
 type.
 
 The resulting first-order theory is \emph{Zermelo--Fraenkel set theory} (ZF);
@@ -116,18 +116,20 @@ universe contains nothing else (\emph{pure} set theory). We write $\vec p$ for a
 finite tuple $p_1, \cdots, p_n$ of set parameters, and use the standard
 abbreviations
 \[
-  x \subseteq y \;\;\coloneq\;\; \forall z,\, z \in x \to z \in y,
+  x \regnotation{\subseteq} y \;\;\coloneq\;\; \forall z,\, z \in x \to z \in y,
   \qquad
   x \neq y \;\;\coloneq\;\; \lnot\,(x = y),
 \]
 together with the \emph{bounded quantifiers} $\forall z \in x,\,\psi$ and
 $\exists z \in x,\,\psi$, abbreviating $\forall z,\,z \in x \to \psi$ and
 $\exists z,\,z \in x \land \psi$ respectively. In axioms~(\ref{ax:inf})
-and~(\ref{ax:found}) we also use the standard abbreviations $\regnotation{\varnothing}$ (the empty
-set), $\{y\}$, $x \cup y$, and $x \cap y$, each of which unfolds into a formula
-over $\in$ alone, but their use improves readability and reflects the way
-the axioms are applied in practice. The axioms of ZF are the following eight; the
-ninth, choice, stands apart and is presented in \Cref{subsec:set-theory-choice}.
+and~(\ref{ax:found}) we also use the standard abbreviations $\regnotation{\varnothing}$
+(the empty set), $\regnotation{\{y\}}$ (the singleton set containing $y$), $\regnotation{x \cup y}$ (the binary
+union of $x$ and $y$), and $\regnotation{x \cap y}$ (the binary intersection of $x$ and $y$),
+each of which unfolds into a formula over $\in$ alone, but their use improves
+readability and reflects the way the axioms are applied in practice. The axioms
+of ZF are the following eight; the ninth, choice, stands apart and is presented
+in \Cref{subsec:set-theory-choice}.
 
 \begin{enumerate}[label=\textbf{(A\arabic*)}, ref=A\arabic*, leftmargin=3.4em, itemsep=0.8ex]
 
@@ -142,6 +144,9 @@ ninth, choice, stands apart and is presented in \Cref{subsec:set-theory-choice}.
   \[
     \forall x\, y,\,\exists z,\,\forall w,\,w \in z \leftrightarrow (w = x \lor w = y)
   \]
+  \begin{note}
+    Such a set \(z\) is unique by extensionality, and is denoted \(\regnotation{\{x, y\}}\).
+  \end{note}
 
   \item\label{ax:union} \textbf{Union.} For every set $x$ there is a set whose
   elements are the elements of the elements of $x$,
@@ -149,7 +154,7 @@ ninth, choice, stands apart and is presented in \Cref{subsec:set-theory-choice}.
     \forall x,\,\exists y,\,\forall z,\,z \in y \leftrightarrow (\exists w,\,w \in x \land z \in w)
   \]
   \begin{note}
-    Such a set \(y\) is unique by extensionality, and is denoted \(\bigcup x\).
+    Such a set \(y\) is unique by extensionality, and is denoted \(\regnotation{\bigcup} x\).
   \end{note}
 
   \item\label{ax:pow} \textbf{Power set.} For every set $x$ there is a set whose
@@ -158,7 +163,7 @@ ninth, choice, stands apart and is presented in \Cref{subsec:set-theory-choice}.
     \forall x,\,\exists y,\,\forall z,\,z \in y \leftrightarrow z \subseteq x
   \]
   \begin{note}
-    Such a set \(y\) is unique by extensionality, and is denoted \(\pow(x)\).
+    Such a set \(y\) is unique by extensionality, and is denoted \(\regnotation{\mathcal{P}}(x)\).
   \end{note}
 
   \item\label{ax:inf} \textbf{Infinity.} There is an \emph{inductive} set: one
@@ -180,7 +185,7 @@ ninth, choice, stands apart and is presented in \Cref{subsec:set-theory-choice}.
     \forall \vec p,\,\forall x,\,\exists y,\,\forall z,\;z \in y \leftrightarrow (z \in x \land \varphi(z, \vec p\,))
   \]
   \begin{note}
-    Such a set \(y\) is unique by extensionality, and is denoted \(\setcomp{z \in x}{\varphi(z, \vec p\,)}\).
+    Such a set \(y\) is unique by extensionality, and is denoted \(\regnotation{\setcomp{z \in x}{\varphi(z, \vec p\,)}}\).
   \end{note}
 
   \item\label{ax:repl} \textbf{Replacement} \textup{(schema).} For every
@@ -194,10 +199,37 @@ ninth, choice, stands apart and is presented in \Cref{subsec:set-theory-choice}.
 
   \begin{note}
     In practice, this schema is used for mapping a set \(a\) along a function defined by
-    \(\varphi\); in this case the set \(b\) is denoted \(\setcomp{\varphi(x)}{x \in a}\).
+    \(\varphi\); in this case the set \(b\) is denoted \(\regnotation{\setcomp{\varphi(x)}{x \in a}}\).
   \end{note}
-
 \end{enumerate}
+
+\paragraph{Derived constructions.}
+A few standard constructions are worth mentioning, since they are part of the
+common vocabulary of set theory.
+Dually to union, the \emph{intersection} of a non-empty set $x$ defined as a subset
+of its union cut out by the property of belonging to every member of $x$, using
+union \eqref{ax:union} and separation \eqref{ax:sep}:
+\[
+\regnotation{\bigcap} x \triangleq \setcomp{z \in \bigcup x}{\forall w \in x,\, z \in w}.
+\]
+
+Using pairing \eqref{ax:pair}, one can form the \emph{singleton} \(\{x\} \triangleq \{x, x\}\)
+as the set whose only element is \(x\).
+The \emph{ordered pair}, due to Kuratowski, of $x$ and $y$ is then encoded as the set
+$\regnotation{\opair{x}{y}} \triangleq \{\{x\}, \{x, y\}\}$, whose only essential
+property is that $\opair{x}{y} = \opair{x'}{y'}$ exactly when $x = x'$ and
+$y = y'$.
+
+As $\opair{x}{y} \in \pow(\pow(x \cup y))$, separation \eqref{ax:sep} then carves the
+\emph{Cartesian product} $A \regnotation{\times} B$ out of $\pow(\pow(A \cup B))$,
+\[
+  A \times B \triangleq \setcomp{z \in \pow(\pow(A \cup B))}{\exists x \in A\,\exists y \in B,\; z = \opair{x}{y}},
+\]
+the set of all ordered pairs with first component in $A$ and second in $B$, or equivalently
+using \eqref{ax:repl}, the set of all ordered pairs of elements of $A$ and $B$,
+\[
+  A \times B \triangleq \setcomp{\opair{x}{y}}{x \in A,\,y \in B}.
+\]
 
 \paragraph{Redundancies and schemas.}
 Several axioms are stated for readability rather than independence. Separation is
@@ -240,14 +272,14 @@ The axiom genuinely extends bare ZF, being \emph{independent} of the other eight
 if ZF is consistent, then so is ZF with choice, by G\"odel's constructible
 universe~\cite{godel1940consistency}, and so is ZF with the negation of choice, by
 Cohen's forcing~\cite{cohen1966settheory}. Choice is therefore neither provable
-nor refutable from (\ref{ax:ext})--(\ref{ax:repl}). This non-constructive
+nor refutable from \eqref{ax:ext}--\eqref{ax:repl}. This non-constructive
 character is the price of considerable strength: choice, or one of its
 equivalents, is what licenses such everyday principles as ``every vector space
 has a basis'' and ``every surjection has a right inverse'', and the bulk of
 modern mathematics is developed within ZFC.
 
 \paragraph{Choice and its equivalents.}
-The form of~(\ref{ax:choice}) above is Zermelo's. Over the axioms of ZF it is
+The form of~(\ref{ax:choice}) above is due to Zermelo. Over the axioms of ZF it is
 equivalent to the existence of a \emph{choice function} for every family of
 non-empty sets, to Zorn's lemma~\cite{zorn1935remark}, and to the well-ordering
 theorem; we use whichever formulation is convenient. The model of
@@ -257,38 +289,74 @@ appeal to it.
 \subsection{Natural Numbers, Ordinals, and the Cumulative Hierarchy}
 \label{subsec:set-theory-hierarchy}
 
-Infinity secures the natural numbers. Following von Neumann, each natural
-number is identified with the set of its predecessors: $0 \triangleq \varnothing$
-and $n + 1 \triangleq n \cup \{n\}$, so that $n = \{0, 1, \dots, n - 1\}$ and
-$m < n \iff m \in n$. The intersection of all inductive sets---a set, by
-separation inside any one of them---is the least inductive set
-$\regnotation{\omega} = \{0, 1, 2, \dots\}$, the set of natural numbers.
+The axiom of infinity~(\ref{ax:inf}) provides an inductive set, from which the
+natural numbers are constructed.
+Following von Neumann, each natural number is identified with the set of its
+predecessors: $0 \triangleq \varnothing$ and $n + 1 \triangleq n \cup \{n\}$,
+so that $n = \{0, 1, \dots, n - 1\}$ and $m < n \iff m \in n$.
+The least inductive set\footnotemark---\ie the intersection of all inductive sets---is
+the first infinite von Neumann ordinal $\regnotation{\omega} = \{0, 1, 2, \dots\}$,
+also known as the set \(\mathbb{N}\) of natural numbers.
+
+\footnotetext{
+  The term \emph{inductive set} has carried different, inequivalent meanings.
+  We use it in the Zermelo--von Neumann sense: a set containing $\varnothing$ and
+  closed under the successor $x \mapsto x \cup \{x\}$, from which the natural
+  numbers arise as transitive sets~\cite{zermelo1908untersuchungen,vonNeumann1925axiomatisierung}.
+  In order theory, by contrast, Bourbaki calls an ordered set inductive when every
+  chain has an upper bound---the hypothesis of Zorn's lemma~\cite{bourbaki2007}.
+}
 
 \begin{example}[von Neumann naturals]
 The first few naturals are
-$0 = \varnothing$, $\;1 = \{0\}$, $\;2 = \{0, 1\}$, $\;3 = \{0, 1, 2\}$. Order is
+$0 = \varnothing$, $\;1 = \{0\} = \{\varnothing\}$, $\;2 = \{0, 1\} = \{\varnothing, \{\varnothing\}\}$, $\;3 = \{0, 1, 2\} = \{\varnothing, \{\varnothing\}, \{\varnothing, \{\varnothing\}\}\}$. Order is
 membership: $2 < 3$ because $2 \in 3$, and $2 \subseteq 3$ since every
 predecessor of $2$ is a predecessor of $3$.
 \end{example}
 
 More generally, the \emph{ordinals} $\regnotation{\Ord}$ are the transitive sets
-well-ordered by~$\in$; they index the \emph{cumulative hierarchy}
+well-ordered by~$\in$, extending the naturals into the transfinite. Cardinality
+measures the size of a set: two sets have the same \emph{cardinality} when their
+elements can be put in one-to-one correspondence, and a \emph{cardinal} is an
+ordinal measuring such a size (the least ordinal of its cardinality; the infinite
+cardinals are the alephs $\aleph_0 = \omega, \aleph_1, \aleph_2, \dots$).
+The ordinals index a \emph{cumulative hierarchy} of set universes, which we define after
+Werner~\cite{werner1997sets} by a single transfinite recursion,
 \[
-  \regnotation{\cumhier}_0 \triangleq \varnothing,
-  \qquad
-  \cumhier_{\alpha + 1} \triangleq \pow(\cumhier_\alpha),
-  \qquad
-  \cumhier_\lambda \triangleq \textstyle\bigcup_{\alpha < \lambda} \cumhier_\alpha \quad (\lambda \text{ a limit ordinal}),
+  \regnotation{\cumhier}_\alpha \triangleq \bigcup_{\beta < \alpha} \pow(\cumhier_\beta).
 \]
-whose union $\cumhier = \bigcup_{\alpha \in \Ord} \cumhier_\alpha$ is, by
-foundation, the entire universe: every set first appears at some stage
-$\cumhier_{\alpha + 1}$, its \emph{rank}. This well-founded, iterative picture is
+The empty union of the first stage gives $\cumhier_0 = \varnothing$; the recursion unfolds to
+$\cumhier_{\alpha + 1} = \pow(\cumhier_\alpha)$ at successors and to
+$\cumhier_\lambda = \bigcup_{\beta < \lambda} \cumhier_\beta$ at \emph{limit
+ordinals} $\lambda$---those with no immediate predecessor---so a single clause
+subsumes the three cases. The class $\cumhier = \bigcup_{\alpha \in \Ord} \cumhier_\alpha$ is, by foundation, the
+entire universe: every set $X$ occurs at some stage, the least $\alpha$ with
+$X \in \cumhier_\alpha$ being its \emph{rank}\footnotemark. This well-founded, iterative picture is
 what the Lean model of \Cref{ch:zflean} renders constructive, representing sets
 as an inductively generated, $\in$-well-founded type quotiented by extensional
 equality.
 
-These axioms are all that the present work requires of its foundation. The B
-method, to which we now turn (\Cref{sec:b-method}), is built directly upon them:
+\footnotetext{
+  Different conventions may be found in the literature. Some authors take the least
+  \(\alpha\) such that \(X \subseteq \cumhier_\alpha\) as the rank of \(X\)~\cite{jech2003set,kunen2011set}.
+}
+
+\begin{remark}[Universes as models of ZFC]
+A striking feature of this hierarchy is Werner's Lemma~4~\cite{werner1997sets}: if $\kappa$ is an
+\emph{inaccessible cardinal}---one so large that $\cumhier_\kappa$ is closed
+under power set and small unions---then $\cumhier_\kappa$ itself satisfies every
+axiom of ZFC, a set that models set theory in its own right (a \emph{Grothendieck
+universe}). This is the hinge of Werner's mutual encodings between the Calculus
+of Inductive Constructions and ZFC, matching type-theoretic universes with
+inaccessible cardinals. It is also what legitimizes
+developing genuine ZFC set theory inside the universe hierarchy of a
+type-theoretic proof assistant, as we do in \Cref{ch:zflean}---a circle of ideas
+that directly shaped the present work.
+\end{remark}
+
+These considerations already land beyond the scope of this thesis, and are purely contextual.
+The axioms \eqref{ax:ext}--\eqref{ax:choice} above are all that the present work requires of its foundation.
+The B method, to which we now turn (\Cref{sec:b-method}), is built directly upon them:
 its expressions denote sets, and its relations, functions, and sequences are
 particular sets of pairs, assembled into a hierarchy of function spaces. We accordingly present the B
 language and the proof obligations it generates against this set-theoretic

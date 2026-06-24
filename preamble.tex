@@ -11,6 +11,7 @@
 \usepackage{footnote}  % \savenotes/\spewnotes — must come before hyperref
 \usepackage{environ}   % \RenewEnviron — used for proof-skipping mode
 \usepackage{hyperref}
+\usepackage[labelfont=bf, font=small]{caption}
 \usepackage{mathpartir}
 \usepackage{simplebnf}
 \usepackage{tikz}
@@ -64,7 +65,7 @@
 \colorlet{keywordcolor}{pink}
 \colorlet{tacticcolor}{pink}
 \colorlet{symbolcolor}{black}
-\colorlet{commentcolor}{green}
+\colorlet{commentcolor}{blue}
 \colorlet{sortcolor}{orange}
 \usepackage{lstlean}
 
@@ -101,7 +102,7 @@
   % Style for strings
   stringstyle={\ttfamily},
   % Style for comments
-  commentstyle={\ttfamily\footnotesize},
+  commentstyle={\ttfamily\footnotesize\color{commentcolor}},
   backgroundcolor=\color{beige!40}
 }
 
