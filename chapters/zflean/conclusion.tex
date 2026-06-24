@@ -1,7 +1,10 @@
 \section{Conclusion}
 \label{sec:zflean-conclusion}
 
-We advocated a practical way to develop mathematics in ZFC inside Lean~4 by engineering a relational calculus, establishing universal properties with transport along isomorphisms, and building bridges to native libraries.
-The resulting layer reduces friction when reasoning extensionally and remains compatible with typed developments.
-Future work includes extending the library with more canonical set-theoretic constructions, such as building reals via Cauchy sequences or Dedekind cuts (or both), and improving automation to further reduce boilerplate in proofs.
+This chapter presented \zflean, a Lean~4 library that formalizes ZFC set theory on top of Mathlib by engineering a relational calculus, establishing universal properties via transport along isomorphisms, and providing bridges to native Lean types.
+The resulting layer makes extensional reasoning tractable while remaining fully compatible with typed developments.
+Future work on \zflean includes extending the library with more canonical set-theoretic constructions, such as building reals via Cauchy sequences or Dedekind cuts (or both), and improving automation to further reduce boilerplate in proofs.
 One might push the framework further and develop more mathematics inside it, for instance basic analysis and related results.
+
+The constructions introduced here --- ordered pairs, disjoint unions, options, and the associated isomorphism machinery --- serve as the foundational substrate for the work described in the remainder of this manuscript.
+In particular, the formalization of B proof obligations and their SMT encoding, developed in the following chapters, is built directly within this framework.

@@ -26,7 +26,7 @@ With such a definition, one can inductively construct a pre-set upon an underlyi
 Since we need a starting point to populate the type of pre-sets, we construct the empty pre-set. This shows that the type of pre-sets is \emph{inhabited}.
 
 \begin{definition}[][PSet.empty][Mathlib/SetTheory/ZFC/PSet.html\#PSet.empty]
-  The empty pre-set is obtained from the (universe polymorphic) empty type \(\bot\) and its elimination function \(\displaystyle\mathsf{elim}_\bot : \prod_\alpha \bot \to \alpha\)
+  The empty pre-set is obtained from the (universe polymorphic) empty type \(\bot\) and its elimination function \(\displaystyle\mathsf{elim}_\bot : \prod_\alpha \bot \to \alpha\), where \(\alpha\) is taken to be the type of pre-sets \(\mathsf{PSet}\):
   \begin{equation*}
     \varnothing \triangleq \mathsf{PSet.mk}\ \bot\ \mathsf{elim}_\bot
   \end{equation*}
@@ -52,7 +52,7 @@ It is also used to define pre-set membership, as follows.
 \end{definition}
 
 The membership relation is then shown to be well-founded---meaning there is no infinite \(\in\)-chain of pre-sets---a key property that witnesses the axiom of regularity.
-Further usual operations such as cartesian product (\(\regnotation{\times}\)), union (\(\regnotation{\cup}\)), and powerset (\(\regnotation{\mathcal{P}}\)), are defined on pre-sets, all to be later lifted to sets.
+Further usual operations such as cartesian product (\(\times\)), union (\(\cup\)), and powerset (\(\mathcal{P}\)), are defined on pre-sets, all to be later lifted to sets.
 
 \subsection{Sets}
 \label{subsec:zflean-sets}
@@ -74,26 +74,26 @@ Operations on sets are then defined by lifting the corresponding operations on p
   The purpose of our development is exactly to alleviate the friction caused by this divergence by preventing repeated quotient-lifting boilerplate: proof scripts stay at the \inlinelean|ZFSet| interface, and \emph{extensional} reasoning inside Lean is enabled while retaining compatibility with its \emph{intensional} core.
 \end{remark}
 
-A definition of Kuratowski's ordered pairs is also provided by the model, denoted by \((x, y)\) for any sets \(x\) and \(y\) and is defined as the set \(\displaystyle\bigl\lbrace\lbrace x\rbrace, \lbrace x, y\rbrace\bigr\rbrace\), but lacks projections and simplification lemmas.
+A definition of Kuratowski's ordered pairs is also provided by the model in Mathlib, denoted by \((x, y)\) for any sets \(x\) and \(y\) and is defined as the set \(\displaystyle\bigl\lbrace\lbrace x\rbrace, \lbrace x, y\rbrace\bigr\rbrace\), but lacks projections and simplification lemmas.
 We therefore define projections \(\regnotation{\pi_1}\) and \(\regnotation{\pi_2}\) accordingly and provide simplification lemmas to manipulate them.
 This represents the first contribution of our work.
 
 \begin{definition}[][ZFSet.π₁, ZFSet.π₂][ZFLean/Integers.html\#ZFSet.π₁, ZFLean/Integers.html\#ZFSet.π₂]
   \label{def:zflean-projections}
-  We define general projections \(\pi_1\) and \(\pi_2\) for any set \(x\):
+  We define general projections \(\pi_1\) and \(\pi_2\) for any set \(w\):
   \begin{equation*}
-    \pi_1\, x \triangleq \bigcup {\bigcap x} \quad\text{and}\quad \pi_2\, x \triangleq
+    \pi_1\, w \triangleq \bigcup {\bigcap w} \quad\text{and}\quad \pi_2\, w \triangleq
     \begin{cases}
-      \pi_1\, x                                           & \text{if}\ \left(\bigcup x\right) \setminus \bigcap x = \varnothing \\
-      \bigcup \left( \left(\bigcup x\right) \setminus \bigcap x\right) & \text{otherwise}
+      \pi_1\, w                                           & \text{if}\ \left(\bigcup w\right) \setminus \bigcap w = \varnothing \\
+      \bigcup \left( \left(\bigcup w\right) \setminus \bigcap w\right) & \text{otherwise}
     \end{cases}
   \end{equation*}
 \end{definition}
 
 \begin{remark}
   The projections \(\pi_1\) and \(\pi_2\) are defined as \emph{total} set-level operators to avoid partiality in the object language;
-  they are only meant to be used under hypotheses that force \(x\) to be a pair, e.g.\ it belongs to a cartesian product \(x \in A\times B\), or \(x = (a,b)\).
-  When \(x\) is \emph{not} a Kuratowski pair, \(\pi_1(x)\) and \(\pi_2(x)\) are just some sets with no intended semantic content.
+  they are only meant to be used under hypotheses that force \(w\) to be a pair, e.g.\ it belongs to a cartesian product \(w \in A\times B\), or \(w = (a,b)\).
+  When \(w\) is \emph{not} a Kuratowski pair, \(\pi_1(w)\) and \(\pi_2(w)\) are just some sets with no intended semantic content.
 \end{remark}
 
 With these projections, we can prove the expected simplification lemmas for ordered pairs, e.g.\ \(\pi_1\, (x, y) = x\) and \(\pi_2\, (x, y) = y\) for any sets \(x\) and \(y\), \(\eta\)-expansion of pairs and membership on a cartesian product, as shown in \cref{lst:pair-proj}---with proofs omitted.
@@ -105,7 +105,7 @@ theorem pair_mem_prod {x y a b : ZFSet} :
   a.pair b ∈ x × y ↔ a ∈ x ∧ b ∈ y
 \end{leanlisting}
 
-ZFC set theory has no built-in notion of functions, whose definition must be taken carefully.
+ZFC set theory has no built-in notion of functions, whose definition must be approached carefully.
 In programming languages and type theories, functions are usually first-class and \emph{total} by construction, while mathematical functions can be \emph{partial} and are defined as \emph{functional relations} whose domain may be smaller than the intended source set.
 This difference is usually bridged by using options or dependent types to encode partiality, however in this work we aim to stay as close as possible to the set-theoretic definitions.
 Also, Mathlib already provides a definition for total functions and exponential objects, which we reuse in our development.

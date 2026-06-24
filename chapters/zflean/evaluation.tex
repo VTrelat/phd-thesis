@@ -36,10 +36,13 @@ We use two mutually inverse functions to build the isomorphism, corresponding to
   \begin{equation*}
     \mathcal{U}(f) \triangleq \left(\zlambda{A \times B}{C}{(a,b)}{\fapply{\left(\fapply{f}{\langle a, \irrelprf \rangle}\right)}{\langle b, \irrelprf \rangle}}\!\right)
   \end{equation*}
-  %
-  We prove that $\zunop{\mathsf{curry}}$ and $\zunop{\mathsf{uncurry}}$ are total functions on their respective domains, so that automation can pick those facts up when needed:
-  $\mathsf{IsFunc}(C^{A \times B}, (C^B)^A, \zunop{\mathsf{curry}})$ and $\mathsf{IsFunc}((C^B)^A, C^{A \times B}, \zunop{\mathsf{uncurry}})$.
 \end{definition}
+
+We prove that $\zunop{\mathsf{curry}}$ and $\zunop{\mathsf{uncurry}}$ are total functions
+on their respective domains, so that automation can pick those facts up when needed:
+\[
+  \mathsf{IsFunc}(C^{A \times B}, (C^B)^A, \zunop{\mathsf{curry}}) \quad\text{and}\quad \mathsf{IsFunc}((C^B)^A, C^{A \times B}, \zunop{\mathsf{uncurry}}).
+\]
 
 We then prove that these two functions are mutually inverse; this is the core of the proof of \cref{thm:isIso_curry}.
 \begin{lemma}[][ZFSet.currify\_of\_uncurrify][ZFLean/Isomorphisms.html\#ZFSet.currify_of_uncurrify]
@@ -50,8 +53,7 @@ We then prove that these two functions are mutually inverse; this is the core of
   \end{equation*}
 \end{lemma}
 \begin{proof}
-  We sketch the proof of the first equality; the second one follows a similar pattern.
-  Full proof details are available in the artifacts.
+  We prove only the first equality; the second follows a similar pattern.
   First, note that both sides contain side-conditions ensuring that everything is well-defined, all automatically discharged by the automation layer.
   We first reduce the equality of functions to a pointwise equality using function extensionality, using theorem \inlinelean|is_func_ext_iff| from \cref{ex:func-ext}.
   Then, let $f \in (C^B)^A$ be an arbitrary set-level curried function; we need to show the following equality:
@@ -63,7 +65,7 @@ We then prove that these two functions are mutually inverse; this is the core of
   \begin{leanlisting}
 theorem fapply_Id {A x : ZFSet} (hx : x ∈ A) : @ᶻ𝟙A ⟨x, $\irrelprf$⟩ = ⟨x, hx⟩
 \end{leanlisting}
-  On the left-hand side we use that evaluating a composite is the composition of the evaluations---i.e.\ application distributes over composition---given by the following theorem \leancodeptr{fapply\_composition}{ZFLean/Functions.html\#ZFSet.fapply_composition}:
+  On the left-hand side, we use that application distributes over composition---given by theorem {\small\leancodeptr{fapply\_composition}{ZFLean/Functions.html\#ZFSet.fapply_composition}}:
   \begin{leanlisting}
 theorem fapply_composition {g f : ZFSet} {A B C : ZFSet}
   (hg : B.IsFunc C g) (hf : A.IsFunc B f) {x : ZFSet} (xA : x ∈ A) :
@@ -122,8 +124,6 @@ At the proof-script level, the role of the automation layer is not to perform pr
 
 \begin{table}[t]
   \centering
-  \caption{Artifact sizes in lines of Lean code (LoC) and number of theorems, grouped by component.}
-  \label{tab:artifacts-loc}
   \small
   \begin{tabular}{lrr}
     \hline
@@ -144,6 +144,8 @@ At the proof-script level, the role of the automation layer is not to perform pr
     \textbf{Total}                               & \textbf{8,286} & \textbf{633}        \\
     \hline
   \end{tabular}
+  \caption{Artifact sizes in lines of Lean code (LoC) and number of theorems, grouped by component.}
+  \label{tab:artifacts-loc}
 \end{table}
 
 The artifact is a self-contained Lean~4 library layered on top of Mathlib's ZFC model consisting of roughly 8k lines of code (LoC), organized in a few modules summarized in \cref{tab:artifacts-loc}, and containing around 633 theorems.

@@ -5,8 +5,8 @@ The relational calculus of \cref{sec:zflean-rel} already provides a stable frame
 We now build a library of canonical ZFC objects and expose their characteristic properties in a form designed to be usable in practice, compositional, and integrated with the relational calculus.
 
 \paragraph*{Set-level objects behind the typed interface.}
-Several objects below are exposed through Lean \emph{types}---$\mathsf{ZFBool}$, $\mathsf{ZFNat}$, $\mathsf{ZFInt}$, \etc---yet the development does \emph{not} leave the set-theoretic universe.
-Most are \emph{refinement types} over a genuine set, like the type \leaninl|ZFBool = { x : ZFSet // x ∈ 𝔹}| of set-theoretic Booleans, or the type \leaninl|ZFNat = { x : ZFSet // x ∈ ℕ}| of set-theoretic naturals.
+We expose several objects below through Lean \emph{types}, namely $\mathsf{ZFBool}$, $\mathsf{ZFNat}$, $\mathsf{ZFInt}$, \etc, yet the development does \emph{not} leave the set-theoretic universe.
+Most are \emph{refinement types} over a genuine set, like the type \leaninl|ZFBool = {x : ZFSet // x ∈ 𝔹}| of set-theoretic Booleans, or the type \leaninl|ZFNat = {x : ZFSet // x ∈ ℕ}| of set-theoretic naturals.
 An element of such a type is, by definition, a set paired with a proof of its membership; it can always be destructed into this split $\langle e, h\rangle$ to reason at the set level, and conversely set-level results lift to the type.
 The few objects that are more naturally \emph{quotients}---integers and rationals---are anchored at set level as well: we exhibit a genuine set of canonical representatives and prove it isomorphic to the quotient (the set $\mathbb{Z}$ constructed below for integers).
 In every case the typed layer is only an \emph{interface}: it lets us attach Lean's algebraic typeclasses and tactics (\eg \inlinelean|ring|) and reuse Mathlib, while each statement remains equivalent to one about the underlying sets.
@@ -45,7 +45,7 @@ Then, we define the usual boolean operations (conjunction, disjunction, negation
   Given $\langle p, h_p \rangle, \langle q, h_q \rangle : \mathsf{ZFBool}$, their conjunction $p \bigwedge q : \mathsf{ZFBool}$ is defined as the pair $\langle p \cap q, h \rangle$ where $h : p \cap q \in \mathbb{B}$ is a proof obtained by case analysis on $p$ and $q$; this yields four cases, all easily discharged.
 \end{definition}
 
-\begin{leanlisting}[title={Some simplification lemmas for ZFC Booleans.}, label=lst:bool-lemmas]
+\begin{leanlisting}[title={Some simplification lemmas for ZFC Booleans.}, label=lst:bool-lemmas, float=t]
 theorem and_comm  (p q : ZFBool)   : p ⋀ q = q ⋀ p
 theorem and_assoc (p q r : ZFBool) : p ⋀ q ⋀ r = p ⋀ (q ⋀ r)
 @[simp]
@@ -106,7 +106,7 @@ We still achieve a von Neumann-like representation of (transitive) natural numbe
   We call a set $X : \mathsf{ZFSet}$ \emph{inductive} when
   \begin{enumerate}
     \item $\varnothing \in X$;
-    \item $X$ is closed under the operation $n \mapsto n \cup \{n\}$, i.e.\@
+    \item $X$ is closed under the operation $n \mapsto n \cup \{n\}$, \ie
           \( \forall\, n \in X,\, n \cup \{n\} \in X \).
   \end{enumerate}
 \end{definition}
@@ -156,9 +156,11 @@ theorem sub_add_distrib {n m k : ZFNat} : n - (m + k) = n - m - k
 theorem left_distrib    {n m k : ZFNat} : n * (m + k) = n * m + n * k
 theorem mul_lt_mono     {n m k : ZFNat} (h : 0 < k) : n < m → k*n < k*m
 \end{leanlisting}
-%
+
 Finally, we define standard arithmetic operations by primitive recursion, together with convenient notations and a furnished library of arithmetic lemmas.
-A few examples of such theorems are shown in \cref{lst:nat-lemmas}.
+A few examples of such theorems are shown in \cref{lst:nat-lemmas} and resemble Church-style defnitions of arithmetic operations and their properties.
+Predecessor is defined by recursion but does not use the recursive argument, and therefore reduces to basic case analysis; if the argument is zero, it returns zero, and otherwise for \leaninl{succ m} it returns the structural predecessor \leaninl{m}.
+Addition is defined by recursion on the first argument and folds the successor function over the second argument, multiplication is defined similarly by folding addition, and subtraction is defined by folding the predecessor function.
 % \begin{remark}
 %   For the predecessor operator $\mathsf{pred}$, we defined it both set-theoretically and recursively and showed that they coincide.
 % \end{remark}
@@ -174,7 +176,7 @@ We eventually equip $\mathsf{ZFNat}$ with a \emph{commutative semiring} structur
 \paragraph*{Integers and rationals}
 \newcommand{\zrel}{\ensuremath{\sim_{\mathbb{Z}}}}
 
-We follow standard constructions to build integers as equivalence classes of pairs of naturals under the relation $(a,b) \zrel (c,d) \iff a + d = b + c$ for all $a,b,c,d : \mathsf{ZFNat}$.
+We follow standard constructions\footnote{See, \eg K.\ Kunen's textbook~\cite[Ch.~1, Sec.~11]{kunen2011set}.} to build integers as equivalence classes of pairs of naturals under the relation $(a,b) \zrel (c,d) \iff a + d = b + c$ for all $a,b,c,d : \mathsf{ZFNat}$.
 Contrary to naturals, we do not primarily expose integers as a subtype but as a \emph{quotient} type: the standard construction of $\mathbb{Z}$ as signed differences of naturals is most naturally a quotient, and a quotient type gives the cleanest interface for lifting operations.
 This does not abandon the set level either: we additionally build a genuine set $\mathbb{Z}$ of canonical representatives (below) and prove its extension isomorphic to $\mathsf{ZFInt}$, so the quotient interface and the set-level object are interchangeable.
 \begin{definition}[Ring of integers][ZFSet.ZFInt, ZFSet.Int][ZFLean/Integers.html\#ZFSet.ZFInt, ZFLean/Integers.html\#ZFSet.Int]
@@ -184,11 +186,11 @@ This does not abandon the set level either: we additionally build a genuine set 
   \]
   We then define $0_{\mathbb{Z}} \triangleq [(0_{\mathbb{N}}, 0_{\mathbb{N}})]_{\zrel}$, $1_{\mathbb{Z}} \triangleq [(1_{\mathbb{N}}, 0_{\mathbb{N}})]_{\zrel}$ (equivalence classes of the representatives), and the usual addition, subtraction and multiplication operations on $\mathsf{ZFInt}$ by lifting the corresponding operations on representatives and instantiate a \emph{commutative ring} structure $\langle \mathsf{ZFInt}, +, * \rangle$ with the usual ordering.
 
-  We then define a set $\mathbb{Z}$ of canonical representatives of integers as the union as follows
+  We then define a set $\mathbb{Z}$ of canonical representatives of integers as the following union:
   \[
     \mathbb{Z} \triangleq \mathbb{N} \times \{0_{\mathbb{N}}\}\, \cup\, \{0_{\mathbb{N}}\} \times \mathbb{N}
   \]
-  and prove that the subtype built from the extension of the set $\mathbb{Z}$ is isomorphic to $\mathsf{ZFInt}$ (which also provides coercions).
+  and prove that the subtype built from the extension of the set $\mathbb{Z}$ is isomorphic to $\mathsf{ZFInt}$ (which also provides coercions, \ie type-level conversions, between the two).
 \end{definition}
 
 \begin{remark}% this remark can be removed if space is tight
@@ -239,23 +241,87 @@ We define embeddings and isomorphisms between sets internally in ZFC.
   \[
     A \zbinop{\hookrightarrow} B \triangleq \exists\, (f : \mathsf{ZFSet})\, (h_f : \mathsf{IsFunc}(A,B,f)),\, \mathsf{Injective}(f)
   \]
-  $A$ and $B$ are said to be \emph{isomorphic}, denoted $A \zbinop{\cong} B$, when there exists a bijective function\footnote{In the category of sets, isomorphisms are the bijections.} from $A$ to $B$:
+  $A$ and $B$ are said to be \emph{isomorphic}, denoted $A \zbinop{\cong} B$, when there exists a bijective function\footnotemark from $A$ to $B$:
   \[
     A \zbinop{\cong} B \triangleq \exists\, (f : \mathsf{ZFSet})\, (h_f : \mathsf{IsFunc}(A,B,f)),\, \mathsf{Bijective}(f)
   \]
 \end{definition}
+\footnotetext{In set theory---or more precisely, in the category of sets---isomorphisms are exactly the bijections. This definition therefore captures the usual notion of isomorphism between sets.}
 \begin{remark}
   $\mathsf{Injective}(f)$ and $\mathsf{Bijective}(f)$ expect $f$ to be a total function from $A$ to $B$, which is given by $h_f$; this is handled by our automation layer---here, by the \inlinelean|zfun| tactic.
 \end{remark}
 The relation $\zbinop{\cong}$ is shown to be an equivalence relation on sets, and $\zbinop{\hookrightarrow}$ is shown to be antisymmetric up to isomorphism, a property known as the \emph{Cantor-Schr\"{o}der-Bernstein theorem}~\cite{CSB_thm}.
 \begin{theorem}[Cantor-Schr\"{o}der-Bernstein][ZFSet.isIso\_of\_biembedding][ZFLean/Isomorphisms.html\#ZFSet.isIso_of_biembedding]
-  For any sets $A,B$, if A can be embedded into B and B can be embedded into A, then A and B are isomorphic, \ie in \zflean:
+  For any sets \(A\) and \(B\), if \(A\) can be embedded into \(B\) and \(B\) can be embedded into \(A\), then \(A\) and \(B\) are isomorphic, \ie expressed directly in \zflean:
   \begin{leanlisting}
 theorem isIso_of_biembedding {A B : ZFSet} : A ↪ᶻ B → B ↪ᶻ A → A ≅ᶻ B
 \end{leanlisting}
 \end{theorem}
 \begin{proof}
-  The proof is available in the artifacts and follows a classical pattern using successive sets of \emph{stable} elements under the two embeddings.
+  The proof follows a classical pattern using successive sets of stable elements under the two embeddings.
+  Let $f$ be an injective function from $A$ to $B$ and $g$ be an injective function from $B$ to $A$.
+  Define the \emph{successive stable sets} $S_0 \triangleq A \setminus g(B)$ and
+  $S_{n+1} \triangleq g(f(S_n))$ for $n \geq 0$, and let $S^* \triangleq \bigcup_{n \geq 0} S_n$.
+  Because $g \circ f$ is injective, it maps each $S_n$ bijectively onto $S_{n+1}$, giving a
+  concentric sequence of disjoint stable sets shrinking toward the complement $A \setminus S^*$,
+  as illustrated below.
+
+  \begin{center}
+  \begin{tikzpicture}[>=Stealth, font=\small, scale=0.90]
+    %% Centers: A at (-4,0), B at (4,0).
+    %% Ring radii (scale factor ~0.75 per level): 3.0/2.0 → 2.25/1.5 → 1.6875/1.125 → 1.265625/0.84375
+    %% Center ellipse: 0.72/0.48.
+
+    %% ---- Set A ----
+    \fill[blue!35]   (-4,0) [draw=blue!70, thin] ellipse (3.0  and 2.0);
+    \fill[blue!20]   (-4,0) [draw=blue!50, dashed, thin] ellipse (2.25 and 1.5);
+    \fill[blue!10]   (-4,0) [draw=blue!35, dashed, thin] ellipse (1.6875 and 1.125);
+    \fill[blue!5]    (-4,0) [draw=blue!25, dashed, thin] ellipse (1.265625 and 0.84375);
+    \fill[orange!15]    (-4,0) [draw=orange!50, dashed, thin] ellipse (0.88 and 0.59);
+    \node[above=2pt] at (-4, 2.0) {$A$};
+    \node at (-4, 1.72) {$S_0$};
+    \node at (-4, 1.28) {\footnotesize$S_1$};
+    \node at (-4, 0.95) {\footnotesize$S_2$};
+    \node at (-4, 0.68) {\tiny$\cdots$};
+    \node[font=\scriptsize] at (-4, 0) {$A \setminus S^*$};
+
+    %% ---- Set B ----
+    \fill[blue!35]   (4,0) [draw=blue!70, thin] ellipse (3.0  and 2.0);
+    \fill[blue!20]   (4,0) [draw=blue!50, dashed, thin] ellipse (2.25 and 1.5);
+    \fill[blue!10]   (4,0) [draw=blue!35, dashed, thin] ellipse (1.6875 and 1.125);
+    \fill[blue!5]    (4,0) [draw=blue!25, dashed, thin] ellipse (1.265625 and 0.84375);
+    \fill[pink!15] (4,0) [draw=pink!50, dashed, thin] ellipse (0.88 and 0.59);
+    \node[above=2pt] at (4, 2.0) {$B$};
+    \node at (4, 1.72) {\footnotesize$f(S_0)$};
+    \node at (4, 1.28) {\footnotesize$f(S_1)$};
+    \node at (4, 0.95) {\footnotesize$f(S_2)$};
+    \node at (4, 0.68) {\tiny$\cdots$};
+    \node[font=\scriptsize] at (4, 0) {$B \setminus f(S^*)$};
+
+    %% ---- Arrows (symmetric: both span x ∈ [-1.65, 1.65]) ----
+    \draw[->, pink, bend left=15, line width=0.9pt]
+      (-1.65, 0.70) to node[above, font=\normalsize] {$f$} (1.65, 0.70);
+    \draw[->, orange, bend left=15, line width=0.9pt]
+      (1.65, -0.70) to node[below, font=\normalsize] {$g$} (-1.65, -0.70);
+  \end{tikzpicture}
+  \\[4pt]
+  {\footnotesize\itshape
+    $f$ maps each $S_n$ into $f(S_n) \subset B$;
+    $g$ maps $f(S_n)$ back into $S_{n+1} \subset A$, one level deeper.}
+  \end{center}
+
+  \noindent
+  The desired bijection $h \colon A \to B$ is then
+  \[
+    h(x) \;\triangleq\;
+    \begin{cases}
+      f(x)      & \text{if } x \in S^*, \\
+      g^{-1}(x) & \text{if } x \in A \setminus S^*,
+    \end{cases}
+  \]
+  where $g^{-1}$ is well-defined on $A \setminus S^* \subseteq g(B)$ by injectivity of $g$.
+  Injectivity follows from injectivity of $f$ and $g$ and disjointness of $f(S^*)$ and
+  $B \setminus f(S^*)$; surjectivity from the fact that these cover all of $B$.
 \end{proof}
 
 \paragraph*{Bridges to Lean types and transport along isomorphisms}

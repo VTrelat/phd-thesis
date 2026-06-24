@@ -1,9 +1,9 @@
 \section{Introduction}
 \label{sec:zflean-intro}
 
-Modern mathematical formalization is increasingly carried out with proof assistants, whose foundational cores range from first-order set theories to more expressive systems based on simple or dependent type theory.
+Modern mathematical developments are increasingly carried out with proof assistants, whose foundational cores range from first-order set theories to more expressive systems based on simple or dependent type theory.
 This evolution was fueled by the \emph{proofs-as-objects} vision of the Curry-Howard correspondence, and it crystallized into two broad and often contrasted families of foundations: \emph{collections}-based theories (set-theoretic) and \emph{constructions}-based theories (type-theoretic).
-Various proposals aim to reconcile these viewpoints, either by generalizing over them---e.g.\ category theory---or by refining them---e.g.\ constructive set theories such as CZF~\cite{aczel-czf}.
+Various proposals aim to reconcile these viewpoints, either by generalizing over them---\eg category theory---or by refining them---\eg constructive set theories such as CZF~\cite{aczel-czf}.
 
 Nevertheless, formalizing \emph{set-level} mathematics is sometimes desirable---for extensional equalities, partiality via relations, or category-style ``up to isomorphism'' reasoning.
 However, working directly at set level in a typed assistant can be verbose and brittle: partial maps require encodings; extensionality must be disciplined; and crossing the boundary to native types is manual and error-prone. As a result, ZFC models are more often referenced than \emph{used} for development.

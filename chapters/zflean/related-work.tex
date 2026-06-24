@@ -8,7 +8,7 @@ In this approach, set-theoretic reasoning happens inside the ZF object logic, wi
 While powerful, ZF lives as a separate object logic from Isabelle's higher-order logic (HOL).
 This separation historically supported extensive set-theoretic formalizations---from elementary theories such as ordinals up to genuinely deep developments such as the constructible universe and relative consistency results---but makes it less convenient to reuse HOL automation, type classes, and libraries in mixed developments.
 
-A complementary line encodes ZFC \emph{within} Isabelle/HOL by introducing a HOL type of sets together with an elementhood relation and basic operations, with an emphasis on close integration with HOL's automation and type classes~\cite{paulson-zf-hol}.
+A complementary line of work encodes ZFC \emph{within} Isabelle/HOL by introducing a HOL type of sets together with an elementhood relation and basic operations, with an emphasis on close integration with HOL's automation and type classes~\cite{paulson-zf-hol}.
 In this setting, sets are first-class HOL values; proofs benefit from standard HOL tooling and can interoperate smoothly with typed libraries.
 Conceptually, our Lean framework plays a similar bridging role: we keep ZFC-level objects and proofs, but we provide explicit bridges to Lean's native types so that tactics, typeclasses, and algebraic infrastructure can be reused where they pay off.
 Our distinct contribution is a \emph{rewriting-friendly relational calculus} tailored to set-level developments, whereas the HOL encodings typically emphasize a minimal new notation surface and type-class integration.
