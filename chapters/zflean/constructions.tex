@@ -176,7 +176,7 @@ We eventually equip $\mathsf{ZFNat}$ with a \emph{commutative semiring} structur
 \paragraph*{Integers and rationals}
 \newcommand{\zrel}{\ensuremath{\sim_{\mathbb{Z}}}}
 
-We follow standard constructions\footnote{See, \eg K.\ Kunen's textbook~\cite[Ch.~1, Sec.~11]{kunen2011set}.} to build integers as equivalence classes of pairs of naturals under the relation $(a,b) \zrel (c,d) \iff a + d = b + c$ for all $a,b,c,d : \mathsf{ZFNat}$.
+We follow standard constructions---as in K.\ Kunen's textbook~\cite[Ch.~1, Sec.~11]{kunen2011set}---to build integers as equivalence classes of pairs of naturals under the relation $(a,b) \zrel (c,d) \iff a + d = b + c$ for all $a,b,c,d : \mathsf{ZFNat}$.
 Contrary to naturals, we do not primarily expose integers as a subtype but as a \emph{quotient} type: the standard construction of $\mathbb{Z}$ as signed differences of naturals is most naturally a quotient, and a quotient type gives the cleanest interface for lifting operations.
 This does not abandon the set level either: we additionally build a genuine set $\mathbb{Z}$ of canonical representatives (below) and prove its extension isomorphic to $\mathsf{ZFInt}$, so the quotient interface and the set-level object are interchangeable.
 \begin{definition}[Ring of integers][ZFSet.ZFInt, ZFSet.Int][ZFLean/Integers.html\#ZFSet.ZFInt, ZFLean/Integers.html\#ZFSet.Int]

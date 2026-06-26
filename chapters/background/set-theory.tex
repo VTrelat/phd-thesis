@@ -109,97 +109,81 @@ precisely.
 \subsection{The Axioms of ZF}
 \label{subsec:set-theory-axioms}
 
-We work in classical first-order logic with equality. The only non-logical
-symbol is a binary relation~$\in$, and every object of the theory is a
-\emph{set}; in particular, the elements of a set are themselves sets, and the
-universe contains nothing else (\emph{pure} set theory). We write $\vec p$ for a
-finite tuple $p_1, \cdots, p_n$ of set parameters, and use the standard
-abbreviations
-\[
-  x \regnotation{\subseteq} y \;\;\coloneq\;\; \forall z,\, z \in x \to z \in y,
-  \qquad
-  x \neq y \;\;\coloneq\;\; \lnot\,(x = y),
-\]
-together with the \emph{bounded quantifiers} $\forall z \in x,\,\psi$ and
-$\exists z \in x,\,\psi$, abbreviating $\forall z,\,z \in x \to \psi$ and
-$\exists z,\,z \in x \land \psi$ respectively. In axioms~(\ref{ax:inf})
-and~(\ref{ax:found}) we also use the standard abbreviations $\regnotation{\varnothing}$
-(the empty set), $\regnotation{\{y\}}$ (the singleton set containing $y$), $\regnotation{x \cup y}$ (the binary
-union of $x$ and $y$), and $\regnotation{x \cap y}$ (the binary intersection of $x$ and $y$),
-each of which unfolds into a formula over $\in$ alone, but their use improves
-readability and reflects the way the axioms are applied in practice. The axioms
-of ZF are the following eight; the ninth, choice, stands apart and is presented
-in \Cref{subsec:set-theory-choice}.
+We work in classical first-order logic with equality, whose only non-logical
+symbol is the binary relation~$\in$; every object of the theory is a \emph{set},
+so the elements of a set are themselves sets and the universe contains nothing
+else (\emph{pure} set theory).
 
-\begin{enumerate}[label=\textbf{(A\arabic*)}, ref=A\arabic*, leftmargin=3.4em, itemsep=0.8ex]
+We state the axioms in ordinary mathematical style rather than fully formal
+syntax, assuming the usual high-level handling of variables: bound variables are
+taken suitably fresh, any free parameters of a formula are read as implicitly
+universally quantified, and we use standard abbreviations throughout.
+In particular, $x \regnotation{\subseteq} y$ stands for $\forall z,\, z \in x \to z \in y$
+and $x \neq y$ for $\lnot(x = y)$; the bounded quantifiers $\forall z \in x,\,\psi$
+and $\exists z \in x,\,\psi$ abbreviate $\forall z,\,(z \in x \to \psi)$ and
+$\exists z,\,(z \in x \land \psi)$; and $\regnotation{\varnothing}$, $\regnotation{\{y\}}$,
+$\regnotation{x \cup y}$, $\regnotation{x \cap y}$ denote the empty set, singleton,
+binary union, and binary intersection, each unfolding into a formula over $\in$
+alone. The axioms of ZF are the following eight; the ninth, choice, stands apart
+and is presented in \Cref{subsec:set-theory-choice}.
 
-  \item\label{ax:ext} \textbf{Extensionality.} Sets with the same elements are
-  equal,
-  \[
-    \forall x\, y,\,(\forall z,\,z \in x \leftrightarrow z \in y) \to x = y
-  \]
+\begin{enumerate}[label=\textbf{(A\arabic*)}, ref=A\arabic*, leftmargin=3.6em, labelsep=1em, itemsep=0.8ex]
 
-  \item\label{ax:pair} \textbf{Pairing.} For all $x$ and $y$ there is a set
-  whose elements are exactly $x$ and $y$,
-  \[
-    \forall x\, y,\,\exists z,\,\forall w,\,w \in z \leftrightarrow (w = x \lor w = y)
-  \]
+  \item\label{ax:ext} \axiomlayout{%
+    \textbf{Extensionality.} Sets with the same elements are equal:
+    \axiomeq{\forall x\, y,\,(\forall z,\,z \in x \leftrightarrow z \in y) \to x = y}
+  }{\axfigExt}
+
+  \item\label{ax:pair} \axiomlayout{%
+    \textbf{Pairing.} For all $x$ and $y$ there is a set whose elements are exactly $x$ and $y$:
+    \axiomeq{\forall x\, y,\,\exists z,\,\forall w,\,w \in z \leftrightarrow (w = x \lor w = y)}
+  }{\axfigPair}
   \begin{note}
     Such a set \(z\) is unique by extensionality, and is denoted \(\regnotation{\{x, y\}}\).
   \end{note}
 
-  \item\label{ax:union} \textbf{Union.} For every set $x$ there is a set whose
-  elements are the elements of the elements of $x$,
-  \[
-    \forall x,\,\exists y,\,\forall z,\,z \in y \leftrightarrow (\exists w,\,w \in x \land z \in w)
-  \]
+  \item\label{ax:union} \axiomlayout{%
+    \textbf{Union.} For every set $x$ there is a set \(y\) whose elements are the elements of the elements of $x$:
+    \axiomeq{\forall x,\,\exists y,\,\forall z,\,z \in y \leftrightarrow (\exists w,\,w \in x \land z \in w)}
+  }{\axfigUnion}
   \begin{note}
     Such a set \(y\) is unique by extensionality, and is denoted \(\regnotation{\bigcup} x\).
   \end{note}
 
-  \item\label{ax:pow} \textbf{Power set.} For every set $x$ there is a set whose
-  elements are exactly the subsets of $x$,
-  \[
-    \forall x,\,\exists y,\,\forall z,\,z \in y \leftrightarrow z \subseteq x
-  \]
+  \item\label{ax:pow} \axiomlayout{%
+    \textbf{Power set.} For every set $x$ there is a set \(y\) whose elements are exactly the subsets of $x$:
+    \axiomeq{\forall x,\,\exists y,\,\forall z,\,z \in y \leftrightarrow z \subseteq x}
+  }{\axfigPow}
   \begin{note}
     Such a set \(y\) is unique by extensionality, and is denoted \(\regnotation{\mathcal{P}}(x)\).
   \end{note}
 
-  \item\label{ax:inf} \textbf{Infinity.} There is an \emph{inductive} set: one
-  containing $\varnothing$ and closed under the successor $y \mapsto y \cup \{y\}$,
-  \[
-    \exists x,\,\varnothing \in x \;\land\; (\forall y,\,y \in x \to y \cup \{y\} \in x)
-  \]
+  \item\label{ax:inf} \axiomlayout{%
+    \textbf{Infinity.} There exists an \emph{inductive} set, \ie one containing $\varnothing$ and closed under the successor $y \mapsto y \cup \{y\}$:
+    \axiomeq{\exists x,\,\varnothing \in x \;\land\; (\forall y,\,y \in x \to y \cup \{y\} \in x)}
+  }{\axfigInf}
 
-  \item\label{ax:found} \textbf{Foundation.} Every non-empty set has a member
-  disjoint from it; equivalently, $\in$ is well-founded,
-  \[
-    \forall x,\, x \neq \varnothing \;\to\; (\exists y,\,y \in x \land y \cap x = \varnothing)
-  \]
+  \item\label{ax:found} \axiomlayout{%
+    \textbf{Foundation.} Every non-empty set has a member disjoint from it; equivalently, $\in$ is well-founded:
+    \axiomeq{\forall x,\, x \neq \varnothing \;\to\; (\exists y,\,y \in x \land y \cap x = \varnothing)}
+  }{\axfigReg}
 
-  \item\label{ax:sep} \textbf{Separation} \textup{(schema).} For every
-  formula $\varphi(z, \vec p\,)$ in which $y$ is not free, the subset of $x$ cut
-  out by $\varphi$ exists.
-  \[
-    \forall \vec p,\,\forall x,\,\exists y,\,\forall z,\;z \in y \leftrightarrow (z \in x \land \varphi(z, \vec p\,))
-  \]
+  \item\label{ax:sep} \axiomlayout{%
+    \textbf{Separation} \textup{(schema).} For every formula $\varphi(z)$, the subset $y$ of $x$ cut out by $\varphi$ exists:
+    \axiomeq{\forall x,\,\exists y,\,\forall z,\;z \in y \leftrightarrow (z \in x \land \varphi(z))}
+  }{\axfigSep}
   \begin{note}
-    Such a set \(y\) is unique by extensionality, and is denoted \(\regnotation{\setcomp{z \in x}{\varphi(z, \vec p\,)}}\).
+    Such a set \(y\) is unique by extensionality, and is denoted \(\regnotation{\setcomp{z \in x}{\varphi(z)}}\).
   \end{note}
 
-  \item\label{ax:repl} \textbf{Replacement} \textup{(schema).} For every
-  formula $\varphi(x, y, \vec p\,)$ in which $b$ is not free, if $\varphi$ is
-  functional in $y$ then the image of any set under it is a set:
-  \[
-    \forall \vec p,\; \mathrm{fun}(\varphi) \;\;\to\;\; \forall a,\,\exists b,\,\forall y,\; (y \in b \leftrightarrow \exists x,\,x \in a \land \varphi(x, y, \vec p\,)),
-  \]
-  where $\mathrm{fun}(\varphi)$ abbreviates the functionality condition
-  \(\forall x\, y\, y',\,\bigl(\varphi(x, y, \vec p\,) \land \varphi(x, y', \vec p\,)\bigr) \to y = y'\).
+  \item\label{ax:repl} \axiomlayout{%
+    \textbf{Replacement} \textup{(schema).} For any definable\footnotemark{} operation $x \mapsto f(x)$, the image of any set under it is a set:
+    \axiomeq{\forall a,\,\exists b,\,\forall y,\; (y \in b \leftrightarrow \exists x,\,x \in a \land f(x) = y)}
+  }{\axfigRepl}
+  \footnotetext{\emph{Definable} means given by a first-order formula $f(x, y)$ over~$\in$ (possibly with set parameters) relating each $x$ to at most one $y$; replacement is thus a schema, with one instance per such formula.}
 
   \begin{note}
-    In practice, this schema is used for mapping a set \(a\) along a function defined by
-    \(\varphi\); in this case the set \(b\) is denoted \(\regnotation{\setcomp{\varphi(x)}{x \in a}}\).
+    The resulting set \(b\) is the \emph{image} of \(a\) under \(f\), denoted \(\regnotation{\setcomp{f(x)}{x \in a}}\).
   \end{note}
 \end{enumerate}
 
@@ -255,16 +239,16 @@ set it asserts to exist, the axiom of choice asserts the existence of a set
 without determining its members. Adjoining it to ZF yields \emph{Zermelo--
 Fraenkel set theory with choice}, ZFC.
 
-\begin{enumerate}[label=\textbf{(A\arabic*)}, ref=A\arabic*, start=9, leftmargin=3.4em, itemsep=0.8ex]
+\begin{enumerate}[label=\textbf{(A\arabic*)}, ref=A\arabic*, start=9, leftmargin=3.6em, labelsep=1em, itemsep=0.8ex]
 
-  \item\label{ax:choice} \textbf{Choice.} Every set of pairwise-disjoint
-  non-empty sets has a \emph{selector}---a set meeting each of its members in
-  exactly one element,
-  \[
-    \forall x,\,\mathrm{Disj}(x) \;\to\; \exists c,\,\forall y \in x,\,\exists! z,\,z \in c \land z \in y,
-  \]
-  where $\mathrm{Disj}(x)$ abbreviates
-  $\varnothing \notin x \;\land\; \forall y \in x,\,\forall y' \in x,\,(y \neq y' \to y \cap y' = \varnothing)$.
+  \item\label{ax:choice} \axiomlayout{%
+    \textbf{Choice.} Every set of pairwise-disjoint non-empty sets has a \emph{selector}---a set meeting each of its members in exactly one element:
+    \axiomeq{\forall x,\,\mathrm{Disj}(x) \;\to\; \exists c,\,\forall y \in x,\,\exists! z,\,z \in c \land z \in y}
+    where $\mathrm{Disj}(x)$ abbreviates
+    \[
+      \varnothing \notin x \;\land\; \forall y \in x,\,\forall y' \in x,\,(y \neq y' \to y \cap y' = \varnothing).
+    \]
+  }{\axfigChoice}
 
 \end{enumerate}
 
