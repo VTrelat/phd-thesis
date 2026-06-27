@@ -25,9 +25,13 @@ ultimately rely.
 \subsection{The SMT problem}
 \label{subsec:smt-problem}
 
-Formally, one fixes a many-sorted first-order signature \(\Sigma\) and a
-\emph{theory} \(T\), presented either as a set of axioms or, more commonly, as a
-class of \(\Sigma\)-structures.
+Formally~\cite{barrett2021smt}, one fixes a many-sorted first-order
+\emph{signature} \(\Sigma\)---a collection of sorts together with the function
+and predicate symbols and their arities---and a \emph{theory} \(T\), presented
+either as a set of axioms or, more commonly, as a class of
+\(\Sigma\)-\emph{structures}: the interpretations that equip each sort with a
+non-empty domain and each symbol with an operation or relation of the matching
+arity.
 A formula \(\varphi\) is \emph{\(T\)-satisfiable} when at least one structure in
 \(T\) satisfies it, and the SMT problem is to decide \(T\)-satisfiability for a
 given fragment of \(\Sigma\)-formulas.
@@ -40,9 +44,11 @@ than from axioms alone.
 A small, recurring collection of theories covers most practical needs:
 equality with uninterpreted functions, linear arithmetic over the integers or
 the reals, bit-vectors, arrays, algebraic datatypes, and strings, among others.
-Each is equipped with a decision procedure for its quantifier-free fragment, and
-the question a verification backend must answer is which combination of theories
-a given obligation requires.
+Each comes with a decision procedure for its quantifier-free fragment---and, for
+several of them, for decidable quantified fragments as well; quantifiers outside
+such a fragment are handled by the heuristic instantiation discussed below.
+The task of a verification backend is then to decide the satisfiability of a
+given obligation with respect to the relevant combination of these theories.
 
 Most state-of-the-art solvers follow the \emph{lazy}, or \(\mathrm{DPLL}(T)\),
 architecture~\cite{nieuwenhuis2006dpllt}.
@@ -51,11 +57,25 @@ for a propositional model; a dedicated \emph{theory solver} then checks whether
 the conjunction of literals selected by that model is consistent in \(T\),
 returning either a satisfying assignment or a \emph{theory lemma} that refines the
 propositional search.
+
+\begin{example}[A DPLL(\(T\)) refutation]
+Consider the quantifier-free formula over equality and an uninterpreted
+function~\(f\),
+\[
+  a = b \;\land\; b = c \;\land\; f(a) \neq f(c).
+\]
+Treating its three conjuncts as opaque propositions \(p\), \(q\), and \(r\) respectively,
+the CDCL engine finds the propositional model \(p \land q \land r\) and hands the literals
+\(\{a = b,\; b = c,\; f(a) \neq f(c)\}\) to the theory solver. Congruence
+closure deduces \(a = c\) from \(a = b\) and \(b = c\), hence \(f(a) = f(c)\),
+contradicting \(f(a) \neq f(c)\); it returns the theory lemma
+\(\lnot p \lor \lnot q \lor \lnot r\). Added to the clause set, this lemma rules
+out the only propositional model, so the formula is \emph{unsatisfiable}---a
+verdict no purely Boolean reasoning could reach.
+\end{example}
+
 Reasoning over several theories at once is delegated to combination methods, the
-foundational one being the \emph{Nelson--Oppen} procedure, which combines
-decision procedures for stably infinite theories with disjoint signatures by
-propagating entailed equalities between shared
-variables~\cite{nelson1979simplification}.
+foundational one being the \emph{Nelson--Oppen} procedure~\cite{nelson1979simplification}.
 Quantifiers, which lie beyond the decidable core, are handled by heuristic
 instantiation and are a frequent source of incompleteness.
 Mature implementations of this architecture include cvc5~\cite{barbosa2022cvc5},
@@ -71,11 +91,14 @@ boundary with the rest of that field is one of method rather than of kind.
 The term ``SMT'' names a \emph{problem}---deciding satisfiability modulo a
 background theory---and not a particular algorithm.
 The DPLL(\(T\)) design of \Cref{subsec:smt-problem} is the prevailing
-architecture, but it does not constrain how the
-theory-reasoning component reaches its verdict: a theory solver may be a bespoke
-decision procedure, such as congruence closure for equality or the simplex
-method for linear arithmetic, but it may equally be a general-purpose inference
-engine.
+architecture, but it does not fully constrain how the theory-reasoning component
+reaches its verdict. At its core a theory solver is expected to be a
+\emph{decision procedure} such as congruence closure for equality or the
+simplex method for linear arithmetic. A general-purpose inference engine, which
+is at best semi-decidable and does not in general satisfy the requirements for
+theory combination, does not replace such a procedure; it is instead enlisted
+alongside it to discharge the quantified goals that lie beyond the decidable
+core, as we discuss next.
 
 The most prominent general-purpose engine is \emph{saturation}.
 Starting from the clausal form of a negated conjecture, a saturation procedure
@@ -148,3 +171,33 @@ syntax.
 These additions are explicitly framed as a transition toward the forthcoming
 version 3, whose base logic is to be a higher-order logic with polymorphic and
 dependent types.
+
+\begin{example}[A higher-order SMT-LIB script]
+The new features let a function be passed as an argument and partially applied.
+The script below declares a higher-order operator \smtinl{twice}, which applies
+its function argument to a value twice, together with a binary symbol
+\smtinl{f} whose partial application \smtinl{(f a)} has the function sort
+\smtinl{(-> A A)}.
+\begin{smtlisting}
+(set-logic HO_ALL)
+(declare-sort A 0)
+(declare-const a A)
+(define-fun twice ((g (-> A A)) (x A)) A (g (g x)))
+(declare-const f (-> A A A))
+(assert (not (= (twice (f a) a) (f a (f a a)))))
+(check-sat)
+\end{smtlisting}
+Since \smtinl{(twice (f a) a)} unfolds to \smtinl{(f a (f a a))}, the assertion
+is contradictory, and a solver like cvc5~\cite{barbosa2022cvc5} answers
+\texttt{unsat}---an exchange that the strictly first-order language of
+version~2.6 could not even express.
+
+Note that here, \smtinl{f} can be declared either as
+\begin{center}
+  \vspace*{-.5\baselineskip}
+  \smtinl{declare-const f (-> A A A)},
+  or as \smtinl{declare-fun f (A A) A},
+  \vspace*{-.5\baselineskip}
+\end{center}
+the two forms being accepted by the standard as equivalent.  
+\end{example}

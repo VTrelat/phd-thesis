@@ -1,9 +1,4 @@
 \providecommand{\Lean}{Lean~4}
-\providecommand{\Prop}{\ensuremath{\mathsf{Prop}}}
-\providecommand{\Sort}{\ensuremath{\mathsf{Sort}}}
-\providecommand{\Type}{\ensuremath{\mathsf{Type}}}
-\providecommand{\defeq}{\mathrel{:=}}
-\providecommand{\judges}{\mathrel{\vdash}}
 
 \ifdefined\leandefinition\else
 \newenvironment{leandefinition}[1]{%
@@ -30,6 +25,67 @@ Nevertheless, the system is interactive because the user chooses statements, def
 structure.
 Moreover, automation is not accepted as an oracle: every tactic must produce a term that is checked by the kernel.
 
+\subsection{Logical foundations}
+\label{subsec:lean-foundations}
+
+Lean's kernel is based on an intensional dependent type theory in the family of
+the Calculus of Inductive Constructions (CIC)~\cite{coquandHuet1988coc,coquandPaulin1990cic}.
+We recall the features that the developments of this thesis rely on.
+
+\paragraph{Universes.}
+Because every type is itself a term with a type of its own, the types cannot all
+inhabit a single type: the rule \leaninl{Type : Type} would render the system
+inconsistent, by Girard's paradox~\cite{girard1972}---a type-theoretic analog of
+Russell's paradox in set theory.
+Lean therefore stratifies types into a hierarchy of \emph{universes}
+\leaninl{Sort u}, indexed by a \emph{universe level} \leaninl{u}, each inhabiting
+the next: \leaninl{Sort u : Sort (u+1)}.
+
+Two named families sit inside this one hierarchy. At the bottom is the universe of
+propositions \leaninl{Prop}, which is \leaninl{Sort 0}; above it are the
+\emph{data} universes \leaninl{Type u}, abbreviating \leaninl{Sort (u+1)}, with
+\leaninl{Type} short for \leaninl{Type 0}, that is \leaninl{Sort 1}. Thus
+\leaninl{Type} and \leaninl{Sort} name the same tower shifted by one index: small
+types such as \leaninl{Nat : Type} and \leaninl{Prop : Type} sit low in it,
+whereas a constructor quantifying over a universe lands one level higher. Unlike set theory,
+the universe hierarchy is \emph{non-cumulative}---a type in \leaninl{Type u} does not silently
+belong to \leaninl{Type (u+1)}---so movement between levels is explicit.
+
+\paragraph{Universe polymorphism.}
+A construction that makes sense at every level is declared once with a universe
+\emph{variable} \leaninl{u} rather than duplicated level by level. This is the
+role of the \leaninl{u} appearing in the examples below, such as the type
+\leaninl{Tree} of \Cref{ex:lean-inductive}, whose \leaninl{Type u} ranges over all
+universes.
+
+\paragraph{Propositions as types.}
+\leaninl{Prop} differs from the data universes in two respects that reflect its
+logical role. It is \emph{impredicative}---a quantified proposition
+\leaninl{∀ x : A, p x} stays in \leaninl{Prop} regardless of the universe of
+\leaninl{A}---and the kernel treats it as \emph{proof-irrelevant}: any two proofs
+of one proposition are interchangeable, since only provability, not the identity
+of the proof, carries information. Under the Curry--Howard correspondence, a
+proposition \leaninl{p : Prop} is the type of its proofs, a proof is a term
+\leaninl{h : p} inhabiting that type, and the logical connectives are ordinary inductive
+types---conjunction a product, disjunction a sum, implication a function
+type. Proving a theorem and constructing a term of a given type are therefore the
+same activity, carried out either by writing the term or by running tactics that
+elaborate one.
+
+\paragraph{Inductive types.}
+The inductive half of CIC supplies inductive type families: a type is specified
+by its constructors, from which the kernel derives the matching recursion and
+induction principles. Data types and logical connectives are alike instances of
+this single mechanism---the reason programs and proofs inhabit one language.
+
+\paragraph{Classical and computable fragments.}
+Lean is constructive by default but \emph{classical in the presence of choice}:
+by Diaconescu's theorem~\cite{diaconescu1975}, the choice axiom together with
+functional extensionality entails the law of excluded middle. A development may
+nonetheless remain within a \emph{computable} fragment by avoiding choice and the
+\leaninl{Classical} module; a definition that does depend on choice cannot be
+reduced by the kernel, which then requires it to be marked \leaninl{noncomputable}.
+
 \subsection{Lean as a functional programming language}
 \label{subsec:lean-programming}
 
@@ -47,6 +103,7 @@ extensions, and domain-specific proof procedures can be implemented in the same
 environment as the formal development.
 
 \begin{example}[inductive data and recursion]
+\label{ex:lean-inductive}
 Defining a polymorphic type for representing binary trees and a recursive function counting their internal nodes can be done as follows.
 
 \begin{leanlisting}
@@ -88,8 +145,9 @@ If validity of an index cannot be determined by the kernel automatically, the pr
 \label{subsec:lean-proof-assistant}
 
 Lean implements the Curry--Howard correspondence: propositions are types and
-proofs are terms.  If \leaninl{p : Prop}, then a proof of \leaninl{p} is an expression
-\leaninl{h : p}.  A theorem declaration is therefore a definition whose result type is
+proofs are terms.  If \leaninl{p : Prop}, then \leaninl{p} is itself a type, and a proof
+of \leaninl{p} is a term \leaninl{h : p} inhabiting it.  A theorem declaration is therefore
+a definition whose result type is
 in \leaninl{Prop}.  Lean supports both term-style proofs, which explicitly build proof
 terms, and tactic-style proofs, where commands incrementally transform goals and
 construct a term implicitly.
@@ -107,19 +165,5 @@ theorem and_swap' (p q : Prop) : p ∧ q → q ∧ p := by
   · exact h.left
   · exact h.right
 \end{leanlisting}
+In both cases the proposition \leaninl{p ∧ q → q ∧ p} is a type living in \leaninl{Prop}, and the term-style \leaninl{and_swap} is literally a function: it takes an argument \leaninl{h : p ∧ q} and returns a term of type \leaninl{q ∧ p}.
 \end{example}
-
-\subsection{Logical foundations}
-\label{subsec:lean-foundations}
-
-Lean's kernel is based on an intensional dependent type theory in the family of
-the Calculus of Inductive Constructions~\cite{coquandHuet1988coc,coquandPaulin1990cic}.
-Lean has a non-cumulative hierarchy of universes:
-the universe of propositions is the first sort, \ie \leaninl{Prop : Sort 0},
-and other types live in higher sorts; for any universe level \leaninl{u}, \leaninl{Type u}, defined as \leaninl{Sort (u + 1)}, lives in \leaninl{Type (u + 1)}.
-
-Moreover, Lean is classical by construction in the presence of choice:
-by Diaconescu's theorem~\cite{diaconescu1975}, choice and functional extensionality entail excluded middle, thus making Lean's
-logic classical.
-However, the logic remains constructive in the absence of choice, and it still is possible to work in a \emph{computable} fragment of Lean by avoiding choice and the \leaninl{Classical} module.
-If a definition happens to depend on choice, the kernel will not be able to compute it and ask to mark it as \leaninl{noncomputable}.

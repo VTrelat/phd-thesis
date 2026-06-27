@@ -37,6 +37,7 @@ This shallow treatment of variables does not imply that the whole object languag
 A mixed representation can keep the term formers as deep, inspectable syntax while representing variables, or binder bodies, through host-level objects.
 Such a representation still supports syntax-directed algorithms over the constructors that remain in the syntax tree.
 What cannot be inspected syntactically is precisely the component that has been made shallow.
+The contrast is made concrete in \Cref{ex:foas-hoas}, where the identity abstraction \(\lambda x ↦ x\) is rendered both as deep first-order syntax and through a shallow binder.
 
 \subsection{Higher Order Abstract Syntax}
 
@@ -53,17 +54,20 @@ In HOAS, the body is produced by applying a host-language function to a represen
 Substitution and alpha-renaming are then delegated to the host logic's own function application and binding machinery.
 
 \begin{example}[FOAS and HOAS]
-The object-language identity abstraction \(\lambda x ↦ x\) can be contrasted as follows:
+\label{ex:foas-hoas}
+The object-language identity abstraction\footnotemark \(\lambda x ↦ x\) can be contrasted as follows:
 \[
 \begin{array}{@{}c@{\qquad}c@{}}
   \text{FOAS} & \text{HOAS} \\[0.3em]
   \mathsf{lam}\ \mathtt{x}\ (\mathsf{var}\ \mathtt{x})
-    & \mathsf{lam}\ (\lambda x ↦ x)
+    & \mathsf{lam}\ (\pink{\lambda} x ↦ x)
 \end{array}
 \]
 On the left, the body is already a syntax tree and the bound occurrence is represented by the name \(\texttt{x} : \mathsf{Name}\).
-On the right, the displayed \(\lambda\) is a meta-language function: the body is obtained by applying that function to the syntactic representative \(x : \mathsf{Term}\) of the bound variable.
+On the right, the displayed \(\pink{\lambda}\) is a meta-language binder: the body is obtained by applying the resulting function to the syntactic representative \(x : \mathsf{Term}\) of the bound variable.
 \end{example}
+
+\footnotetext{{The symbol \(\pink{\lambda}\) is deliberately reused for object-language abstraction and for meta-language functions; which is meant is always clear from context, and keeping the two notations distinct would only burden the presentation.}}
 
 This direct representation is often not accepted as an ordinary inductive datatype.
 Most proof assistants that provide inductive datatypes enforce a strict-positivity condition on inductive definitions.
@@ -151,16 +155,20 @@ For an arbitrary binder \(\int\) whose body has type
   P : \mathcal D \to \mathsf{Term}\ \mathcal D,
 \]
 the semantics of the term \(\int P \) ranges over the semantic values allowed by the binder.
-For each value \(d : \mathcal D\), \(\left\lBrack\int P\right\rBrack\) recursively denotes \(P(d) : \mathsf{Term}\ \mathcal{D}\), and the denotation is defined in terms of the meta-level function
+For each value \(d : \mathcal D\), instantiating the body yields the term \(P(d) : \mathsf{Term}\ \mathcal D\), whose denotation \(\left\lBrack P(d) \right\rBrack\) is computed recursively.
+The denotation of \(\int P\), denoted \(\lBrack \int P \rBrack\) or \(\left\lBrack \int \left( \pink\lambda d \mapsto P(d)\right) \right\rBrack\), is then defined from the meta-level function
 \(
-  λ d \mapsto \left\lBrack P(d) \right\rBrack.
+  \pink\lambda d \mapsto \left\lBrack P(d) \right\rBrack
 \)
+---for instance as a quantifier, a supremum, or a similar aggregate over \(d\), according to the binder \(\int\).
 
 For an \(n\)-ary binder, the same idea is used with a tuple of semantic values rather than one value.
 The semantic content of bound variables is passed directly to the body function.
 
 Note that this does not make the semantics trivial.
-The denotation may still be partial, and the semantic clauses for each object-language constructor still have to be defined and proved correct.
+The denotation may still be partial, and each object-language constructor still requires its own semantic clause, together with the lemmas that establish the clause's intended behaviour.
+This will be clearer in \Cref{ch:b} and \Cref{ch:smt}, where denotational semantics are defined.
+
 What PHOAS removes is the administrative layer around variables: lookup, freshness, renaming, capture-avoidance, and environment extension.
 The semantic clauses can focus on the mathematical meaning of the object-language constructors.
 

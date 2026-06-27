@@ -124,7 +124,15 @@ and $\exists z \in x,\,\psi$ abbreviate $\forall z,\,(z \in x \to \psi)$ and
 $\exists z,\,(z \in x \land \psi)$; and $\regnotation{\varnothing}$, $\regnotation{\{y\}}$,
 $\regnotation{x \cup y}$, $\regnotation{x \cap y}$ denote the empty set, singleton,
 binary union, and binary intersection, each unfolding into a formula over $\in$
-alone. The axioms of ZF are the following eight; the ninth, choice, stands apart
+alone.\footnote{%
+  Strictly, the language of ZF has no function symbols, only the relation
+  $\in$, so these notations are not genuine terms but \emph{eliminable
+  abbreviations}, each justified by a provable unique-existence statement
+  (\eg $\exists! w,\,\forall z,\,z \in w \leftrightarrow (z = x \lor z = y)$ for
+  $\{x, y\}$): a formula mentioning one stands for the $\in$-formula obtained by
+  unfolding it in context. We adopt this reading throughout, rather than treating
+  the notations as primitive terms via a definite-description operator.}
+The axioms of ZF are the following eight; the ninth, choice, stands apart
 and is presented in \Cref{subsec:set-theory-choice}.
 
 \begin{enumerate}[label=\textbf{(A\arabic*)}, ref=A\arabic*, leftmargin=3.6em, labelsep=1em, itemsep=0.8ex]
