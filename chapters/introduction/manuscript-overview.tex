@@ -1,3 +1,21 @@
 \section{Manuscript Overview}
 \label{sec:manuscript-overview}
 
+This manuscript is deliberately written in a mathematical register: the encoding and
+its metatheory are presented through definitions, typing judgments, and denotations
+rather than through the Lean code that realizes them. The artifact behind the thesis
+is nonetheless an executable, formally verified program, and a few implementation
+concerns are inseparable from its correctness argument. Foremost among these is the
+\emph{monadic} structure of the encoder---the way it threads a typing context,
+allocates fresh names, and accumulates the emitted SMT script---which we make
+explicit where it bears on a design decision or a proof, chiefly in
+\Cref{sec:lean-implementation-architecture,sec:binders-names-contexts}, while keeping
+the state it manipulates implicit everywhere else.
+
+
+\paragraph{Notations.}
+We fix two notational conventions used throughout the thesis.
+We write \leaninl{:=} to denote \emph{definitional assignment}---binding a name to a term,
+or giving the body of a definition---as distinct from propositional equality \leaninl{=}
+(a proposition asserting that two terms are equal) and from the metatheoretic symbol
+\(\triangleq\), read ``defined as'', used in displayed mathematics.
