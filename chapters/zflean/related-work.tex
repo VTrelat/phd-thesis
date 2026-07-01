@@ -18,6 +18,11 @@ Rocq has multiple set-theoretic developments with different aims. One family (e.
 Another strand (e.g. \texttt{coq-izf}, constructive or intuitionistic set theories) targets constructive metatheory or models of type theory, sometimes via pointed-graph semantics~\cite{miquel-pts-set-theory} or Tarski–Grothendieck universes~\cite{barras-set-theory}.
 These developments showcase that strong set-level mathematics is possible inside a dependent type theory, but integration with Rocq's typed algebraic hierarchy and automation usually remains more ad-hoc.
 
+\paragraph*{Mizar and Lisa}
+Mizar~\cite{mizar-sota} is a long-standing system whose logic is first-order with an object-level axiomatization of Tarski--Grothendieck set theory; its large Mizar Mathematical Library is developed entirely at the set level, with a ``soft'' type system layered on top to recover type-like conveniences.
+More recently, Lisa~\cite{lisa-itp2023} builds a proof assistant on a kernel for schematic first-order logic, on top of which axiomatic set theory is developed, with proofs and tactics written in a Scala-embedded language.
+Both keep mathematics at the set level, as we do; our emphasis differs in that we deliberately interoperate with a dependently typed host (Lean and Mathlib) through explicit bridges, reusing its tactics, type classes, and algebraic hierarchy rather than developing the set-level layer in isolation.
+
 \paragraph*{ETCS and categorical foundations}
 Lawvere's Elementary Theory of the Category of Sets (ETCS) axiomatizes the (well-pointed) category of sets with finite limits, cartesian closure, a natural numbers object, and (typically) choice; equality is extensional at the \emph{morphism} level and ``up to isomorphism'' reasoning is built in from the start~\cite{lawvere-etcs}.
 ETCS is weaker than ZFC and is rather a metatheoretic object than a framework for set-level development.

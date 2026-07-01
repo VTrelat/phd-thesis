@@ -73,22 +73,19 @@
   \addtocontents{edc}{\protect\edc@secmark{\thesection}{#1}}%
 }
 
-%% ── Highlighting (fallback for lua-ul's \highLight; no line-breaking) ────────
-\NewDocumentCommand{\highLight}{O{yellow} m}{\colorbox{#1}{#2}}
-
 %% ── User-facing commands ─────────────────────────────────────────────────────
 
 \newcounter{inlremark}
 \NewDocumentCommand{\inlremark}{o m}{%
+  \stepcounter{inlremark}%
+  \hypertarget{inlremark-\theinlremark}{}%
+  \ifnum\value{subsection}>0
+    \addtocontents{edc}{\protect\edc@subsecmark{\thesubsection}}%
+  \fi
+  \addtocontents{edc}{\protect\edcremarkentry{\theinlremark}{\thepage}}%
   \IfNoValueTF{#1}{%
-    \highLight[red!12]{\textcolor{red!80!black}{#2}}%
+    \highLight[red!12]{\textcolor{red!80!black}{(\theinlremark)\enspace#2}}%
   }{%
-    \stepcounter{inlremark}%
-    \hypertarget{inlremark-\theinlremark}{}%
-    \ifnum\value{subsection}>0
-      \addtocontents{edc}{\protect\edc@subsecmark{\thesubsection}}%
-    \fi
-    \addtocontents{edc}{\protect\edcremarkentry{\theinlremark}{\thepage}}%
     \highLight[red!12]{#1}%
     \textcolor{red!80!black}{\xspace(\theinlremark)}%
     \marginline{\parbox[t]{1.0in}{\footnotesize\raggedright%

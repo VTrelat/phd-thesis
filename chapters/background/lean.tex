@@ -36,15 +36,14 @@ We recall the features that the developments of this thesis rely on.
 Because every type is itself a term with a type of its own, the types cannot all
 inhabit a single type: the rule \leaninl{Type : Type} would render the system
 inconsistent, by Girard's paradox~\cite{girard1972}---a type-theoretic analog of
-Russell's paradox in set theory.
-Lean therefore stratifies types into a hierarchy of \emph{universes}
+Russell's paradox in set theory (as explained in \Cref{subsec:set-theory-history}).
+Lean therefore stratifies types into a non-cumulative hierarchy of \emph{universes}
 \leaninl{Sort u}, indexed by a \emph{universe level} \leaninl{u}, each inhabiting
 the next: \leaninl{Sort u : Sort (u+1)}.
 
 Two named families sit inside this one hierarchy. At the bottom is the universe of
-propositions \leaninl{Prop}, which is \leaninl{Sort 0}; above it are the
-\emph{data} universes \leaninl{Type u}, abbreviating \leaninl{Sort (u+1)}, with
-\leaninl{Type} short for \leaninl{Type 0}, that is \leaninl{Sort 1}. Thus
+propositions \leaninl{Prop}, defined as \leaninl{Sort 0}; above it are the
+\emph{data} universes \leaninl{Type u}, abbreviating \leaninl{Sort (u+1)}. Thus,
 \leaninl{Type} and \leaninl{Sort} name the same tower shifted by one index: small
 types such as \leaninl{Nat : Type} and \leaninl{Prop : Type} sit low in it,
 whereas a constructor quantifying over a universe lands one level higher. Unlike set theory,
@@ -73,10 +72,41 @@ same activity, carried out either by writing the term or by running tactics that
 elaborate one.
 
 \paragraph{Inductive types.}
-The inductive half of CIC supplies inductive type families: a type is specified
-by its constructors, from which the kernel derives the matching recursion and
-induction principles. Data types and logical connectives are alike instances of
-this single mechanism---the reason programs and proofs inhabit one language.
+An inductive type is specified by its constructors, from which the kernel
+derives the matching recursion and induction principles. Data types and logical
+connectives are alike instances of this single mechanism---the reason programs
+and proofs inhabit one language.
+
+\paragraph{Large elimination.}
+\label{par:large-elimination}
+Every inductive type \leaninl{T} comes with a \emph{recursor} \leaninl|T.rec|
+universe-polymorphic in the level \leaninl{v} of the result it produces (the elided
+hypotheses are the minor premises, one per constructor):
+\begin{leanlisting}
+T.rec.{v} : (motive : T → Sort v) → ... → (t : T) → motive t
+\end{leanlisting}%
+When \leaninl{T} is a data type, \leaninl{v} is unconstrained.
+When \leaninl{T : Prop}, the kernel instead
+forces \leaninl{v = 0}: a proof may be eliminated only into another proposition, a
+restriction called \emph{small elimination}. Eliminating a proposition into a data
+universe is \emph{large elimination}, and it is forbidden in general because it is
+inconsistent with the proof irrelevance of \leaninl{Prop}---from a single proof one
+could compute which constructor produced it, telling apart proofs the kernel deems
+equal. The one exception is a \emph{subsingleton}---an inductive with at most one
+constructor, all of whose fields are themselves propositions (\leaninl{Eq},
+\leaninl{And}, \leaninl{PUnit}, \etc)---whose recursor may target any universe.
+
+\begin{example}[a forbidden universe-polymorphic inductive]
+\label{ex:large-elimination}
+The following declaration is rejected by the kernel:
+\begin{leanlisting}
+inductive T : Sort u
+\end{leanlisting}
+Indeed, at \leaninl{u := 0} the type \leaninl{T} would be a proposition,
+whose recursor would then large-eliminate---unsoundly. Lean therefore
+refuses the polymorphic \leaninl{Sort u} and requires either \leaninl{Prop}
+or a data universe \leaninl{Type u}.
+\end{example}
 
 \paragraph{Classical and computable fragments.}
 Lean is constructive by default but \emph{classical in the presence of choice}:

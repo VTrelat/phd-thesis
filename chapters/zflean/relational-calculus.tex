@@ -3,28 +3,27 @@
 
 Throughout this section, we work within the ZFC model provided by Mathlib and extend it with a calculus for binary relations and partial/total functions.
 A \emph{binary relation} $R$ between $A$ and $B$ is a subset $R \subseteq A\times B$.
-Our calculus integrates standard operations on relations (converse, identity, composition, domain, range, image) together with predicates for partial and total functions, and provides \emph{automation tactics} designed to discharge ubiquitous well-formedness side-conditions, enabling these objects to be manipulated directly without verbose boilerplate, as in paper mathematics.
+Our calculus integrates standard operations on relations (converse, identity, composition, domain, range, image) together with predicates for partial and total functions, and provides \emph{automation tactics} designed to discharge ubiquitous well-formedness side-conditions, enabling these objects to be manipulated directly without verbose boilerplate, much as in a paper proof.
 These tactics are designated \inlinelean|zrel|, \inlinelean|zpfun|, and \inlinelean|zfun|, and are described in greater detail in \Cref{subsec:zflean-automation}.
 
 \subsection{Basic definitions}
 
 \begin{definition}[converse, identity, composition][ZFSet.Id, ZFSet.inv, ZFSet.composition][ZFLean/Functions.html\#ZFSet.Id, ZFLean/Functions.html\#ZFSet.inv, ZFLean/Functions.html\#ZFSet.composition]
   \label{def:rel-basic}
-                Let $R\subseteq A\times B$ and $S\subseteq B\times C$ be relations.
   \begin{itemize}
-    \item The \emph{identity relation} $\Id{A}$ on $A$ is defined as:
+    \item The \emph{identity relation} $\Id{A}$ on a set $A$ is defined as:
           \begin{equation*}
-            \Id{A} \triangleq \{ x \in A \times A \mid \pi_1(x) = \pi_2(x) \}
+            \Id{A} \;\triangleq\; \{ x \in A \times A \mid \pi_1(x) = \pi_2(x) \}
           \end{equation*}
           The identity relation is shown to be a total function belonging to $A^A$, and later shown to be a bijection and the neutral element for composition.
-    \item The \emph{converse} $R^{-1}$ is defined as:
+    \item Given a relation $R\subseteq A\times B$, its \emph{converse} $R^{-1}$ is defined as:
           \begin{equation*}
-            R^{-1} \triangleq \{z \in B\times A \mid (\pi_2(z), \pi_1(z))\in R \}
+            R^{-1} \;\triangleq\; \{z \in B\times A \mid (\pi_2(z), \pi_1(z))\in R \}
           \end{equation*}
           This definition carries the side-condition $R\subseteq A\times B$ (declaring that $R$ is a relation between the implicit sets $A$ and $B$), an implicit argument that \inlinelean|zrel| attempts to discharge in \zflean.
-    \item The \emph{composition} $S\circ R \subseteq A\times C$ is defined as:
+    \item Given relations $R\subseteq A\times B$ and $S\subseteq B\times C$, their \emph{composition} $S\circ R \subseteq A\times C$ is defined as:
           \begin{equation*}
-            S \circ R \triangleq \{ w \in A\times C \mid \exists\, y \in B,\, (\pi_1(w), y)\in R \land (y, \pi_2(w))\in S \}
+            S \circ R \;\triangleq\; \{ w \in A\times C \mid \exists\, y \in B,\, (\pi_1(w), y)\in R \land (y, \pi_2(w))\in S \}
           \end{equation*}
           Unlike the converse, the composition carries \emph{no} side-condition on $R$ and $S$: it is defined for arbitrary sets and, being a separation of $A\times C$, always yields a relation between $A$ and $C$.
           When $R$ and $S$ are genuine relations between $A,B$ and $B,C$, it computes their expected composition; any pairs of $R$ or $S$ lying outside $A\times B$ or $B\times C$ are simply ignored.  
@@ -36,11 +35,9 @@ These tactics are designated \inlinelean|zrel|, \inlinelean|zpfun|, and \inlinel
   \label{def:dom-range-image}
           For a relation $R\subseteq A\times B$, its \emph{domain}, \emph{range}, and \emph{image} of a set $X\subseteq A$ are defined as:
   \begin{align*}
-    \begin{array}{rcl}
-      \Dom(R)      & \triangleq & \{ x\in A \mid \exists\, y\in B,\, (x,y)\in R \}          \\
-      \Ran(R)      & \triangleq & \{ y \in B \mid \exists\, x \in \Dom(R),\, (x,y) \in R \} \\
-      \Image{R}{X} & \triangleq & \{ y \in B \mid \exists\, x \in X,\, (x, y) \in R \}
-    \end{array}
+      \Dom(R)      & \;\triangleq\;  \{ x\in A \mid \exists\, y\in B,\, (x,y)\in R \}          \\
+      \Ran(R)      & \;\triangleq\;  \{ y \in B \mid \exists\, x \in \Dom(R),\, (x,y) \in R \} \\
+      \Image{R}{X} & \;\triangleq\;  \{ y \in B \mid \exists\, x \in X,\, (x, y) \in R \}
   \end{align*}
 
   Operationally, all three definitions above invoke the \inlinelean|zrel| tactic to discharge the side-condition that $R$ is a relation between $A$ and $B$.
@@ -50,24 +47,30 @@ Finally, we define partial functions as functional relations without totality re
 \begin{definition}[Partial functions][ZFSet.IsPFunc][ZFLean/Functions.html\#ZFSet.IsPFunc]
   A set $f$ is said to be a partial function from set $A$ to set $B$, written $\mathsf{IsPFunc}(f,A,B)$\footnotemark, if it is \emph{functional}:
   \begin{equation*}
-    \regnotation{\IsPFunc}(f, A, B) \triangleq f \subseteq A \times B \,\land\, \left(\forall\, x \in A,\, \forall\, y \in B,\, \forall\, z \in B,\, (x,y) \in f \land (x,z) \in f \implies y = z\right)
+    \regnotation{\IsPFunc}(f, A, B) \;\triangleq\; f \subseteq A \times B \,\land\, \left(\forall\, x \in A,\, \forall\, y \in B,\, \forall\, z \in B,\, (x,y) \in f \land (x,z) \in f \implies y = z\right)
   \end{equation*}
 \end{definition}
 \footnotetext{The order of arguments is voluntarily changed compared to $\IsFunc$, so that in Lean, one may write \inlinelean|f.IsPFunc A B|.}
 
 We also derive predicates $\IsInjective$, $\IsSurjective$, and $\IsBijective$ in the usual sense, which all invoke the tactic \inlinelean|zfun| to discharge functional totality requirements.
 
+\begin{remark}
+  These predicates are therefore stated for \emph{total} functions. Although they could be stated for partial functions, we enforce totality by design. The motivation is practical: in the case of a partial function, one is forced to state injectivity and surjectivity on the function's domain directly (partial functions are total on their domain).
+\end{remark}
+  
 \subsection{Function evaluation and λ-abstraction}
 \label{subsec:zflean-func-eval-lambda}
 
 We now add two notions that make functions practical to use, namely function application and $\lambda$-abstraction.
 In a purely set-theoretic setting these are not primitive---a function \emph{is} its graph, and application is the derived operation that recovers the unique image of a point---yet they are indispensable in practice; we define them so as to keep standard mathematical notation while automating side-conditions as much as possible:
 \begin{itemize}
-  \item \emph{function application} maps $x\in\Dom(f)$ to the unique $y$ such that $(x,y)\in f$ and is denoted by $\fapply{f}{x}$, invoking the \inlinelean|zpfun| tactic to prove that $f$ is a partial function.
-  In practice, $\fapplysym$ is a non-computable dependently typed operator that additionally requires a proof $h_x$ that $x$ belongs to its domain (that must be provided, there is no automation at this point), denoted $\fapply{f}{\langle x, h_x \rangle}$. We omit these proofs in the mathematical notation in the manuscript, but they are present in the Lean code.
-  Its definition makes use of the axiom of choice to select an element $y$ such that $(x,y)\in f$.
+  \item \emph{function application}, written $\fapply{f}{x}$, maps $x\in\Dom(f)$ to the unique $y$ such that $(x,y)\in f$; here $\fapplysym$ is the application operator (not a function applied to a pair), and it invokes the \inlinelean|zpfun| tactic to prove that $f$ is a partial function.
+  In full, $\fapplysym$ is a non-computable dependently typed operator that \emph{also} takes a proof $h_x$ that $x$ belongs to the domain (supplied explicitly---there is no automation at this point), so the complete form is $\fapply{f}{\langle x, h_x \rangle}$, of which $\fapply{f}{x}$ is the shorthand we use throughout the manuscript; the membership proofs are elided here but present in the Lean code.
+  Its definition uses Lean's choice operator to select the element $y$ with $(x,y)\in f$; since $f$ is functional this $y$ is unique, so this is really a \emph{definite description} rather than a genuine appeal to the axiom of choice.
+  
   Another equivalent alternative would be to define $\fapply{f}{x}$ as the set \(\bigcup \setcomp{y \in B}{(x,y) \in f}\), which is also non-computable. We prefer the first, more direct formulation.
-  Since $f$ is functional, there is at most one such $y$, and since $x$ belongs to the domain of $f$, there is at least one such $y$, hence such a $y$ exists and is unique---this property is proved in \zflean{} as \leancodeptr{IsPFunc.exists\_unique\_of\_mem\_dom}{ZFLean/Functions.html\#ZFSet.IsPFunc.exists_unique_of_mem_dom}.
+  Since $f$ is functional, there is at most one such $y$, and since $x$ belongs to the domain of $f$, there is at least one such $y$, hence such a $y$ exists and is unique---this property is proved in \zflean{} as the theorem {\small\leancodeptr{IsPFunc.exists\_unique\_of\_mem\_dom}{ZFLean/Functions.html\#ZFSet.IsPFunc.exists_unique_of_mem_dom}}.
+  
   We show that evaluating a composite reduces to composing the evaluations, that is,
   \[
     \fapply{(g \zbinop{\circ} f)}{x}=\fapply{g}{\fapply{f}{x}}, \tag{\small\leancodeptr{fapply\_composition}{ZFLean/Functions.html\#ZFSet.fapply_composition}}
@@ -79,7 +82,7 @@ In a purely set-theoretic setting these are not primitive---a function \emph{is}
 
   \item $\lambda$-abstraction constructs functions from expressions, written as:
     \begin{equation*}
-      \zlambda{A}{B}{x}{e(x)}
+      \left(\zlambda{A}{B}{x}{e(x)}\right)
       \qquad\text{is the relation}\qquad
       \{ (x,y)\in A\times B \mid y=e(x) \},
     \end{equation*}
@@ -89,17 +92,27 @@ which is then shown to belong to $B^A$ whenever $e(x)\in B$ for all $x\in A$.
 Function application being \emph{partial}, $\fapply{f}{\langle x, h_x \rangle}$ is defined only when $f$ is a partial function and $x$ lies in its domain, both of which must be witnessed.
 A common alternative is to make every function \emph{total}.
 This could be achieved by returning ``junk values''---some fixed default values---outside the intended domain; this approach is sometimes taken in Mathlib, usually indicated by appending "\leaninl{D}"---default---to the identifier's name.
-We deliberately avoid this approach: assigning a junk value gives a meaning to $\fapply{f}{x}$ precisely where it is mathematically undefined; it is a technical device for reconciling partial mathematical functions with the totality of functions in dependent type theory, rather than a faithful set-theoretic notion.
+We deliberately avoid this approach: a junk value would make $\fapply{f}{x}$ denote something even outside the domain, where the function is mathematically undefined---a technical device for reconciling partial mathematical functions with the totality required in dependent type theory, rather than a faithful set-theoretic notion.
 Staying close to the set-theoretic principles, we instead adopt a \emph{by-construction} discipline: objects are formed together with proofs that they are meaningful.
 
 \begin{remark}
   \label{rmk:no-junk}
   The price of this choice is the proof obligations that decorate our operators; the automation layer described in \Cref{subsec:zflean-automation} is precisely what keeps this price hidden in practice, discharging these obligations structurally so that the user writes the mathematics rather than the bookkeeping.
 \end{remark}
+
+The definitions above are stated at the mathematical level.
+In \zflean, $\lambda$-abstraction bodies are in fact written with a \emph{dependent} conditional:
+\begin{leanlisting}
+λᶻ : A → B
+   | x ↦ if h : x ∈ A then e(x) else ∅
+\end{leanlisting}
+The sole purpose of the test \leaninl{if h : x ∈ A} is to bring the membership proof $h$ into scope, since it is often required, \eg to form the application $\fapply{f}{\langle x, h \rangle}$: the bare binder $x \mapsto \cdots$ does not record that $x\in A$, even though the abstraction ranges over $A$.
+The $\mathsf{else}$ branch is therefore dead code---never selected, because the specification of $\zop{\lambda}$ already restricts membership to $A$---and the placeholder $\varnothing$ is immaterial.
+An alternative that avoids the conditional altogether is to let the abstraction bind over the subtype \leaninl|{x : ZFSet // x ∈ A}|, so that the membership proof is recovered by destructing the bound variable; we keep the present form for uniformity with the rest of the calculus.
   
 We prove the expected equational properties for this notation, summarized in the following theorem.
 
-\begin{theorem}[Basic properties][lambda\_spec, lambda\_ext\_iff, lambda\_beta, lambda\_eta][ZFLean/Functions.html\#ZFSet.lambda_spec, ZFLean/Functions.html\#ZFSet.lambda_ext_iff, ZFLean/Functions.html\#ZFSet.fapply_lambda, ZFLean/Functions.html\#ZFSet.lambda_eta]
+\begin{theorem}[Basic properties][lambda\_spec, lambda\_ext\_iff, fapply\_lambda, lambda\_eta][ZFLean/Functions.html\#ZFSet.lambda_spec, ZFLean/Functions.html\#ZFSet.lambda_ext_iff, ZFLean/Functions.html\#ZFSet.fapply_lambda, ZFLean/Functions.html\#ZFSet.lambda_eta]
   \label{thm:lambda}
   Let $A$, $B$ be sets, $f \in B^A$, and $e,e' \colon \mathsf{ZFSet} \to \mathsf{ZFSet}$ be Lean-level (meta)functions on sets.
   \begin{itemize}
@@ -120,19 +133,17 @@ We prove the expected equational properties for this notation, summarized in the
             f = \left(\zlambda{A}{B}{x}{\fapply{f}{\langle x, \irrelprf \rangle}}\right)
           \end{equation*}
   \end{itemize}
+
+  As mentioned above, this mathematical presentation elides some implementation details;
+  in particular, \(\eta\)-expansion is stated as follows:
+  \begin{leanlisting}
+f = (λᶻ : A → B
+        | x ↦ if h : x ∈ A then @ᶻf ⟨x, $\irrelprf$⟩ else ∅)
+  \end{leanlisting}
 \end{theorem}
 \begin{proof}
   Proofs are carried out by applying extensionality on the corresponding sets.
 \end{proof}
-
-The definitions above are stated at the mathematical level.
-In \zflean, $\lambda$-abstraction bodies are in fact written with a \emph{dependent} conditional:
-\begin{equation*}
-  f = \left(\zlambda{A}{B}{x}{\mathsf{if}\ h_x : x\in A\ \mathsf{then}\ \fapply{f}{\langle x, h_x \rangle}\ \mathsf{else}\ \varnothing}\right)
-\end{equation*}
-The sole purpose of the test \mbox{$\mathsf{if}\ h_x : x \in A$} is to bring the membership proof $h_x$ into scope, since it is required to form the application $\fapply{f}{\langle x, h_x \rangle}$: the bare binder $x \mapsto \cdots$ does not record that $x\in A$, even though the abstraction ranges over $A$.
-The $\mathsf{else}$ branch is therefore dead code---never selected, because the specification of $\zop{\lambda}$ already restricts membership to $A$---and the placeholder $\varnothing$ is immaterial.
-An alternative that avoids the conditional altogether is to let the abstraction bind over the subtype $\{ x : \mathsf{ZFSet} \,\slash\mkern-3mu\slash\, x \in A\}$, so that the membership proof is recovered by destructing the bound variable; we keep the present form for uniformity with the rest of the calculus.
 
 Application and abstraction integrate well with rewriting, so that many proofs reduce to algebra on images, evaluation, and composition, as expected.
 We illustrate this with a simple example below.

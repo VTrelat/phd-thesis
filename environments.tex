@@ -290,22 +290,41 @@
 }
 
 % ---------------------------------------------------------------------------
-% GRAYENV — no label, gray accent
+% GRAYENV — specification rule: beige body, cover-cream top flag
+% Optional arg: rule name displayed in the flag (e.g. \begin{grayenv}[refl]).
 % ---------------------------------------------------------------------------
-\NewTColorBox{grayenv}{ }{%
-  envbase,
-  colback=gray!5,
-  borderline west={2pt}{0pt}{gray!50},
+\NewTColorBox{grayenv}{ O{} }{%
+  enhanced,
+  breakable,
+  arc=3pt,
+  boxrule=0.6pt,
+  colframe=venn-dark,
+  colback=beige,
+  colbacktitle=cover-cream,
+  coltitle=white,
+  fonttitle=\small\scshape,
+  title={%
+    \textcolor{white!55!cover-cream}{\footnotesize SPECIFICATION}%
+    \if\relax\detokenize{#1}\relax\else
+      \enspace\textcolor{white!28!cover-cream}{·}\enspace%
+      \textcolor{white!90!cover-cream}{#1}%
+    \fi
+  },
+  titlerule=0pt,
+  toptitle=3pt,
+  bottomtitle=3pt,
+  left=8pt, right=8pt, top=4pt, bottom=4pt,
+  before upper={\setlength{\parskip}{4pt}},
 }
 
 % ---------------------------------------------------------------------------
-% PROOF — italic inline label, QED flush-right
+% PROOF — inline label, QED flush-right; optional arg overrides label
 % ---------------------------------------------------------------------------
-\RenewTColorBox{proof}{ }{%
+\NewTColorBox{proofbox}{ m }{%
   envbase,
   colback=blue!5,
   borderline west={2pt}{0pt}{blue!70},
-  before upper={\setlength{\parskip}{4pt}\textbf{\textcolor{dark-blue}{Proof.}}\enspace},
+  before upper={\setlength{\parskip}{4pt}\textbf{\textcolor{dark-blue}{#1.}}\enspace},
   after upper={\unskip\nobreak\hspace*{1em}\hfill\small\ensuremath{\mathcolor{dark-blue}{\qed}}},
 }
 
@@ -329,13 +348,15 @@
   after upper={\unskip\nobreak\hspace*{1em}\hfill\small\ensuremath{\mathcolor{blue!70}{\qed}}},
 }
 
-% Footnotes inside proof/subproof go to the page bottom, not the box bottom.
+% Footnotes inside subproof go to the page bottom, not the box bottom.
 \makeatletter
-\let\tcb@proof\proof         \let\endtcb@proof\endproof
 \let\tcb@subproof\subproof   \let\endtcb@subproof\endsubproof
-\renewenvironment{proof}   {\savenotes\tcb@proof}   {\endtcb@proof\spewnotes}
 \renewenvironment{subproof}{\savenotes\tcb@subproof}{\endtcb@subproof\spewnotes}
 \makeatother
+
+\RenewDocumentEnvironment{proof}{O{Proof}}{%
+  \savenotes\proofbox{#1}%
+}{\endproofbox\spewnotes}
 
 % ---------------------------------------------------------------------------
 % PROOF-SKIPPING MODE
@@ -345,7 +366,7 @@
 % affected because they only ever appear inside proofs.
 % ---------------------------------------------------------------------------
 \ifdefined\skipproofs
-  \RenewEnviron{proof}{%
+  \RenewEnviron{proof}[1][Proof]{%
     \begin{tcolorbox}[
       enhanced, breakable, arc=5pt, sharp corners=west,
       boxrule=0pt, frame hidden,
@@ -353,7 +374,7 @@
       left=8pt, right=8pt, top=4pt, bottom=4pt,
       borderline west={2pt}{0pt}{blue!70},
     ]%
-    \textbf{Proof.}\enspace\textit{Skipped}.%
+    \textbf{#1.}\enspace\textit{Skipped}.%
     \end{tcolorbox}%
   }
 \fi

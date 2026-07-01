@@ -204,14 +204,14 @@ union \eqref{ax:union} and separation \eqref{ax:sep}:
 \[
 \regnotation{\bigcap} x \triangleq \setcomp{z \in \bigcup x}{\forall w \in x,\, z \in w}.
 \]
-
+%
 Using pairing \eqref{ax:pair}, one can form the \emph{singleton} \(\{x\} \triangleq \{x, x\}\)
 as the set whose only element is \(x\).
 The \emph{ordered pair}, due to Kuratowski, of $x$ and $y$ is then encoded as the set
 $\regnotation{\opair{x}{y}} \triangleq \{\{x\}, \{x, y\}\}$, whose only essential
 property is that $\opair{x}{y} = \opair{x'}{y'}$ exactly when $x = x'$ and
 $y = y'$.
-
+%
 As $\opair{x}{y} \in \pow(\pow(x \cup y))$, separation \eqref{ax:sep} then carves the
 \emph{Cartesian product} $A \regnotation{\times} B$ out of $\pow(\pow(A \cup B))$,
 \[

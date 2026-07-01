@@ -169,7 +169,7 @@
 % canonical isomorphism  ζ_α : ⟦α⟧ᶻ → ⟦α^S⟧ᶻ
 \newcommand{\canon}[1]{\zop{\zeta}_{#1}}
 % SMT type image of a B type
-\newcommand{\toSMT}[1]{{#1}^{\scalebox{0.45}{\textsf{S}}}}
+\newcommand{\toSMT}[1]{{#1}^{\scalebox{0.45}{\textsf{SMT}}}}
 \newcommand{\stype}[3]{\ensuremath{#1 \sop{\vdash} #2 : #3}}
 \newcommand{\satype}[3]{\ensuremath{#1 \saop{\vdash} #2 : #3}}
 \newcommand{\btype}[3]{\ensuremath{#1 \bop{\vdash} #2 : #3}}
@@ -190,12 +190,11 @@
 
 \newcommand{\var}[1]{\ensuremath{\textcolor{vargray}{\mathbf{#1}}}}
 \newcommand{\lvar}[1]{\var{#1}\mathrlap{\smash{^{!}}}\,}
-\newcommand{\sterm}[1]{\ensuremath{\mathsf{#1}\ }}
+\newcommand{\sterm}[1]{\ensuremath{\sop{\mathsf{#1}}\ }}
 \newcommand{\fst}{\sterm{fst}}
 \newcommand{\snd}{\sterm{snd}}
 \newcommand{\pair}{\sterm{pair}}
 \newcommand{\some}{\sterm{some}}
-\newcommand{\none}[1]{\sterm{none}_{#1}}
 
 \newcommand{\spec}[1]{#1_{\mathsf{spec}}}
 
@@ -345,7 +344,6 @@
 
 \renewcommand{\qed}{\hfill\ensuremath{\blacksquare}}
 
-\newcommand{\theterm}{\sterm{the}}
 \newcommand{\castable}[2]{\ensuremath{#1 \sqsubseteq #2}}
 \newcommand{\castpath}[2]{\ensuremath{#1 \rightsquigarrow #2}}
 \newcommand{\throw}{\ensuremath{\;\downzigzagarrow}}

@@ -10,7 +10,7 @@ We briefly recall central definitions: extensional equivalence \(X \sim Y\) and 
 Pre-sets are defined inductively as universe-polymorphic structures, as follows.
 
 \begin{definition}[][PSet][Mathlib/SetTheory/ZFC/PSet.html\#PSet]
-  For any type \(\alpha\) in a universe of level \(u\)\footnotemark
+  For any type \(\alpha\) in a universe of level \(u\)\footnotemark{}
   and any indexed family \(A\) of pre-sets over \(\alpha\), a pre-set can be constructed from \(\alpha\) and \(A\).
   This provides an inductive (intensional) definition of pre-sets via a constructor of type \(\prod_{\alpha \colon \mathsf{Type}\, u} (\alpha \to \mathsf{PSet}) \to \mathsf{PSet}\).
   The corresponding Lean definition is shown below.
@@ -21,6 +21,7 @@ inductive PSet : Type (u + 1)
 \end{definition}
 \footnotetext{\(\mathsf{Type}\,u\) denotes Lean's universe level \(u\) in a weakly cumulative hierarchy---see \Cref{subsec:lean-foundations} for details---where the parameter \(u\) makes the construction universe-polymorphic.}
 
+These structures are called \emph{pre}-sets, rather than sets, because they do not yet carry an extensional notion of identity: the same collection may be described by many distinct pre-sets, as illustrated by \Cref{ex:pset-ext}.
 Constructing a pre-set is therefore an incremental process, a commonly observed fact about sets: (pre-)sets are built from other (pre-)sets.
 With such a definition, one can inductively construct a pre-set upon an underlying type \(\alpha\) by providing an interpretation function of type \(\alpha \to \mathsf{PSet}\) of its elements as pre-sets.
 Since we need a starting point to populate the type of pre-sets, we construct the empty pre-set. This shows that the type of pre-sets is \emph{inhabited}.
@@ -54,6 +55,24 @@ It is also used to define pre-set membership, as follows.
 The membership relation is then shown to be well-founded---meaning there is no infinite \(\in\)-chain of pre-sets---a key property that witnesses the axiom of regularity.
 Further usual operations such as cartesian product (\(\times\)), union (\(\cup\)), and powerset (\(\mathcal{P}\)), are defined on pre-sets, all to be later lifted to sets.
 
+\begin{example}
+  \label{ex:pset-ext}
+  Two pre-sets with the same extension are not necessarily equal.
+  Given two pre-sets \(X \eqcolon \langle \alpha, A \rangle\) and \(Y \eqcolon \langle \beta, B \rangle\), one cannot prove that \(X = Y\) from \(X \sim Y\), \ie in Lean, the following is not provable:
+  \begin{leanlisting}
+example {X Y : PSet} (h : ∀ x, x ∈ X ↔ x ∈ Y) : X = Y -- unprovable
+  \end{leanlisting}
+  It is however sufficient that the functions \(A\) and \(B\) are extensionally equivalent to prove \(X = Y\):
+  \begin{leanlisting}
+variable (α : Type u) (A : α → PSet.{u}) (B : α → PSet.{u})
+
+example (h : ∀ x, A x = B x) : (⟨α, A⟩ : PSet) = ⟨α, B⟩ := by
+  congr      -- apply congruence on the constructor
+  ext x      -- apply functional extensionality
+  exact h x  -- apply the hypothesis
+\end{leanlisting}
+\end{example}
+
 \subsection{Sets}
 \label{subsec:zflean-sets}
 
@@ -82,7 +101,7 @@ This represents the first contribution of our work.
   \label{def:zflean-projections}
   We define general projections \(\pi_1\) and \(\pi_2\) for any set \(w\):
   \begin{equation*}
-    \pi_1\, w \triangleq \bigcup {\bigcap w} \quad\text{and}\quad \pi_2\, w \triangleq
+    \pi_1\, w \;\triangleq\; \bigcup {\bigcap w} \quad\text{and}\quad \pi_2\, w \;\triangleq\;
     \begin{cases}
       \pi_1\, w                                           & \text{if}\ \left(\bigcup w\right) \setminus \bigcap w = \varnothing \\
       \bigcup \left( \left(\bigcup w\right) \setminus \bigcap w\right) & \text{otherwise}
@@ -96,7 +115,7 @@ This represents the first contribution of our work.
   When \(w\) is \emph{not} a Kuratowski pair, \(\pi_1(w)\) and \(\pi_2(w)\) are just some sets with no intended semantic content.
 \end{remark}
 
-With these projections, we can prove the expected simplification lemmas for ordered pairs, e.g.\ \(\pi_1\, (x, y) = x\) and \(\pi_2\, (x, y) = y\) for any sets \(x\) and \(y\), \(\eta\)-expansion of pairs and membership on a cartesian product, as shown in \cref{lst:pair-proj}---with proofs omitted.
+With these projections, we can prove the expected simplification lemmas for ordered pairs, e.g.\ \(\pi_1\, (x, y) = x\) and \(\pi_2\, (x, y) = y\) for any sets \(x\) and \(y\), \(\eta\)-expansion of pairs and membership on a cartesian product, as shown in \cref{lst:pair-proj} (see {\small\leancodeptr{π₁\_pair}{ZFLean/Integers.html\#ZFSet.π₁_pair}}, {\small\leancodeptr{π₂\_pair}{ZFLean/Integers.html\#ZFSet.π₂_pair}}, {\small\leancodeptr{pair\_eta}{ZFLean/Integers.html\#ZFSet.pair_eta}}, {\small\leancodeptr{pair\_mem\_prod}{Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.pair_mem_prod}} in the development)---with proofs omitted.
 \begin{leanlisting}[title={Projections for Kuratowski pairs along with simplification lemmas.}, label=lst:pair-proj]
 theorem π₁_pair (x y : ZFSet) : π₁ (x.pair y) = x
 theorem π₂_pair (x y : ZFSet) : π₂ (x.pair y) = y
