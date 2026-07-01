@@ -15,9 +15,9 @@ in character: B types denote sets, expressions of a given type denote elements o
 corresponding set, and predicates denote truth values, all defined compositionally.
 The main departure concerns \emph{substitutions}, whose meanings are given as predicate
 transformers rather than direct functions on state.
-The emphasis throughout is on \emph{what} a B expression computes, not \emph{how} it is
+The emphasis throughout our development is on \emph{what} a B expression computes, not \emph{how} it is
 evaluated---in contrast to an operational semantics~\cite{plotkin2004sos}---and concrete
-terms are interpreted, after abstraction to PHOAS (as described in \Cref{sec:b-syntax} over the ZFLean framework of \Cref{ch:zflean}.
+terms are interpreted, after abstraction to PHOAS (as described in \Cref{sec:b-syntax}) over the ZFLean framework of \Cref{ch:zflean}.
 
 \subsection{Interpretation of B types}
 \label{subsec:b-type-interp}
@@ -89,10 +89,9 @@ This yields a \emph{correct-by-construction} design, carrying typing as an invar
 Elements in \(\BDom\) are therefore dependent triples, denoted \(\regnotation{\denval{X}[\tau]}\),
 containing a ZFC set \(X\), a B type \(\tau\) and a proof \(\pf{\tau}{X} : X \in \interpZ{\tau}\).
 
-\begin{note}
-  When the proof is unused or irrelevant in a given context, we simply write ``\(\irrelprf\)'' in
-  such triples, mimicking Lean notations.
-\end{note}
+\begin{remark}
+  Although \(\BDom\) is written as a sum indexed by \emph{all} of \(\mathsf{ZFSet}\)---a collection that forms a proper class, not a set, in ZFC---this poses no difficulty in Lean's dependent type theory: \(\BDom\) is a well-formed \emph{type} (a \(\Sigma\)-type), living one universe above \(\mathsf{ZFSet}\). Only its components---the set \(X\), the type \(\tau\), and the membership proof---remain at the set level.
+\end{remark}
 
 \subsection{Denoting terms versus typing derivations}
 \label{subsec:b-denotation-design}
@@ -211,7 +210,7 @@ For built-in sets, the denotation is given by the interpretation of their ZFC co
 \end{proofconstruct}
 
 \paragraph{Pairs.}
-Given \(\interpB{t} = \denval{X}[\tau]\) and \(\interpB{u} = \denval{Y}[\sigma]\), we define the denotation B pairs using Kuratowski pairs\footnote{See~\Cref{subsec:zflean-sets}.}:
+Given \(\interpB{t} = \denval{X}[\tau]\) and \(\interpB{u} = \denval{Y}[\sigma]\), we define the denotation of B pairs using Kuratowski pairs\footnote{See~\Cref{subsec:zflean-sets}.}:
 \[
   \interpB{t \mapletB u} \triangleq \denval{\regnotation{\pairZ{X}{Y}}}[\tau \prodB \sigma]
 \]
@@ -314,7 +313,7 @@ Given \(\interpB{f} = \denval{F}[\setB(\tau \prodB \sigma)]\) and \(\interpB{x} 
   Both uniqueness and the fact that \(Y \in \interpZ{\sigma}\) follow from the definition of \(\mathsf{IsPFunc}\).
 \end{proofconstruct}
 
-Cardinality is defined under finiteness conditions, like minimum and maximum, which also require nonemptiness; they lift the corresponding ZFC operations.
+Cardinality is defined under a finiteness condition; it lifts the corresponding ZFC operation.
 Given \(\interpB{S} = \denval{S'}[\setB\tau]\) such that \(\leancodeptr{IsFinite}{ZFLean/Functions.html\#ZFSet.IsFinite}\ S'\), we define:
 \begin{align*}
   \interpB{\cardB{S}} & \triangleq \denval{\regnotation{\cardZ{S'}}}[\intB]
@@ -322,20 +321,6 @@ Given \(\interpB{S} = \denval{S'}[\setB\tau]\) such that \(\leancodeptr{IsFinite
 \begin{proofconstruct}
   By definition, \(\cardZ{S'}\) is defined, when \(S'\) is finite, as the unique natural number \(n\), lifted as integer, such that there exists a bijection between \(S'\) and the set \(\{0, 1, \ldots, n-1\}\); in particular, \(\cardZ{S'} \in \Zint = \interpZ{\intB}\).
 \end{proofconstruct}
-Moreover, when \(\tau = \intB\) and \(S' \neq \emptyset\),
-\begin{align*}
-  \interpB{\minB(S)}  & \triangleq \denval{\regnotation{\minZ}(S')}[\intB]  \\
-  \interpB{\maxB(S)}  & \triangleq \denval{\regnotation{\maxZ}(S')}[\intB]
-\end{align*}
-\begin{proofconstruct}
-  We sketch the proof for the minimum case, the maximum case being similar.
-  Using the fact that the minimum of a non-empty finite set belongs to the set (see {\small\leancodeptr{Min\_mem\_of\_non\_empty\_finite}{ZFLean/Functions.html\#ZFSet.Min_mem_of_non_empty_finite}}) and \(\pf{\setB\intB}{S'} : S' \in \powZ(\Zint)\), we show that
-  \[
-    \minZ(S') \in S' \subseteq \Zint = \interpZ{\intB}
-    \vspace{-\baselineskip}
-  \]
-\end{proofconstruct}
-
 \paragraph{Binders.}
 
 Binder constructs rely on the PHOAS representation. Set comprehension is easily interpreted as
@@ -347,9 +332,11 @@ We start with the most straightforward case of set comprehension \(\{D \mid P\}\
 Definedness assumptions are the following:
 \begin{itemize}
   \item \(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^{\times}]\), where \(\tau^{\times}\) is a product type \(\tau_1 \prodB \cdots \prodB \tau_n\) of the binder's arity;
-  \item For any family of variables \(\vec x = (x_1, \cdots, x_n)\) of the binder's arity such that each of the \(x_i\) carries the B type \(\tau_i\), and such that \(\pairZ{x_1}{\cdots, x_n} \in \mathcal{D}\), \(P(\vec x)\) has a denotation.
+  \item For any family of variables \(\vec x = (x_1, \cdots, x_n)\) of the binder's arity such that, for all \(i\), \(x_i\) carries the B type \(\tau_i\), and such that \(\pairZ{x_1}{\cdots, x_n} \in \mathcal{D}\), \(P(\vec x)\) has a denotation.
 \end{itemize}
-We can therefore define the following scoped denotation \(\mathfrak{P} : \mathsf{ZFSet} \to \BDom\) of the body \(P\), for any set argument \(z\), by the following case distinction:
+We can therefore define the following scoped denotation \(\mathfrak{P} : \mathsf{ZFSet} \to \BDom\) of the body \(P\).
+For any set argument \(z\), \(\mathfrak{P}(z)\) is defined by the following case distinction:
+
 \begin{description}
   \item[if \(z \in \mathcal{D}\):] \(z\) can be written as an \(n\)-ary set-level tuple \(\pairZ{z_1}{\cdots, z_n}\).
         It easily follows from \(\pf{\setB\tau^\times}{\mathcal{D}}\) that each \(z_i\) belongs to \(\interpZ{\tau_i}\), thereby constructing \(\pf{\tau_i}{z_i}\).
@@ -358,28 +345,27 @@ We can therefore define the following scoped denotation \(\mathfrak{P} : \mathsf
           \interpB{P\bigl((\denval{z_i}[\tau_i])_{1 \leq i \leq n}\bigr)} = \denval{p_z}[\tau_{p_z}]
         \]
 
-        In this case, we define the denotation of the body at \(z\) as the following equality:
+        In this case, \(\mathfrak{P}(z)\) is simply this denotation of the body:
         \[
-          \mathfrak{P}(z) : \mathsf{Prop} \coloneq p_z = \regnotation{\topZ}
+          \mathfrak{P}(z) : \BDom \coloneq \denval{p_z}[\tau_{p_z}]
         \]
         \begin{note}
-          Note that \(\tau_{p_z}\) is not used in the definition of \(\mathfrak{P}\), otherwise we would require that it be equal to \(\boolB\).
-          It is unnecessary at this point and the fact can be easily retrieved when we add typing assumptions.
+          The type \(\tau_{p_z}\) carried by \(\mathfrak{P}(z)\) plays no role below: the comprehension separates on the \emph{set} component of \(\mathfrak{P}(z)\) alone---its value \(p_z\)---so we need not require \(\tau_{p_z} = \boolB\) here, a fact easily retrieved once typing assumptions are added.
         \end{note}
-  \item[otherwise:] we define \(\mathfrak{P}(z) : \mathsf{Prop} \coloneq \mathsf{False}\).
+  \item[otherwise:] we set \(\mathfrak{P}(z) : \BDom \coloneq \denval{\botZ}[\boolB]\) (an arbitrary default; such \(z \notin \mathcal{D}\) are discarded by the separation below).
 \end{description}
 
-The denotation of the whole comprehension is then simply given by the ZFC separation \(\mathcal{D}\leancodeptr{.sep}{Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.sep}\ \mathfrak{P}\), or with usual set-builder notation:
+The denotation of the whole comprehension is then given by separating \(\mathcal{D}\) on those \(z\) whose body denotes \(\topZ\), using ZFC separation (\leancodeptr{.sep}{Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.sep}), or with usual set-builder notation:
 \[
   \interpB{\{D \mid P\}}
-  \triangleq
-  \denval{\{ z \in \mathcal{D} \mid \mathfrak{P}(z) \}}[\setB\tau^\times][\pf{\setB\tau^{\times}}{\{ \mathcal{D} \mid \mathfrak{P} \}}]
+  \;\triangleq\;
+  \denval{\{ z \in \mathcal{D} \mid \mathfrak{P}(z) = \topZ \}}[\setB\tau^\times][\pf{\setB\tau^{\times}}{\{ \mathcal{D} \mid \mathfrak{P} = \topZ \}}]
 \]
 
 \begin{proofconstruct}
   The proof is straightforward:
   \[
-    \{ z \in \mathcal{D} \mid \mathfrak{P}(z) \} \subseteq \undernote{\mathcal{D} \subseteq \interpZ{\tau^\times}}{\pf{\setB\tau^\times}{\mathcal{D}}}
+    \{ z \in \mathcal{D} \mid \mathfrak{P}(z) = \topZ \} \subseteq \undernote{\mathcal{D} \subseteq \interpZ{\tau^\times}}{\pf{\setB\tau^\times}{\mathcal{D}}}
     \vspace{-\baselineskip}
   \]
 \end{proofconstruct}
@@ -388,16 +374,19 @@ For lambda abstraction \(\lambdaB' D \cdot E\), the result is the graph of the f
 the body. The definition is quite similar to set comprehension, with the technicality that the return type of the body is not known at this point without typing information, so we need to compute it on the fly as we define the denotation of the body. The assumptions are also similar:
 \begin{itemize}
   \item \(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^{\times}]\) as before;
-  \item For any family of variables \(\vec x = (x_1, \cdots, x_n)\) of the binder's arity such that each of the \(x_i\) carries the B type \(\tau_i\), and such that \(\pairZ{x_1}{\cdots, x_n} \in \mathcal{D}\), \(E(\vec x)\) has a denotation.
+  \item For any family of variables \(\vec x = (x_1, \cdots, x_n)\) of the binder's arity such that, for all \(i\), \(x_i\) carries the B type \(\tau_i\), and such that \(\pairZ{x_1}{\cdots, x_n} \in \mathcal{D}\), \(E(\vec x)\) has a denotation.
 \end{itemize}
-We define the following scoped denotation \(\mathcal{E} : \mathsf{ZFSet} \to \BDom\) of the body \(E\), for any set argument \(z\), by distinguishing whether \(\mathcal{D}\) is empty or not:
+We define the following scoped denotation\footnotemark \(\mathcal{E} : \mathsf{ZFSet} \to \mathsf{Prop}\) of the body \(E\), for any set argument \(z\), by distinguishing whether \(\mathcal{D}\) is empty or not:
+\footnotetext{
+  In contrast to \(\mathfrak{P}\) above, which ranges in \(\BDom\), the scoped denotation \(\mathcal{E}\) ranges in \(\mathsf{Prop}\): it records the \emph{graph} condition ``\(y\) is the image of \(x\)'' rather than a body value, so a proposition is its natural codomain here.
+}
 \begin{description}
   \item[if \(\mathcal{D} = \emptyset\):] in this case, we cannot directly compute the return type of the body, as we have no element in the domain to plug in it; however, we can still define a dummy family of variables from the domain's type, and use it to compute the return type of the body. We have no guarantee that the body has a denotation for this family of variables, and even if it does, the denotation might be ill-typed.
         \begin{note}
           Even though this last remark may seem degenerate or even pathological, it is important to note that it is not. If such an ill-formed term were to occur as sub-calculation in a denotation clause, the denotation of the whole term would simply fail since it would not satisfy well-definedness assumptions, thus remaining equi-consistent with the semantics of B.
         \end{note}
         Such a dummy family can be defined by picking arbitrary elements \(d_i\) in each \(\interpZ{\tau_i}\), which are non-empty by \Cref{thm:b-type-nonempty}, and defining the family as \((\denval{d_i}[\tau_i])_{1 \leq i \leq n}\).
-        If \(E\bigl((\denval{d_i}[\tau_i])_{1 \leq i \leq n}\bigr)\) has a denotation whose second component is a B type \(\gamma\), we define whole denotation of the abstraction as:
+        If \(E\bigl((\denval{d_i}[\tau_i])_{1 \leq i \leq n}\bigr)\) has a denotation whose second component is a B type \(\gamma\), we define the whole denotation of the abstraction as:
         \[
           \interpB{\lambdaB' D \cdot E} \triangleq \denval{\emptyset}[\setB(\setB(\tau^\times \prodB \gamma))]
         \]
@@ -407,6 +396,7 @@ We define the following scoped denotation \(\mathcal{E} : \mathsf{ZFSet} \to \BD
 
   \item[otherwise:] in this case, we pick an arbitrary element \(d \in \mathcal{D}\), which can be written as an \(n\)-ary set-level tuple \(\pairZ{d_1}{\cdots, d_n}\) as before, and we define the family of variables as \((\denval{d_i}[\tau_i])_{1 \leq i \leq n}\).
         By assumption, \(E\) has a denotation for this family of variables, whose second component is a B type \(\gamma\), which is the return type of the body.
+        This type \(\gamma\) does not depend on the choice of representative \(d\): every element of \(\mathcal{D}\) induces a family with the \emph{same} intrinsic types \(\vec\tau\), so the body's denotation carries a type fixed by typing rather than by the particular values chosen (a fact recorded globally by type adequacy, \Cref{thm:b-denote-type-det}).
 
         The scoped denotation \(\mathcal{E}\) of the body is then defined for arbitrary set arguments \(z\) similarly to the set comprehension case.
         The only difference is that \(z\) is expected to be a set-level pair of the form \(z = \pairZ{x}{y}\).
@@ -436,7 +426,7 @@ algebra $\Zbool$.
 The assumptions are again similar to the previous cases:
 \begin{itemize}
   \item \(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^{\times}]\), with \(\tau^\times = \tau_1 \times \cdots \times \tau_n\) as before;
-  \item For any family of variables \(\vec x = (x_i)_{1 \leq i \leq n}\) of the binder's arity such that each of the \(x_i\) carries the B type \(\tau_i\), and such that \(\pairZ{x_1}{\cdots, x_n} \in \mathcal{D}\), \(P(\vec x)\) has a denotation.
+  \item For any family of variables \(\vec x = (x_i)_{1 \leq i \leq n}\) of the binder's arity such that, for all \(i\), \(x_i\) carries the B type \(\tau_i\), and such that \(\pairZ{x_1}{\cdots, x_n} \in \mathcal{D}\), \(P(\vec x)\) has a denotation.
 \end{itemize}
 The scoped denotation \(\mathfrak{P}\) of the body \(P\) is defined exactly as in the set comprehension case.
 The intuition is the following: when the domain \(D\) is finite, so is its denotation \(\mathcal{D} = \{e_1, \cdots, e_k\}\). Universal quantification over that domain is then naturally expressed as the following enumerated conjunction:
@@ -444,6 +434,7 @@ The intuition is the following: when the domain \(D\) is finite, so is its denot
   \interpB{\forallB' D \cdot\,P} \;=\; \mathfrak{P}(e_1) \andZ \cdots \andZ \mathfrak{P}(e_k) \;=\; \regnotation{\bigandZ}_{i = 1}^k \mathfrak{P}(e_i) \;=\; \bigandZ_{e \in \mathcal{D}} \mathfrak{P}(e)
 \]
 
+This enumerated form is only an \emph{intuition} for the finite case, but we genuinely generalize it to arbitrary domains.
 The implementation differs from this equation in two negligible technicalities.
 When the domain is empty, \ie \(\mathcal{D} = \emptyset\), the infimum should be the top element in the algebra, namely \(\topZ\), also expressing vacuous truth; however in Lean, this infimum is defined as quantified intersection, which is defined, in standard set theory, over non-empty families of sets. In our model, quantified intersection over the empty set is defined as the empty set ({\small\leancodeptr{ZFSet.sInter\_empty}{Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.sInter_empty}}).
 In order to circumvent this first technicality, we distinguish the empty domain case and return
@@ -475,6 +466,10 @@ Totality then ensures that, under suitable hypotheses on the environment, every 
 and well-typed term does indeed denote a value of the expected type.
 Overall, these properties resemble the usual soundness and completeness properties of semantics
 with respect to a type system.
+
+\begin{remark}
+  These properties relate the denotation to our \emph{type system}. A complementary question is its faithfulness to the \emph{official} semantics of the B-Book~\cite{abrial1996bbook}. On the well-typed fragment---the only one that arises in genuine proof obligations, since Atelier~B rejects ill-typed expressions---our clauses follow the B-Book's set-theoretic reading construct by construct, so the two are designed to agree there; any divergence is confined to ill-typed terms, which the type-carrying domain excludes by construction. A formal soundness proof against a mechanised B-Book semantics is left to future work.
+\end{remark}
 
 \begin{theorem}[Denotation typing-soundness][denote\_welltyped\_eq][B/Reasoning/Lemmas.html\#denote_welltyped_eq]
   \label{thm:b-denote-type-det}
@@ -550,12 +545,10 @@ denotation, with the expected type.
   \(\pf{\sigma}{Y} : Y \in \interpZ{\sigma}\) follows directly from
   \(\pairZ{X}{Y} \in F \subseteq \interpZ{\tau \prodB \sigma}\).
 
-  For \(\cardB{S}\), \(\minB(S)\), and \(\maxB(S)\), writing
+  For \(\cardB{S}\), writing
   \(\interpB{S} = \denval{\mathcal{S}}[\setB\alpha]\), well-definedness supplies the necessary
-  finiteness (and nonemptiness, for \(\minB\) and \(\maxB\)) hypotheses that activate the
-  corresponding denotation clauses; the witnesses \(\cardZ{\mathcal{S}}\),
-  \(\minZ(\mathcal{S})\), and \(\maxZ(\mathcal{S})\) belong to \(\Zint\) by their defining
-  properties.
+  finiteness hypothesis that activates the corresponding denotation clause; the witness
+  \(\cardZ{\mathcal{S}}\) belongs to \(\Zint\) by its defining properties.
 
   \paragraph{Binders.}
   We treat the three binder cases uniformly. Inverting the binder typing rule supplies,

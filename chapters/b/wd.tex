@@ -4,8 +4,7 @@
 Many B operators are \emph{partial}: they yield a meaningful value only on a strict subset
 of their well-typed arguments. Function application \(\appB' f\,x\) presupposes that \(f\)
 denotes a function and that \(x\) lies in its domain; cardinality \(\cardB{S}\) presupposes
-that \(S\) is finite; the extrema \(\minB(S)\) and \(\maxB(S)\) presuppose that \(S\) is
-finite and nonempty. Typing (\Cref{sec:b-typing}) constrains the \emph{shape} of these
+that \(S\) is finite. Typing (\Cref{sec:b-typing}) constrains the \emph{shape} of these
 expressions, but cannot express such conditions: they depend on the \emph{values} the
 subterms denote, not on their syntax. The missing layer is \emph{well-definedness}---the
 side conditions under which every partial operator in a term is applied within its domain.
@@ -31,8 +30,9 @@ collects, by structural recursion on a term, the conditions under which all of i
 operators denote. Each condition is stated directly against the denotations of subterms---the
 finiteness of a denoted set, the functionality of a denoted relation---so that
 well-definedness is grounded in the very semantic objects it constrains. We introduce the
-predicate ahead of the denotation because it is exactly the precondition under which that
-denotation is total (\Cref{thm:b-denote-complete}).
+predicate ahead of the denotation \(\interpB{\cdot}\) and the semantic domain \(\BDom\) on which it
+acts---both defined in \Cref{sec:b-semantics} (\Cref{def:b-dom} and \Cref{def:b-denote})---because it
+is exactly the precondition under which that denotation is total (\Cref{thm:b-denote-complete}).
 
 \begin{definition}[Well-definedness predicate][B.PHOAS.WellDefined][B/Reasoning/WellDefined.html\#B.PHOAS.WellDefined]
   \label{def:b-welldefined}
@@ -51,7 +51,7 @@ denotation is total (\Cref{thm:b-denote-complete}).
     \end{cases}
   \]
   where the binder clause requires the body \(P\) to be well-defined under every instantiation
-  \(\vec v\) of its bound variables. At the four partial operators, \(\WD\) requires the
+  \(\vec v\) of its bound variables. At the two partial operators, \(\WD\) requires the
   well-definedness of the immediate subterms together with the semantic side condition that
   makes the operator denote:
   \begin{description}
@@ -60,20 +60,18 @@ denotation is total (\Cref{thm:b-denote-complete}).
           \(\interpZ{\tau}\) to \(\interpZ{\sigma}\) and \(X\) belongs to its domain:
           \(\IsPFunc\ F\ \interpZ{\tau}\ \interpZ{\sigma}\) and \(X \in \Dom(F)\);
     \item[\(\cardB{S}\):] writing \(\interpB{S} = \denval{S'}[\setB\alpha]\), the value \(S'\)
-          is finite: \(\IsFinite\ S'\);
-    \item[\(\minB(S),\ \maxB(S)\):] writing \(\interpB{S} = \denval{S'}[\setB\alpha]\), the value
-          \(S'\) is finite and nonempty: \(\IsFinite\ S'\) and \(S' \neq \emptyset\).
+          is finite: \(\IsFinite\ S'\).
   \end{description}
 \end{definition}
 
 \paragraph{Role.}
 The predicate is vacuous on the total fragment and contributes one condition at each occurrence
 of a partial operator; in particular, \(\WD(t)\) holds trivially whenever \(t\) is built without
-\(\appB'\), \(\cardB{\cdot}\), \(\minB\), or \(\maxB\). Its significance is fixed by the
+\(\appB'\) or \(\cardB{\cdot}\). Its significance is fixed by the
 typing-completeness theorem (\Cref{thm:b-denote-complete}): a well-typed term denotes a value of
 its static type \emph{as soon as it is well-defined}. Indeed, \(\WD(t)\) supplies exactly the
-witnesses---functionality and domain membership for application, finiteness and nonemptiness for
-cardinality and the extrema---that the partial clauses of \(\interpB{\cdot}\)
+witnesses---functionality and domain membership for application, and finiteness for
+cardinality---that the partial clauses of \(\interpB{\cdot}\)
 (\Cref{subsec:b-denote}) require in order to select their defined branch. Well-definedness is
 thus the precise boundary between the partial denotation and the total restriction on which the
 certified encoding of \Cref{ch:beer} relies. Defined here on the abstract syntax used for
@@ -82,10 +80,8 @@ syntax through abstraction, so that obligations stated over concrete terms inher
 discipline.
 
 \begin{example}[Propagation and side conditions]
-  The term \(\minB(S) \leB \maxB(S)\), with \(S\) a free variable of type \(\setB\intB\), has
-  \(\minB\) and \(\maxB\) as its only partial operators. Unfolding \Cref{def:b-welldefined}, its
-  well-definedness reduces to the single requirement that \(S\) denote a finite, nonempty set,
-  the comparison \(\leB\) and the variable \(S\) contributing nothing. The companion term
-  \(\cardB{S}\) is well-defined under the weaker requirement that \(S\) merely denote a finite
-  set.
+  The term \(\cardB{S} \leB \cardB{T}\), with \(S, T\) free variables of type \(\setB\intB\), has
+  the two cardinalities as its only partial operators. Unfolding \Cref{def:b-welldefined}, its
+  well-definedness reduces to the requirement that \(S\) and \(T\) each denote a finite set, the
+  comparison \(\leB\) contributing nothing.
 \end{example}

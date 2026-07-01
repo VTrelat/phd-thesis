@@ -4,7 +4,7 @@
 The formalization distinguishes three syntactic categories: basic types and two
 representations of B terms.
 The concrete, first-order representation closely follows the syntax obtained
-from raw proof-obligation files and thereby provides a deep embedding of the B
+from Atelier B's proof-obligation files and thereby provides a deep embedding of the B
 language.
 The abstract representation uses parametric higher-order abstract syntax
 (PHOAS), as motivated in \Cref{sec:phoas}, and serves as the internal syntax
@@ -33,7 +33,7 @@ Lean.
     | $t \regnotation{\addB} s$ && $t \regnotation{\subB} s$ && $t \regnotation{\mulB} s$ && $t \regnotation{\leB} s$ // Arithmetic
     | $t \regnotation{\andB} s$ && $\regnotation{\notB} t$ && $t \regnotation{\eqB} s$ && $t \inB s$ && $\forallB \vec{v} \inB t \cdot s$ // Logic
     | $\powB(t)$ && $t \prodB s$ && $t \regnotation{\cupB} s$ && $t \regnotation{\capB} s$ && $\regnotation{\{\,\vec{v} \inB t \mid s\,\}}$ // Set theory
-    | $\minB(t)$ && $\maxB(t)$ && $\cardB{t}$
+    | $\cardB{t}$
     | $t \pfunB s$ && $\appB t\ s$ && $\regnotation{\lambdaB} \vec{v} \inB t \cdot\,s$ // Functions
   \end{bnf}
 \end{definition}
@@ -57,7 +57,7 @@ but treating them as primitive simplifies the subsequent encoding.
   \( \forallB \vec{v} \inB D \cdot P \) can be characterized by the following
   equality:
   \[
-    \lambdaB \vec{v} \inB D \cdot P \eqB \lambdaB \vec{v} \inB D \cdot \mathsf{bool}\ \mathsf{true}.
+    (\lambdaB \vec{v} \inB D \cdot P) \eqB (\lambdaB \vec{v} \inB D \cdot \mathsf{bool}\ \mathsf{true}).
   \]
 \end{example}
 
@@ -117,8 +117,9 @@ is purely syntactic.
 \begin{remark}
   This set of types could easily be extended to model user-defined sets, which
   can be used as type parameters for functions and relations. For the moment,
-  such sets, along with enumerations, are represented as sets of integers, since
-  they are by definition non-empty and finite.
+  such sets, along with enumerations, are represented as sets of integers;
+  enumerations, in particular, are finite and non-empty by definition, and this
+  representation is adequate for the fragment we model.
   Moreover, this representation does not include propositions as a distinct
   syntactic category; we regard them as being on the same level as Booleans,
   although they are technically distinct syntactic categories in B.
@@ -152,12 +153,13 @@ More complex constructs, however, can be expressed by bounded comprehensions, as
 illustrated by the following example.
 
 \begin{example}
-  Intersection \( t \capB s \) can be obtained from the bounded comprehension
+  Although intersection \( t \capB s \) is available as a primitive
+  (\Cref{def:b-basic-syntax}), it can equally be expressed as the bounded comprehension
   \[
-    \{\,v \inB t \mid v \inB s\,\}.
+    \{\,v \inB t \mid v \inB s\,\},
   \]
-  This definition captures the intended semantics of intersection; in
-  particular, it yields an associative and commutative operation.
+  which illustrates the pattern: the definition captures the intended semantics of
+  intersection and, in particular, yields an associative and commutative operation.
 \end{example}
 
 Defining such constructs requires the ability to bind variables, which is not
@@ -194,35 +196,15 @@ non-empty powerset.
     POGReader/POGReader.html\#String.toBinaryOp,
     POGReader/POGReader.html\#String.toUnaryOp]
   \label{def:extra-parsed-syntax}
-  Let \(S\) and \(T\) be B terms, and let \(\tau\) and \(\sigma\) be B types.
-  For the empty set, the parser expects \(\tau\) to match a set type:
-  \(\tau \equiv \setB(\alpha)\).
-  For the non-empty powerset, the parser expects \(\tau\) to match a set-of-sets
-  type: \(\tau \equiv \setB(\setB(\alpha))\).
+  Let \(S\) and \(T\) be B terms, and let \(\tau\) be a B type fixed by the parser, as
+  annotated on the right of each equation.
   \begin{align*}
-    \varnothing_{\tau}  & \triangleq \{\,v \inB \lift{\alpha} \mid \mathsf{bool}\ \mathsf{false}\,\}            \\
-    S \regnotation{\subseteqB} T      & \triangleq \forallB v \inB S \cdot v \inB T                                           \\
-    S \regnotation{\notsubseteqB} T   & \triangleq \notB(S \subseteqB T)                                                      \\
-    S \regnotation{\ssubB} T          & \triangleq \{\,v \inB S \mid v \notinB T\,\}                                          \\
-    {\powB_1}_{\tau}(S) & \triangleq \{\,v \inB \powB(S) \mid \existsB x \inB \lift{\alpha} \cdot x \inB v \,\}
+    \varnothing_{\tau}  & \;\triangleq\; \{\,v \inB \lift{\alpha} \mid \mathsf{bool}\ \mathsf{false}\,\} \tag{\(\tau = \setB(\alpha)\)}            \\
+    S \regnotation{\subseteqB} T      & \;\triangleq\; \forallB v \inB S \cdot v \inB T                                           \\
+    S \regnotation{\notsubseteqB} T   & \;\triangleq\; \notB(S \subseteqB T)                                                      \\
+    S \regnotation{\ssubB} T          & \;\triangleq\; \{\,v \inB S \mid v \notinB T\,\}                                          \\
+    {\powB_1}_{\tau}(S) & \;\triangleq\; \{\,v \inB \powB(S) \mid \existsB x \inB \lift{\alpha} \cdot x \inB v \,\} \tag{\(\tau = \setB(\setB(\alpha))\)}
   \end{align*}
-\end{definition}
-
-We also add finite sets, since they are ubiquitous in B specifications and are
-not provided as primitive constructs in the set-theoretic core.
-A subset \(S\) of a set \(A\) is finite when there exists an injection from
-\(S\) into a bounded interval of integers, typically one whose lower bound is
-\(0\).
-
-\begin{definition}[Finite subsets][B.Term.finite][POGReader/Builtins.html\#B.Term.finite]
-  \label{def:b-syntax-finite}
-  Let \(S\) be a B term, and let \(\tau\) be a B type.
-  \begin{align*}
-    \mathsf{FIN}(S)            & \triangleq \{\, X \inB \powB(S) \mid \existsB n \inB \ZintB \cdot \existsB f \inB S \injtfunB \ZintB \cdot \forallB x, i \inB S \prodB \ZintB \cdot \\
-                               & \hspace{1cm}(x \mapletB i \inB f) \impB ((\mathsf{int}\ 0 \leB i) \andB (i \leB n)) \,\}                                                            \\
-    {\mathsf{FIN}_1}_{\tau}(S) & \triangleq \{\, X \inB \mathsf{FIN}(S) \mid X \neqB \varnothing_{\tau} \,\}
-  \end{align*}
-  For non-empty finite subsets, the parser expects \(\tau\) to match a set type.
 \end{definition}
 
 \paragraph{Arithmetic constructs.}
@@ -237,11 +219,11 @@ numbers as a subset of integers\footnote{This marks another deviation from
   \label{def:b-syntax-arithmetic}
           Let \(i, j\) be B terms.
   \begin{align*}
-    \mathbb{N}       & \triangleq \{\, n \inB \ZintB \mid \mathsf{int}\ 0 \leB \mathsf{int}\ n \,\} \\
-    \regnotation{\intrangeB{i}{j}} & \triangleq \{\, n \inB \ZintB \mid i \leB n \andB n \leB j \,\}              \\
-    i \regnotation{\geB} j         & \triangleq j \leB i                                                          \\
-    i \regnotation{\gtB} j         & \triangleq \notB(i \leB j)                                                   \\
-    i \regnotation{\ltB} j         & \triangleq \notB(j \leB i)
+    \mathbb{N}       & \;\triangleq\; \{\, n \inB \ZintB \mid \mathsf{int}\ 0 \leB \mathsf{int}\ n \,\} \\
+    \regnotation{\intrangeB{i}{j}} & \;\triangleq\; \{\, n \inB \ZintB \mid i \leB n \andB n \leB j \,\}              \\
+    i \regnotation{\geB} j         & \;\triangleq\; j \leB i                                                          \\
+    i \regnotation{\gtB} j         & \;\triangleq\; \notB(i \leB j)                                                   \\
+    i \regnotation{\ltB} j         & \;\triangleq\; \notB(j \leB i)
   \end{align*}
 \end{definition}
 
@@ -258,7 +240,7 @@ The identity relation is the graph of the identity map on a set.
   \label{def:b-syntax-id}
   Let \(S\) be a B term.
   \[
-    \mathsf{id}(S) \triangleq \lambdaB v \inB S \cdot v
+    \mathsf{id}(S) \;\triangleq\; \lambdaB v \inB S \cdot v
   \]
 \end{definition}
 
@@ -273,8 +255,8 @@ belong to \(F\).
   \label{def:b-syntax-domRestrSub}
       Let \(F\) and \(R\) be B terms.
   \[
-    F \regnotation{\domRestrB} R \triangleq \{\, x, y \inB R \mid x \inB F \,\} \quad\text{and}\quad
-    F \regnotation{\domSubtrB} R \triangleq \{\, x, y \inB R \mid x \notinB F \,\}
+    F \regnotation{\domRestrB} R \;\triangleq\; \{\, x, y \inB R \mid x \inB F \,\} \quad\text{and}\quad
+    F \regnotation{\domSubtrB} R \;\triangleq\; \{\, x, y \inB R \mid x \notinB F \,\}
   \]
 \end{definition}
 
@@ -289,8 +271,8 @@ obtained by retaining only the pairs whose second component does not belong to
   \label{def:b-syntax-ranRestrSub}
       Let \(F\) and \(R\) be B terms.
   \[
-    R \regnotation{\ranRestrB} F \triangleq \{\, x, y \inB R \mid y \inB F \,\} \quad\text{and}\quad
-    R \regnotation{\ranSubtrB} F \triangleq \{\, x, y \inB R \mid y \notinB F \,\}
+    R \regnotation{\ranRestrB} F \;\triangleq\; \{\, x, y \inB R \mid y \inB F \,\} \quad\text{and}\quad
+    R \regnotation{\ranSubtrB} F \;\triangleq\; \{\, x, y \inB R \mid y \notinB F \,\}
   \]
 \end{definition}
 
@@ -300,12 +282,10 @@ components, respectively, of the pairs in \(R\).
     POGReader/Builtins.html\#B.Term.dom,
     POGReader/Builtins.html\#B.Term.ran]
   \label{def:b-syntax-dom-ran}
-      Let \(R\) be a B term, and let \(\tau\) be a B type.
-  In both definitions, the parser expects \(\tau\) to match a relation type, \ie
-  a set of pairs: \(\tau \equiv \setB (\alpha \prodB \beta)\).
+      Let \(R\) be a B term, and let \(\tau\) be a B type fixed by the parser, as annotated on the right.
   \begin{align*}
-    \domB[\tau](R) & \triangleq \{\, x \inB \lift{\alpha} \mid \existsB y \inB \lift{\beta} \cdot (x \mapletB y) \inB F \,\} \\
-    \ranB[\tau](R) & \triangleq \{\, y \inB \lift{\beta} \mid \existsB x \inB \lift{\alpha} \cdot (x \mapletB y) \inB F \,\}
+    \domB[\tau](R) & \;\triangleq\; \{\, x \inB \lift{\alpha} \mid \existsB y \inB \lift{\beta} \cdot (x \mapletB y) \inB R \,\} \tag{\(\tau = \setB(\alpha \prodB \beta)\)} \\
+    \ranB[\tau](R) & \;\triangleq\; \{\, y \inB \lift{\beta} \mid \existsB x \inB \lift{\alpha} \cdot (x \mapletB y) \inB R \,\} \tag{\(\tau = \setB(\alpha \prodB \beta)\)}
   \end{align*}
 \end{definition}
 
@@ -315,8 +295,8 @@ Cartesian product with its first and second components, respectively.
     POGReader/POGReader.html\#String.toBinaryOp]
   Let \(Q\) and \(R\) be B terms.
   \begin{align*}
-    \mathsf{prj}_1(Q, R) & \triangleq \{\, x, y, z \inB Q \prodB R \prodB Q \mid z \eqB x \,\} \\
-    \mathsf{prj}_2(Q, R) & \triangleq \{\, x, y, z \inB Q \prodB R \prodB R \mid z \eqB y \,\}
+    \mathsf{prj}_1(Q, R) & \;\triangleq\; \{\, x, y, z \inB Q \prodB R \prodB Q \mid z \eqB x \,\} \\
+    \mathsf{prj}_2(Q, R) & \;\triangleq\; \{\, x, y, z \inB Q \prodB R \prodB R \mid z \eqB y \,\}
   \end{align*}
 \end{definition}
 
@@ -331,12 +311,11 @@ first component does not occur as the first component of any pair in \(R\).
 
 \begin{definition}[Overloading][B.Term.overload][
     POGReader/Builtins.html\#B.Term.overload]
-  Let \(Q\) and \(R\) be B terms, and let \(\tau\) be a B type.
-  The parser expects \(\tau\) to match a relation type, \ie a set of pairs:
-  \(\tau \equiv \setB (\alpha \prodB \beta)\).
+  Let \(Q\) and \(R\) be B terms, and let \(\tau\) be a B type fixed by the parser.
   \[
-    Q \overloadB[\tau] R \triangleq \{\, x, y \inB \lift{\alpha}\! \prodB \lift{\beta} \mid \left(\left(x \mapletB y \inB Q\right) \andB \notB(x \inB \domB[\tau](R))\right) \orB (x \mapletB y \inB R) \,\}
+    Q \overloadB[\tau] R \;\triangleq\; \{\, x, y \inB \lift{\alpha}\! \prodB \lift{\beta} \mid \left(\left(x \mapletB y \inB Q\right) \andB \notB(x \inB \domB[\tau](R))\right) \orB (x \mapletB y \inB R) \,\}
   \]
+  where \(\tau = \setB(\alpha \prodB \beta)\).
 \end{definition}
 
 The inverse relation of a relation \(R\) is obtained by swapping the first and
@@ -344,10 +323,9 @@ second components of each pair in \(R\).
 \begin{definition}[Inverse relation][toUnaryOp][
     POGReader/POGReader.html\#String.toUnaryOp]
   \label{def:b-syntax-inv-rel}
-  Let \(R\) be a B term, and let \(\tau\) be a B type.
-  The parser expects \(\tau\) to match a relation type: \(\tau \equiv \setB (\alpha \prodB \beta)\).
+  Let \(R\) be a B term, and let \(\tau\) be a B type fixed by the parser.
   \[
-    R^{-1}_{\tau} \triangleq \{\, x, y \inB \lift{\beta} \prodB \lift{\alpha} \mid y \mapletB x \inB R \,\}
+    R^{-1}_{\tau} \;\triangleq\; \{\, x, y \inB \lift{\beta} \prodB \lift{\alpha} \mid y \mapletB x \inB R \,\} \quad (\tau = \setB(\alpha \prodB \beta))
   \]
 \end{definition}
 
@@ -356,10 +334,9 @@ that are related by \(R\) to some element of \(S\).
 \begin{definition}[Direct image][String.toBinaryOp][
     POGReader/POGReader.html\#String.toBinaryOp]
   \label{def:b-syntax-dir-image}
-  Let \(R\) and \(S\) be B terms, and let \(\tau\) be a B type.
-  The parser expects \(\tau\) to match a set type: \(\tau \equiv \setB (\alpha)\).
+  Let \(R\) and \(S\) be B terms, and let \(\tau\) be a B type fixed by the parser.
   \[
-    R[S]_{\tau} \triangleq \{\, y \inB \lift{\alpha} \mid \existsB x \inB S \cdot x \mapletB y \inB R \,\}
+    R[S]_{\tau} \;\triangleq\; \{\, y \inB \lift{\alpha} \mid \existsB x \inB S \cdot x \mapletB y \inB R \,\} \tag{\(\tau = \setB(\alpha)\)}
   \]
 \end{definition}
 
@@ -368,23 +345,21 @@ The direct product of two relations \(Q\) and \(R\) is the set of pairs \(x \map
 \begin{definition}[Direct product][toBinaryOp][
     POGReader/POGReader.html\#String.toBinaryOp]
   \label{def:b-syntax-dirprod}
-  Let \(Q\) and \(R\) be B terms, and let \(\tau\) be a B type.
-  The parser expects \(\tau\) to match a relation type of the form
-  \(\tau \equiv \setB(\alpha \prodB (\beta \prodB \gamma))\).
+  Let \(Q\) and \(R\) be B terms, and let \(\tau\) be a B type fixed by the parser.
   \begin{align*}
-    Q \dirprodB[\tau] R & \triangleq \{\,
+    Q \dirprodB[\tau] R & \;\triangleq\; \{\,
     x, w \inB (\lift{\alpha} \prodB (\lift{\beta} \prodB \lift{\gamma})) \mid
     \existsB y, z \in (\lift{\beta} \prodB \lift{\gamma}) \cdot \\
                         & \hspace{1cm}
     (w \eqB y \mapletB z) \andB
     (x \mapletB y \inB Q) \andB
     (x \mapletB z \inB R)
-    \,\}
+    \,\} \tag{\(\tau = \setB(\alpha \prodB (\beta \prodB \gamma)\))}
   \end{align*}
 \end{definition}
 
 
-\paragraph{Functions and sequences.}
+\paragraph{Functions, finite subsets, and sequences.}
 Finally, we introduce additional function-related constructs, since B provides a
 rich hierarchy of function spaces.
 
@@ -392,12 +367,28 @@ rich hierarchy of function spaces.
     POGReader/Builtins.html\#B.Term.tfun]
   \label{def:b-syntax-functions}
                   \begin{align*}
-    A \tfunB B     & \triangleq \{\, f \inB A \pfunB B \mid \forallB x \inB A \cdot \exists y \inB B, x \mapletB y \inB f \,\} \tag{total}                               \\
-    A \injpfunB B  & \triangleq \{\, f \inB A \pfunB B \mid \forallB x, y, z \inB A \prodB A \prodB B \cdot                                                              \\
+    A \tfunB B     & \;\triangleq\; \{\, f \inB A \pfunB B \mid \forallB x \inB A \cdot \exists y \inB B, x \mapletB y \inB f \,\} \tag{total}                               \\
+    A \injpfunB B  & \;\triangleq\; \{\, f \inB A \pfunB B \mid \forallB x, y, z \inB A \prodB A \prodB B \cdot                                                              \\
                    & \hspace{1cm} (x \mapletB z \inB f) \andB (y \mapletB z \inB f) \impB x \eqB y \,\} \tag{partial injective}                                          \\
-    A \surjpfunB B & \triangleq \{\, f \inB A \pfunB B \mid \forallB y \inB B \cdot \existsB x \inB A \cdot x \mapletB y \inB f \,\} \tag{partial surjective}            \\
-    A \injtfunB B  & \triangleq \{\, f \inB A \tfunB B \mid \forallB x, y \inB A \prodB A \cdot (\appB f\ x) \eqB (\appB f\ y) \impB x \eqB y \,\} \tag{total injective} \\
-    A \surjtfunB B & \triangleq \{\, f \inB A \tfunB B \mid \forallB y \inB B \cdot \existsB x \inB A \cdot x \mapletB y \inB f \,\} \tag{total surjective}
+    A \surjpfunB B & \;\triangleq\; \{\, f \inB A \pfunB B \mid \forallB y \inB B \cdot \existsB x \inB A \cdot x \mapletB y \inB f \,\} \tag{partial surjective}            \\
+    A \injtfunB B  & \;\triangleq\; \{\, f \inB A \tfunB B \mid \forallB x, y \inB A \prodB A \cdot (\appB f\ x) \eqB (\appB f\ y) \impB x \eqB y \,\} \tag{total injective} \\
+    A \surjtfunB B & \;\triangleq\; \{\, f \inB A \tfunB B \mid \forallB y \inB B \cdot \existsB x \inB A \cdot x \mapletB y \inB f \,\} \tag{total surjective}
+  \end{align*}
+\end{definition}
+
+We also add finite sets, since they are ubiquitous in B specifications and are
+not provided as primitive constructs in the set-theoretic core.
+A subset \(S\) of a set \(A\) is finite when there exists an injection from
+\(S\) into a bounded interval of integers, typically one whose lower bound is
+\(0\).
+
+\begin{definition}[Finite subsets][B.Term.finite][POGReader/Builtins.html\#B.Term.finite]
+  \label{def:b-syntax-finite}
+  Let \(S\) be a B term, and let \(\tau\) be a B type.
+  \begin{align*}
+    \mathsf{FIN}(S)            & \;\triangleq\; \{\, X \inB \powB(S) \mid \existsB n \inB \ZintB \cdot \existsB f \inB S \injtfunB \ZintB \cdot \forallB x, i \inB S \prodB \ZintB \cdot \\
+                               & \hspace{1cm}(x \mapletB i \inB f) \impB ((\mathsf{int}\ 0 \leB i) \andB (i \leB n)) \,\}                                                            \\
+    {\mathsf{FIN}_1}_{\tau}(S) & \;\triangleq\; \{\, X \inB \mathsf{FIN}(S) \mid X \neqB \varnothing_{\tau} \,\} \tag{\(\tau = \setB(\alpha)\)}
   \end{align*}
 \end{definition}
 
@@ -408,13 +399,13 @@ interval of natural numbers.
   \label{def:b-syntax-sequences}
   Let \(A\) be a B term, and let \(\tau\) be a B type.
   \begin{align*}
-    \mathsf{seq}(A)    & \triangleq \{\, s \inB \mathbb{N} \pfunB A \mid \existsB n \inB \ZintB \cdot \existsB f \inB s \tfunB \intrangeB{\mathsf{int}\ 0}{n} \,\}               \\
-    \mathsf{seq}_1(A)  & \triangleq \{\, s \inB \mathbb{N} \pfunB A \mid \left(\existsB n \inB \ZintB \cdot \existsB f \inB s \tfunB \intrangeB{\mathsf{int}\ 0}{n}\right) \andB \\
-                       & \hspace{1cm} \existsB x, y \inB \mathbb{N} \prodB A \cdot \appB f\ x \eqB y \,\} \tag{non-empty}                                                        \\
-    \mathsf{iseq}(A)   & \triangleq \mathsf{seq}(A) \capB (\mathbb{N} \injpfunB A) \tag{injective}                                                                               \\
-    \mathsf{iseq}_1(A) & \triangleq \mathsf{seq}_1(A) \capB (\mathbb{N} \injpfunB A) \tag{non-empty injective}                                                                   \\
-    \mathsf{perm}(A)   & \triangleq \mathsf{iseq}(A) \capB (A \surjpfunB A) \tag{permutations}                                                                                   \\
-    \mathsf{size}(s)   & \triangleq \cardB{\domB_{\setB (\intB \prodB \tau)}(s)}
+    \mathsf{seq}(A)    & \;\triangleq\; \{\, s \inB \mathbb{N} \pfunB A \mid \existsB n \inB \ZintB \cdot s \inB (\intrangeB{\mathsf{int}\ 1}{n} \tfunB A) \,\}               \\
+    \mathsf{seq}_1(A)  & \;\triangleq\; \{\, s \inB \mathbb{N} \pfunB A \mid \left(\existsB n \inB \ZintB \cdot s \inB (\intrangeB{\mathsf{int}\ 1}{n} \tfunB A)\right) \andB \\
+                       & \hspace{1cm} \existsB x, y \inB \mathbb{N} \prodB A \cdot \appB s\ x \eqB y \,\} \tag{non-empty}                                                        \\
+    \mathsf{iseq}(A)   & \;\triangleq\; \mathsf{seq}(A) \capB (\mathbb{N} \injpfunB A) \tag{injective}                                                                               \\
+    \mathsf{iseq}_1(A) & \;\triangleq\; \mathsf{seq}_1(A) \capB (\mathbb{N} \injpfunB A) \tag{non-empty injective}                                                                   \\
+    \mathsf{perm}(A)   & \;\triangleq\; \mathsf{iseq}(A) \capB (A \surjpfunB A) \tag{permutations}                                                                                   \\
+    \mathsf{size}(s)   & \;\triangleq\; \cardB{\domB_{\setB (\intB \prodB \tau)}(s)}
   \end{align*}
 \end{definition}
 
@@ -472,7 +463,6 @@ To distinguish the two syntactic categories, we reuse the constructor names of
   where \(e : (\mathsf{Fin}\,n \to \mathcal{V}) \to \mathsf{Term}\,\mathcal{V}\)
   is the scope of a binder of arity \(n\).
 \end{definition}
-\inlremark[]{PHOAS does not provide constructors for min, max and cardinal.}
 
 \begin{remark}
   The arity \(n\) of each binder is implicit, so binders need not be annotated
