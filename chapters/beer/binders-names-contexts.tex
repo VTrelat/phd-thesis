@@ -1,3 +1,60 @@
 \section{Handling of Binders, Names, and Contexts}
 \label{sec:binders-names-contexts}
 
+Encoding a quantified or functional B construct forces the encoder to invent SMT
+names for the variables it binds and to record their types. Both tasks are realized
+as effects of the {\small\leancodeptr{Encoder}{Encoder/Basic.html\#Encoder}} monad
+(\Cref{sec:lean-implementation-architecture}), acting on two components of its state
+that are given deliberately different lifetimes.
+
+\paragraph{Fresh names and the typing context.}
+The operation {\small\leancodeptr{freshVar}{Encoder/Basic.html\#SMT.freshVar}}, given a type
+$\tau$, returns a name distinct from every name used so far, records it among the
+used names, and inserts the binding into the running context~$\Gamma$;
+{\small\leancodeptr{addToContext}{Encoder/Basic.html\#SMT.addToContext}} and
+{\small\leancodeptr{eraseFromContext}{Encoder/Basic.html\#SMT.eraseFromContext}} insert and
+remove bindings explicitly. The fresh-variable counter and the set of used names are
+\emph{monotone}---never rolled back---which guarantees that every generated name is
+globally unique across the whole run. The typing context~$\Gamma$, by contrast, is
+\emph{scoped}: a bound variable is meaningful only while its body is being encoded,
+so~$\Gamma$ is extended on entering a binder and restored on leaving it.
+
+\paragraph{Erasing binder variables.}
+\inlremark{Decide if we keep this.}
+The interplay is visible in
+{\small\leancodeptr{defaultSpecM}{Encoder/Loosening/Rules.html\#defaultSpecM}}, which builds
+the predicate expressing that a term takes the canonical default value of its
+type. At a function type $\alpha \toS \beta$ the default is taken
+pointwise, $\forallS x : \alpha.\ \mathsf{dflt}_{\beta}\bigl(t(x)\bigr)$, which in the
+encoder reads:
+\begin{leanlisting}
+| .fun α β, t => do
+    let x    ← freshVar α                     -- inserts x : α into Γ
+    let body ← defaultSpecM β (.app t (.var x))
+    eraseFromContext x                        -- x occurs only under the ∀ below
+    pure (.forall [x] [α] body)
+\end{leanlisting}
+The fresh $x$ is drawn solely to serve as the universal binder. Since
+\leaninl{freshVar} has inserted $x : \alpha$ into~$\Gamma$, but $x$ occurs only under
+the $\forallS$ about to be built, it must be erased from~$\Gamma$ before the
+predicate is returned: otherwise the result would carry a spurious free constant~$x$
+and fail to typecheck in the ambient context, where $x$ is a variable bound by the
+quantifier rather than a global symbol.
+
+The same discipline recurs throughout the encoder. Every case of
+{\small\leancodeptr{loosenAux}{Encoder/Loosening/Rules.html\#loosenAux_prf}} erases the
+$\existsS$- and $\lamS$-binders it introduces once their specification is assembled,
+and the universal case of {\small\leancodeptr{encodeTerm}{Encoder/Encoder.html\#encodeTerm}}
+additionally snapshots~$\Gamma$ and the emitted declarations before encoding the
+body: helper declarations produced while translating under the binder are then
+re-scoped \emph{inside} the quantifier---as guarded universals---rather than left as
+global constants that would escape their intended scope.
+
+\begin{note}
+  Keeping the fresh-name counter monotone while rolling back~$\Gamma$ is a matter of
+  correctness, not convenience. Restoring the counter on leaving a binder could
+  re-issue a name already attached to an emitted declaration, conflating two
+  distinct SMT symbols; keeping it monotone preserves the global freshness invariant
+  on which the correctness proofs rely, at the negligible cost of a few unused
+  indices.
+\end{note}

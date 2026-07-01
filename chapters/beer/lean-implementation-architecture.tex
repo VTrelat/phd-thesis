@@ -1,3 +1,47 @@
 \section{Lean Implementation Architecture}
 \label{sec:lean-implementation-architecture}
 
+\beer{} is structured as a two-pass pipeline that threads a single mutable state
+functionally, through a \emph{monad}. Recall that a monad organizes effectful
+computations: it fixes a notion of effect---here, reading and updating a state and
+failing with an error---together with the sequencing discipline that Lean's
+\leaninl{do}-notation renders implicit, where \leaninl{let x ← c} runs the
+computation \leaninl{c}, propagates its effects, and binds its result to
+\leaninl{x}. Each of the two passes runs in one such monad.
+
+The first pass, the \emph{decoder}, parses an Atelier~B proof-obligation file 
+into the internal concrete representation of \Cref{ch:b}. It
+runs in the monad {\small\leancodeptr{Decoder}{POGReader/Basic.html\#Decoder}}, defined as
+\leaninl{StateT DecoderState (ExceptT String IO)}: a state carrying the B
+environment under construction, over exceptions, over \leaninl{IO} for reading the
+file.
+
+The second pass, the \emph{encoder}, is the subject of this thesis. It transforms
+the decoded B environment into an SMT-LIB script and runs in
+{\small\leancodeptr{Encoder}{Encoder/Basic.html\#Encoder}}, defined as
+\leaninl{StateT EncoderState (Except String)}. Its state records everything the
+translation must track:
+\begin{leanlisting}
+structure EncoderState where
+  env   : SMT.Env          -- fresh-variable counter, used names, emitted script
+  types : SMT.TypeContext  -- the running SMT typing context Γ
+\end{leanlisting}
+namely the running SMT typing context~$\Gamma$ (the field \leaninl{types}), a
+monotone fresh-variable counter together with the set of names already in use, and
+the SMT declarations and assertions accumulated so far---the eventual output.
+The encoder's effects are exactly these: consulting and
+extending~$\Gamma$, allocating fresh names, emitting declarations and assertions,
+and raising an error on an ill-typed or unsupported input.
+
+Crucially, the encoder is \emph{pure}: unlike the decoder, its stack contains no
+\leaninl{IO}. It therefore denotes a total function from a B environment to either
+an error or an SMT script paired with a final state. This is what licenses the
+mathematical style adopted so far and in the remainder of this chapter: the correctness
+statements of \Cref{sec:beer-mechanized-correctness} are equalities between the
+denotation of the emitted term and that of the source term, in which the state
+threaded through every intermediate step never appears. In the Lean development the
+state-passing obligations are discharged separately, by reasoning about the monadic
+primitives, \eg \leaninl{get}, \leaninl{modifyGet}, and \leaninl{throw}, in a
+Floyd--Hoare-style~\cite{floyd1967meanings,hoare1969axiomatic} weakest-precondition
+calculus~\cite{dijkstra1975guarded} for monadic programs, so that the encoding rules may
+be read---and verified---as if they manipulated~$\Gamma$ and the fresh-name supply directly.
