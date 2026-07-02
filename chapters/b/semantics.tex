@@ -196,7 +196,7 @@ For any integer \(n\) and Boolean \(b\),
 \]
 where $\zop{n}$ and $\zop{b}$ are the respective ZFC encodings of integers and Booleans.
 \begin{proofconstruct}
-  \(\pf{\intB}{\zop{n}} : \zop{n} \in \Zint\) and \(\pf{\boolB}{\zop{b}} : \zop{b} \in \Zbool\) are trivially given by {\small\leancodeptr{B.ZFSet.mem\_ofInt\_Int}{ZFLean/Integers.html\#ZFSet.mem_ofInt_Int}} and {\small\leancodeptr{ZFBool.mem\_ofBool\_𝔹}{ZFLean/Booleans.html\#ZFSet.ZFBool.mem_ofBool_𝔹}} respectively.
+  The two proofs \(\pf{\intB}{\zop{n}} : \zop{n} \in \Zint\) and \(\pf{\boolB}{\zop{b}} : \zop{b} \in \Zbool\) are trivially given by theorems {\small\leancodeptr{mem\_ofInt\_Int}{ZFLean/Integers.html\#ZFSet.mem_ofInt_Int}} and {\small\leancodeptr{ZFBool.mem\_ofBool\_𝔹}{ZFLean/Booleans.html\#ZFSet.ZFBool.mem_ofBool_𝔹}} respectively.
 \end{proofconstruct}
 
 For built-in sets, the denotation is given by the interpretation of their ZFC counterparts:
@@ -302,7 +302,7 @@ Then, the denotation is given by
 \end{proofconstruct}
 
 \paragraph{Partial operations.}
-The semantics of partial operations is given by case analysis on the well-definedness side conditions, and is defined only when these conditions are satisfied.
+The semantics of partial operations is given by case analysis on the corresponding well-definedness side conditions, and is defined only when these conditions are satisfied.
 
 Function application evaluates by graph lookup, well defined when the function denotes a partial function and the argument is in its domain.
 Given \(\interpB{f} = \denval{F}[\setB(\tau \prodB \sigma)]\) and \(\interpB{x} = \denval{X}[\tau]\), if \(\mathsf{IsPFunc}\ F\ \interpZ{\tau}\ \interpZ{\sigma}\) and \(X \in \leancodeptr{Dom}{ZFLean/Functions.html\#ZFSet.Dom}(F)\), let \(Y\) be the unique value such that \(\pairZ{X}{Y} \in F\); the denotation is then given by

@@ -172,7 +172,7 @@ We eventually equip $\mathsf{ZFNat}$ with a \emph{commutative semiring} structur
 \paragraph*{Integers and rationals}
 \newcommand{\zrel}{\ensuremath{\sim_{\mathbb{Z}}}}
 
-We follow standard constructions---as in K.\ Kunen's textbook~\cite[Ch.~1, Sec.~11]{kunen2011set}---to build integers as equivalence classes of pairs of naturals under the relation \(\zrel\) defined for all $a,b,c,d : \mathsf{ZFNat}$ as:
+We follow standard constructions as in K.\ Kunen's textbook~\cite[Ch.~1, Sec.~11]{kunen2011set} to build integers as equivalence classes of pairs of naturals under the relation \(\zrel\) defined for all $a,b,c,d : \mathsf{ZFNat}$ as:
 \[
   (a,b) \zrel (c,d) \iff a + d = b + c
 \]
@@ -228,13 +228,17 @@ These constructions carry less mathematical weight than the previous ones, but c
     \mathsf{inl} : A \to A \uplus B
     \qquad\text{and}\qquad
     \mathsf{inr} : B \to A \uplus B
-  \end{equation*}
-\end{definition}
-From this, we provide a set-theoretic definition of the \emph{option} type via the coproduct
-\mbox{$\mathsf{Option}\, A \triangleq \{ \varnothing \} \uplus A$}
+  \end{equation*}%
+\end{definition}%
+From this, we provide a set-theoretic definition of the \emph{option} type via the following coproduct
+\[
+\mathsf{Option}\, A \triangleq \{ \varnothing \} \uplus A
+\]
 equipped with expected canonical injections
-\mbox{$\mathsf{none} : \mathsf{Option}\, A \triangleq \mathsf{inl}(\varnothing)$}
-and \mbox{$\mathsf{some} : A \to \mathsf{Option}\, A \triangleq \mathsf{inr}$}
+\[
+  \mathsf{none} : \mathsf{Option}\, A \triangleq \mathsf{inl}(\varnothing) \quad\text{and}\quad
+  \mathsf{some} : A \to \mathsf{Option}\, A \triangleq \mathsf{inr}
+\]
 as well as a case eliminator.
 
 \section{Embeddings, isomorphisms, and transport}

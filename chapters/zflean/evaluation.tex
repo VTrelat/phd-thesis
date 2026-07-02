@@ -90,10 +90,11 @@ theorem fapply_composition {g f : ZFSet} {A B C : ZFSet}
     \fapply{(\fapply{f}{\langle a, \irrelprf \rangle})}{\langle b, \irrelprf \rangle}
   \end{equation*}
   and to the unfolded definition of $\mathcal{U}$ as well, reducing the goal to the trivial equality
-  \mbox{\(
+  \[
     \fapply{\left(\fapply{f}{\langle a, \irrelprf \rangle}\right)}{\langle b, \irrelprf \rangle} =
-    \fapply{(\fapply{f}{\langle a, \irrelprf \rangle})}{\langle b, \irrelprf \rangle}
-    \)}.%
+    \fapply{(\fapply{f}{\langle a, \irrelprf \rangle})}{\langle b, \irrelprf \rangle}.
+    \vspace*{-\baselineskip}
+  \]
 \end{proof}
 
 The proof of \cref{thm:isIso_curry} then boils down to applying lemma {\small\leancodeptr{isIso\_of\_two\_sided\_inverse}{ZFLean/Isomorphisms.html\#ZFSet.isIso_of_two_sided_inverse}} with the equalities from \cref{lem:curry-uncurry-inverse}:

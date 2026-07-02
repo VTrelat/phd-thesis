@@ -5,6 +5,7 @@
 \usepackage{luacolor}  % required by lua-ul
 \usepackage{lua-ul}    % line-breaking \highLight[color]{text} under LuaLaTeX
 \usepackage{luacode}  % \begin{luacode*}...\end{luacode*} — Lua blocks safe from TeX tokenization
+\usepackage{hyperref}
 \usepackage{amsmath,amssymb, amsthm, mathtools, bbold, xspace}
 \usepackage{booktabs}
 \usepackage{listings}
@@ -12,7 +13,8 @@
 \tcbuselibrary{listings, skins, breakable}
 \usepackage{footnote}  % \savenotes/\spewnotes — must come before hyperref
 \usepackage{environ}   % \RenewEnviron — used for proof-skipping mode
-\usepackage{hyperref}
+\usepackage[backend=biber, style=numeric, sorting=nyt, giveninits=false, maxbibnames=99]{biblatex}
+\addbibresource{references.bib}
 \usepackage[labelfont=bf, font=small]{caption}
 \usepackage{mathpartir}
 \usepackage{simplebnf}
@@ -21,21 +23,16 @@
 \usepackage{etoc}
 \usepackage{fontspec}
 \usepackage{setspace}
-\usepackage{unicode-math}
+\usepackage[warnings-off={mathtools-colon,mathtools-overbracket}]{unicode-math}
 \usepackage{enumitem}
 \usepackage{dsfont}
 \usepackage[intoc,refpage]{nomencl}  % List of Notations (see \regnotation in macros.tex)
-\usepackage{multibib}               % separate bibliography for author's publications
-\usepackage{fontawesome}            % \faFileTextO for publication citation marker
-% In-text publication citations: \faFileTextO~[n] in blue
 \usepackage{multicol}        % two-column layout for the notation index
 \usepackage{multiincludeonly}
 
-\makenomenclature
+\overfullrule=3pt
 
-\newcites{pub}{List of Publications}
-\let\origcitepub\citepub
-\renewcommand{\citepub}[1]{{\color{pink}\faFileTextO~\origcitepub{#1}}}
+\makenomenclature
 
 \setmainfont{Fira Sans}
 \setsansfont{Fira Sans}

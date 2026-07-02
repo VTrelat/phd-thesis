@@ -84,7 +84,7 @@ universe-polymorphic in the level \leaninl{v} of the result it produces (the eli
 hypotheses are the minor premises, one per constructor):
 \begin{leanlisting}
 T.rec.{v} : (motive : T → Sort v) → ... → (t : T) → motive t
-\end{leanlisting}%
+\end{leanlisting}
 When \leaninl{T} is a data type, \leaninl{v} is unconstrained.
 When \leaninl{T : Prop}, the kernel instead
 forces \leaninl{v = 0}: a proof may be eliminated only into another proposition, a
