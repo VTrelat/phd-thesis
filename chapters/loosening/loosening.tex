@@ -70,7 +70,7 @@ The cast path $\castpath{}{}$ replays the very same rules, but as a \emph{proof-
   {\castpath{(\alpha \toS \beta)}{(\alpha' \toS \beta')}}
 \end{mathpar}
 \end{definition}
-For the reason detailed in \Cref{par:large-elimination}, the two cannot be factored out into a single universe-polymorphic inductive type \leaninl|castable.{u} : SMTType → SMTType → Sort u|. We therefore keep both, and the two agree, as \Cref{cor:castable-constructive} below record.
+For the reason detailed in \Cref{par:large-elimination}, the two cannot be factored out into a single universe-polymorphic inductive type \leaninl|castable.{u} : SMTType → SMTType → Sort u|. We therefore keep both, and the two agree, as recorded by \Cref{cor:castable-constructive} below.
 
 \begin{example}
 The functional encoding $\intS \toS \optS\ \intS$ of a partial function on integers is loosened to the relational encoding $(\intS \timesS \intS) \toS \boolS$ of its graph by a single \texttt{graph} step over two reflexive sub-derivations:
@@ -122,7 +122,7 @@ Reflexivity holds by a structural recursion applying \cref{rule:castable-refl} a
 
 \begin{corollary}[][castPath.reflexive, castPath.trans, castPath.antisymm][Encoder/Loosening/Castable.html\#castPath.reflexive, Encoder/Loosening/Castable.html\#castPath.trans, Encoder/Loosening/Castable.html\#castPath.antisymm]
   A witness \(\mathbb{r} : \castpath{\alpha}{\alpha}\) can be constructed for any type \(\alpha\).
-  From $\mathbb{c}_1 : \castpath{\alpha}{\beta}$ and $\mathbb{c}_2 : \castpath{\beta}{\delta}$, a witness $\mathbb{c} : \castpath{\alpha}{\delta}$ can be constructed; and from $\mathbb{c}_1 : \castpath{\alpha}{\beta}$ and $\mathbb{c}_2 : \castpath{\beta}{\alpha}$, $\alpha = \beta$.
+  From $\mathbb{c}_1 : \castpath{\alpha}{\beta}$ and $\mathbb{c}_2 : \castpath{\beta}{\delta}$, a witness $\mathbb{c} : \castpath{\alpha}{\delta}$ can be constructed; and from $\mathbb{c}_1 : \castpath{\alpha}{\beta}$ and $\mathbb{c}_2 : \castpath{\beta}{\alpha}$, we show that $\alpha = \beta$.
 \end{corollary}
 \begin{proof}
 The same inductions, carried out on cast paths rather than on proofs: reflexivity follows by structural recursion,
@@ -181,7 +181,7 @@ Not only does this provide two normal forms for any type, but it also induces a 
     \alpha^{(4)} &= \Big((\intS \toS \optS\ \intS) \timesS (\intS \toS \optS\ \boolS)\Big) \toS \boolS\\
     \alpha^{(5)} &= \Big(\big((\intS \timesS \intS) \toS \boolS\big) \timesS (\intS \toS \optS\ \boolS)\Big) \toS \boolS
   \end{align*}
-  The ordering relationship between the different forms of $\alpha$ is summarized below, where oriented arrows denote the $\sqsubseteq$ relation:
+  The ordering relationship between the different forms of $\alpha$ is summarized in \Cref{fig:loosening-hasse}, where oriented arrows denote the $\sqsubseteq$ relation:
   \begin{center}
     \begin{tikzpicture}[
       node/.style={draw=none, circle},
@@ -215,6 +215,8 @@ Not only does this provide two normal forms for any type, but it also induces a 
 
     \end{tikzpicture}
   \end{center}
+  \captionof{figure}{The order induced by $\sqsubseteq$ on the eight forms of the type $\alpha$ of this example, from its least general (fully functional) form $\lgf{\alpha}$ at the bottom to its most general (fully relational) form $\mgf{\alpha}$ at the top. Each edge loosens exactly one functional position through \cref{rule:castable-graph}.}%
+  \label{fig:loosening-hasse}
 \end{example}
 
 \subsection{Galois connection}
@@ -364,11 +366,11 @@ They are defined as follows for any $\theta, \tau \in [\lgf{\alpha}, \mgf{\alpha
 
 \begin{example}
   Consider the diagram from \Cref{ex:lgf-mgf} again.
-  Then, $\alpha^{(1)} \sqcup \alpha^{(2)} = \alpha^{(3)}$ and $\alpha \sqcap \alpha^{(5)} = \alpha^{(4)}$, as depicted below.
+  Then, $\alpha^{(1)} \sqcup \alpha^{(2)} = \alpha^{(3)}$ and $\alpha \sqcap \alpha^{(5)} = \alpha^{(4)}$, as depicted in \Cref{fig:join-meet}.
   \begin{center}
     \begin{tikzpicture}[
       node/.style={draw=none, circle},
-      cross/.style={midway, draw=none, fill=green!2, circle, inner sep=0pt, minimum size=8pt},
+      cross/.style={midway, draw=none, fill=green!5, circle, inner sep=0pt, minimum size=8pt},
       node distance=.8cm and 1cm,
       minimum size=1.5em,
     ]
@@ -582,6 +584,8 @@ They are defined as follows for any $\theta, \tau \in [\lgf{\alpha}, \mgf{\alpha
     \end{scope}
     \end{tikzpicture}
   \end{center}
+  \captionof{figure}{Join and meet inside the lattice of \Cref{fig:loosening-hasse}, each computed as an extremum of an intersection of adjoint intervals (framed). Left: the join $\alpha^{(1)} \sqcup \alpha^{(2)} = \alpha^{(3)}$ is the least element of $[\alpha^{(1)},\mgf{\alpha^{(1)}}] \cap [\alpha^{(2)},\mgf{\alpha^{(2)}}]$. Right: the meet $\alpha \sqcap \alpha^{(5)} = \alpha^{(4)}$ is the greatest element of $[\lgf{\alpha},\alpha] \cap [\lgf{\alpha},\alpha^{(5)}]$.}%
+  \label{fig:join-meet}
 \end{example}
 
 We then show expected properties of the join and meet operations, such as idempotence, commutativity, and absorption.
@@ -659,7 +663,7 @@ where $\spec{\lvar{z}}$ casts the source pair $\var{z}$ to $\alpha' \timesS \bet
 from $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$ and $\mathbb{c}_\beta : \castpath{\beta}{\beta'}$ and \cref{rule:castable-pair},
 obtain the pair cast
 \[
-(\mathbb{c}_\alpha,\mathbb{c}_\beta) : \alpha \timesS \castpath{\beta}{\alpha'} \timesS \beta'
+(\mathbb{c}_\alpha,\mathbb{c}_\beta) : \castpath{\alpha \timesS \beta}{\alpha' \timesS \beta'}
 \]
 \item call \(\mathsf{loosen}_{(\mathbb{c}_\alpha,\mathbb{c}_\beta)}\) once on the fresh source pair $\var{z}$, to obtain
 \[\langle \lvar{z}, \spec{\lvar{z}} \rangle \coloneq \mathsf{loosen}_{(\mathbb{c}_\alpha,\mathbb{c}_\beta)}(\var{z})\]
@@ -764,24 +768,64 @@ where $\langle \lvar{a}, \spec{\lvar{a}} \rangle$ and $\langle \lvar{b}, \spec{\
 
 It remains to discharge the slogan of \Cref{sec:loosening-rules}, that $\spec{\lvar{x}}$ pins $\lvar{x}$ to the cast image of $x$. We make this precise semantically, against the ZFC interpretation $\interpZ{\cdot}$ of \Cref{sec:smt-semantics}.
 
-Every cast path $\mathbb{c} : \castpath{\alpha}{\beta}$ induces a \emph{semantic cast}, a ZFC function $\zop{\mathbb{c}} \in {\interpZ{\beta}}^{\interpZ{\alpha}}$ defined by recursion on $\mathbb{c}$: the \texttt{refl} case is the identity, and each structural case applies the canonical set-theoretic coercion attached to its constructor---in particular \texttt{graph} sends a partial function to the characteristic predicate of its graph. Each $\zop{\mathbb{c}}$ is \emph{injective}; this is proved once, by induction on $\mathbb{c}$, and is the formal counterpart of the statement that loosening does not alter the denoted set. We write its value $b \in \interpZ{\beta}$ at $a \in \interpZ{\alpha}$ either as $b = \appZ \zop{\mathbb{c}}(a)$ or as $(a, b) \in \zop{\mathbb{c}}$. Given $\stype{\Gamma}{x}{\alpha}$ and a fresh variable $\lvar{x}$, we abbreviate, as before,
+\subsection{Semantic casts}
+\label{subsec:semantic-casts}
+Every cast path $\mathbb{c} : \castpath{\alpha}{\beta}$ induces a \emph{semantic cast}: a ZFC function $\zop{\mathbb{c}} \in {\interpZ{\beta}}^{\interpZ{\alpha}}$ that sends each constructor to the canonical set-theoretic coercion between the interpretations of its source and target. Formally it is \leancodeptr{castZF\_of\_path}{SMT/Reasoning/LooseningDefs.html\#castZF_of_path}, defined by recursion on $\mathbb{c}$; it is the semantic shadow of $\mathsf{loosen}_{\mathbb{c}}$, in that where the construction rewrites a \emph{term}, the semantic cast transports the \emph{set} that term denotes. Throughout, $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$ and $\mathbb{c}_\beta : \castpath{\beta}{\beta'}$ denote the immediate sub-derivations, with $c_\alpha \triangleq \zop{\mathbb{c}_\alpha}$ and $c_\beta \triangleq \zop{\mathbb{c}_\beta}$ their semantic casts. The recursion has one clause per constructor.
+
+\textbf{\texttt{refl}.} A reflexive path acts as the identity, $\zop{\mathbb{c}} \triangleq \idZ{\interpZ{\alpha}}$.
+
+\textbf{\texttt{opt}.} The option cast loosens the payload constructor-wise:
+\[
+  \noneZ \;\mapsto\; \noneZ, \qquad \someZ\ a \;\mapsto\; \someZ\ \appZ c_\alpha(a).
+\]
+
+\textbf{\texttt{pair}.} The pair cast is the product of the component casts:
+\[
+  (a, b) \;\mapsto\; \bigl(\appZ c_\alpha(a),\; \appZ c_\beta(b)\bigr).
+\]
+
+\textbf{\texttt{chpred}.} The characteristic-predicate cast transports a predicate $X \in \mathbb{B}^{\interpZ{\alpha}}$ along $c_\alpha$:
+\[
+  X^! \;=\;
+  \begin{cases}
+    X \circ c_\alpha^{-1} & \text{on } \Ran(c_\alpha),\\
+    \botZ & \text{off } \Ran(c_\alpha).
+  \end{cases}
+\]
+
+\textbf{\texttt{fun}.} For $\beta \neq \boolS$, the function cast conjugates $X \in {\interpZ{\beta}}^{\interpZ{\alpha}}$ by the component casts:
+\[
+  X^! \;=\;
+  \begin{cases}
+    c_\beta \circ X \circ c_\alpha^{-1} & \text{on } \Ran(c_\alpha),\\
+    d_{\beta'} & \text{off } \Ran(c_\alpha),
+  \end{cases}
+\]
+where $d_{\beta'} \in \interpZ{\beta'}$ is the canonical default of $\interpZ{\beta'}$.
+
+\textbf{\texttt{graph}.} The graph cast $\graphcastZ{c_\alpha}{c_\beta}$ carries a partial function $F \in (\optZ\,\interpZ{\beta})^{\interpZ{\alpha}}$ to the characteristic predicate of its graph, pushed forward through the two component casts.
+
+The first five clauses are \emph{structural}: they loosen componentwise and leave the shape of the denoted value untouched, mirroring the homomorphic rules of $\sqsubseteq$. Only \ref{rule:castable-graph} changes shape, trading the functional encoding $\alpha \toS \optS\,\beta$ of a partial function for the relational encoding $(\alpha' \timesS \beta') \toS \boolS$ of its graph; its set-theoretic content---the only one not immediate from the constructor---is spelled out in \Cref{def:semantic-graph-cast} alongside the \texttt{graph} case.
+
+Each $\zop{\mathbb{c}}$ is injective---the formal counterpart of the statement that loosening changes the \emph{representation} of a value, never the value itself.
+
+\begin{lemma}[Injectivity of semantic casts][castZF\_of\_path\_injective][SMT/Reasoning/LooseningDefs.html\#castZF_of_path_injective]
+\label{lem:semantic-cast-injective}
+For every cast path $\mathbb{c} : \castpath{\alpha}{\beta}$, the semantic cast $\zop{\mathbb{c}}$ is injective.
+\end{lemma}
+
+\begin{proof}
+By induction on $\mathbb{c}$. The \texttt{refl} case is the identity. The structural cases preserve injectivity componentwise; in the \texttt{chpred}, \texttt{fun}, and \texttt{graph} cases the pre-image reconstructions used above---$c_\alpha^{-1}$ and the pointwise inverses of the graph pushforward---are well-defined precisely because the component casts are injective by the inductive hypothesis.
+\end{proof}
+
+We write the value $b \in \interpZ{\beta}$ of $\zop{\mathbb{c}}$ at $a \in \interpZ{\alpha}$ either as $b = \appZ \zop{\mathbb{c}}(a)$ or as $(a, b) \in \zop{\mathbb{c}}$.
+
+Given $\stype{\Gamma}{x}{\alpha}$ and a fresh variable $\lvar{x}$, we abbreviate, as before,
 \[
 \langle \lvar{x}, \spec{\lvar{x}} \rangle := \mathsf{loosen}_{\mathbb{c}}(x)
 \]
 
-\begin{note}
-  Denotations return typed semantic objects. We write such an object as
-  \[
-  \denval{X} : \SDom
-  \]
-  where $X$ is the underlying ZFC set, $\tau_X$ is an SMT type, $\pf{\tau_X}{X}$ witnesses $X\in\interpZ{\tau_X}$, and $\displaystyle\SDom = \sum_{X, \tau_X} X \in \interpZ{\tau_X}$
-\end{note}
-
-\begin{remark}
-  The actual metatheoretic statement is slightly stronger than the statement below: it also threads fresh-name generation, context extension, weakening, and totality of denotation under valuation updates.
-  In the proofs that follow, we suppress this administrative layer and keep only the mathematical core.
-  Freshness is used only through the standard fact that updating a valuation at a fresh variable does not change the denotation of the original source term.
-\end{remark}
+\subsection{Correctness of loosening}
 
 The correctness statement proved for the loosening construction is the following.
 
@@ -820,6 +864,13 @@ is defined; and if it equals $\denval{\topZ}[\boolS]$, then $(X, Y) \in \zop{\ma
 
 Item~2 is a completeness statement (the cast image satisfies the specification) and item~3 a soundness one (on a typed target, only the cast image can). Together with the injectivity of $\zop{\mathbb{c}}$ they show that, among typed targets, $\spec{\lvar{x}}$ has a unique solution, namely $\appZ \zop{\mathbb{c}}(X)$---the precise sense in which $\lvar{x}$ ``is'' the loosened $x$.
 
+\begin{remark}
+  The actual statement in Lean is slightly stronger than the statement below: it also threads fresh-name generation, context extension, weakening, and totality of denotation under valuation updates.
+  In the proofs that follow, we suppress this administrative layer and keep only the mathematical core.
+  Freshness is used only through the standard fact that updating a valuation at a fresh variable does not change the denotation of the original source term.
+\end{remark}
+
+
 \begin{figure}
 \begin{center}
 \begin{tikzpicture}[
@@ -828,26 +879,26 @@ Item~2 is a completeness statement (the cast image satisfies the specification) 
     node distance=1.5cm and 1.5cm,
     minimum size=2em]
   \begin{scope}
-    \node (x) {$x$};
-    \node[right=3.5cm of x] (x!) {$\langle\lvar{x}, \lvar{x}_{\mathrm{spec}} \rangle$};
-    \node[below=of x] (X) {$\denval{X}[\alpha][\irrelprf]$};
-    \node[below left=of x!, xshift=2.5cm] (X!) {$\denval{X\mathrlap{\smash{^{!}}}}[\beta][\irrelprf]$};
-    \node[below right=of x!, xshift=-2.5cm] (spec) {$\denval{\topZ}[\boolS][\irrelprf]$};
+    \node (x)    at (0,0)     {$x$};
+    \node (x!)   at (4.8,0)    {$\langle\lvar{x}, \lvar{x}_{\mathrm{spec}} \rangle$};
+    \node (X)    at (0,-2.1)   {$\denval{X}[\alpha][\irrelprf]$};
+    \node (X!)   at (3.4,-2.1) {$\denval{X\mathrlap{\smash{^{!}}}}[\beta][\irrelprf]$};
+    \node (spec) at (6.2,-2.1) {$\denval{\Phi}[\boolS][\irrelprf]$};
 
     \draw[funarr] (x) to node[midway, above] {$\mathrm{loosen}_{\mathbb{c}}$} (x!);
     \draw[funarr] (x) to node[midway, left] {$\interpS{\aterm{\cdot}{\Delta}}$} (X);
-    \draw[relarr, draw=black] (x!) to node[midway, above left, yshift=-2ex] {$\interpS{\aterm{\cdot}{\Delta'}}$} (X!);
-    \draw[relarr, draw=black] (x!) to node[midway, above right, yshift=-2ex] {$\interpS{\aterm{\cdot}{\Delta'}}$} (spec);
+    \draw[relarr, draw=black] (x!) to node[pos=0.45, left] {$\interpS{\aterm{\cdot}{\Delta'}}$} (X!);
+    \draw[relarr, draw=black] (x!) to node[pos=0.45, right] {$\interpS{\aterm{\cdot}{\Delta'}}$} (spec);
     \draw[relarr, draw=black] (X) to node[midway, below] {$\appZ \zop{\mathbb{c}}(\cdot)$} (X!);
   \end{scope}
 \end{tikzpicture}
 \end{center}
-\caption{The loosening square. Solid arrows are the construction $\mathrm{loosen}_{\mathbb{c}}$ and the denotation $\interpS{\aterm{\cdot}{\Delta}}$; the dashed arrow is the semantic cast $\zop{\mathbb{c}}$. Interpreting $\langle\lvar{x},\spec{\lvar{x}}\rangle$ under the updated valuation $\Delta' = \Delta[\lvar{x}\mapsto\denval{X^!}]$ recovers both the cast image $X^!$ of $X$ and the truth value $\topZ$.}
+\caption{The loosening square. Solid arrows are the construction $\mathrm{loosen}_{\mathbb{c}}$ and the denotation $\interpS{\aterm{\cdot}{\Delta}}$; the dashed arrow is the semantic cast $\zop{\mathbb{c}}$. Interpreting $\langle\lvar{x},\spec{\lvar{x}}\rangle$ under $\Delta' = \Delta[\lvar{x}\mapsto\denval{X^!}]$ recovers the cast image $X^!$ of $X$, and the specification evaluates to a boolean $\denval{\Phi}$. The square depicts the witness case (item~2), where $X^! = \appZ\zop{\mathbb{c}}(X)$ and $\Phi = \topZ$; at another typed target $\lvar{x}\mapsto\denval{Y}$ the specification is still defined, but $\Phi$ need not be $\topZ$.}
 \label{fig:loosening-square}
 \end{figure}
 
 \begin{note}
-\Cref{fig:loosening-square} summarises the statement: the construction commutes with denotation and the semantic cast. This is deliberately weaker than a full semantic equivalence, and is exactly the invariant the recursion maintains. The soundness half of item~3 is what lets a recursive call conclude that its loosened sub-term equals the intended cast image; the \texttt{chpred} and \texttt{fun} cases rely on it most---\texttt{chpred} through the recursively generated specification of a fresh source variable, and \texttt{fun} at the level of the whole equation, where soundness sharpens into the pointwise characterisation proved below.
+\Cref{fig:loosening-square} summarizes the statement: the construction commutes with denotation and the semantic cast. This is deliberately weaker than a full semantic equivalence, and is exactly the invariant the recursion maintains. The soundness half of item~3 is what lets a recursive call conclude that its loosened sub-term equals the intended cast image; the \texttt{chpred} and \texttt{fun} cases rely on it most---\texttt{chpred} through the recursively generated specification of a fresh source variable, and \texttt{fun} at the level of the whole equation, where soundness sharpens into the pointwise characterization proved below.
 \end{note}
 
 In the proofs that follow we keep only the semantic argument, suppressing the routine bookkeeping about fresh variables, context insertion, weakening, and agreement of valuations on free variables, as licensed by the remark above.
@@ -867,15 +918,37 @@ Fix $\Delta$ with $\interpS{\aterm{x}{\Delta}} = \denval{X}$; semantic typing gi
 Hence, for any typed $Y$ with $\tau_Y = \alpha$, writing $\Delta' = \Delta[\lvar{x} \mapsto \denval{Y}]$,
 \[
   \interpS{\aterm{\spec{\lvar{x}}}{\Delta'}}
-  = \interpS{\aterm{\lvar{x}}{\Delta'}} \mathrel{{\eqZ}^{\uparrow}} \interpS{\aterm{x}{\Delta'}}
-  \stackrel{\eqref{eq:refl_fresh}}{=} \denval{Y \eqZ X}[\boolS],
+  = \interpS{\aterm{\lvar{x} \eqS x}{\Delta'}}
+  \stackrel{\eqref{eq:refl_fresh}}{=} \denval{X = Y}[\boolS],
 \]
-which is defined and equals $\denval{\topZ}$ exactly when $Y = X$. Since $\appZ \zop{\mathbb{c}}(X) = X$, taking $Y = X^! = X$ gives item~2, while the displayed equivalence is precisely the definedness and soundness of item~3.
+where $X = Y$ is the (set-level, hence Lean-level) equality of the two denotations; it denotes $\topZ$ exactly when $Y = X$. Since $\appZ \zop{\mathbb{c}}(X) = X$, taking $Y = X^! = X$ gives item~2, while the displayed equivalence is precisely the definedness and soundness of item~3. Here the loosening square (\Cref{fig:loosening-square}) degenerates, its semantic cast collapsing to the identity, as \Cref{fig:refl-square} shows.
+
+\begin{center}
+\begin{tikzpicture}[
+    node/.style={draw=none, circle, anchor=mid},
+    node distance=1.5cm and 1.5cm,
+    minimum size=2em]
+  \node (x)    at (0,0)     {$x$};
+  \node (x!)   at (4.8,0)    {$\langle\lvar{x}, \spec{\lvar{x}} \rangle$};
+  \node (X)    at (0,-2.1)   {$\denval{X}[\alpha][\irrelprf]$};
+  \node (X!)   at (3.6,-2.1) {$\denval{Y}[\alpha][\irrelprf]$};
+  \node (spec) at (6,-2.1) {$\denval{X = Y}[\boolS][\irrelprf]$};
+
+  \draw[funarr] (x) to node[midway, above] {$\mathrm{loosen}_{\mathbb{c}}$} (x!);
+  \draw[funarr] (x) to node[midway, left] {$\interpS{\aterm{\cdot}{\Delta}}$} (X);
+  \draw[relarr, draw=black] (x!) to node[pos=0.45, left] {$\interpS{\aterm{\cdot}{\Delta'}}$} (X!);
+  \draw[relarr, draw=black] (x!) to node[pos=0.45, right] {$\interpS{\aterm{\cdot}{\Delta'}}$} (spec);
+  \draw[relarr, draw=black] (X) to node[midway, below] {$\idZ{\interpZ{\alpha}}$} (X!);
+\end{tikzpicture}
+\end{center}
+\captionof{figure}{The loosening square (\Cref{fig:loosening-square}) for \texttt{refl}: the semantic cast is the identity $\idZ{\interpZ{\alpha}}$, so $X^! = X$ and $\spec{\lvar{x}}$ reduces to $\lvar{x} \eqS x$. Under $\Delta' = \Delta[\lvar{x}\mapsto\denval{Y}]$ its value is the equality $X = Y$, which is $\topZ$ exactly when $Y = X$.}%
+\label{fig:refl-square}
 \end{proof}
 
 \subsection{Case \texttt{graph}}
 
 \begin{definition}[Semantic graph cast][castZF\_graph][SMT/Reasoning/LooseningDefs.html\#castZF_graph]
+\label{def:semantic-graph-cast}
 Let $\alpha, \beta, \alpha', \beta'$ be SMT types, and let
 \[
 \mathbb{c}_\alpha : \castpath{\alpha}{\alpha'},
@@ -920,25 +993,8 @@ where (\ref{eq:cast-graphz-def}) is the following condition:
   \land \appZ F(x)=\some\ y
   \tag{\textasteriskcentered}
 \end{equation}
-Because $\zop{\mathbb{c}_\alpha}$ and $\zop{\mathbb{c}_\beta}$ are injective, the witnesses $x$ and $y$ are unique whenever they exist. In short, the graph cast pushes the graph of $F$ through the two component casts, as depicted in \Cref{fig:graph-cast}.
+Because $\zop{\mathbb{c}_\alpha}$ and $\zop{\mathbb{c}_\beta}$ are injective, the witnesses $x$ and $y$ are unique whenever they exist. In short, the graph cast pushes the graph of $F$ through the two component casts.
 \end{definition}
-
-\begin{figure}
-\begin{center}
-\begin{tikzpicture}[node distance=1.3cm and 2.8cm, minimum size=1.6em]
-  \node (a) {$a$};
-  \node[right=of a] (a') {$a^!$};
-  \node[below=of a] (b) {$b$};
-  \node[right=of b] (b') {$b^!$};
-  \draw[funarr] (a) -- node[midway, above] {$\zop{\mathbb{c}_\alpha}$} (a');
-  \draw[funarr] (b) -- node[midway, below] {$\zop{\mathbb{c}_\beta}$} (b');
-  \draw[funarr] (a) -- node[midway, left] {$\appZ F = \someZ\ b$} (b);
-  \draw[relarr] (a') -- node[midway, right] {$\in X^!$} (b');
-\end{tikzpicture}
-\end{center}
-\caption{The graph cast as a pushforward. A maplet $\appZ F(a) = \someZ\ b$ of the source partial function (left) is carried by the pair $(\zop{\mathbb{c}_\alpha}, \zop{\mathbb{c}_\beta})$ to $(a^!, b^!)$, which the target relation $X^!$ holds; off the images of the casts, $X^!$ is false.}
-\label{fig:graph-cast}
-\end{figure}
 
 \begin{lemma}[Correctness of \texttt{graph}][loosenAux\_prf\_exact.graph][SMT/Reasoning/Basic/LoosenAuxExact/Graph.html\#loosenAux_prf_exact.graph]
 \label{lem:loosening-graph}
@@ -968,7 +1024,7 @@ where $(\ref{eq:x!_graph_def})$ is the condition
   a' \in \Ran(\zop{\mathbb{c}_\alpha}),\quad b' \in \Ran(\zop{\mathbb{c}_\beta}),\quad\text{and}\quad
   \appZ X\big(\appZ {\zop{\mathbb{c}_\alpha}}^{-1}(a')\big)=\someZ\ \appZ {\zop{\mathbb{c}_\beta}}^{-1}(b').
 \end{equation}
-Injectivity of the component casts makes the inverses well-defined on their ranges, so $X^! \in \interpZ{(\alpha' \timesS \beta') \toS \boolS}$; comparing with~(\ref{eq:cast-graphz-def}), $\appZ \graphcastZ{\zop{\mathbb{c}_\alpha}}{\zop{\mathbb{c}_\beta}}(X) = X^!$ by construction.
+Injectivity of the component casts makes the inverses well-defined on their ranges, so $X^! \in \interpZ{(\alpha' \timesS \beta') \toS \boolS}$; comparing with~(\ref{eq:cast-graphz-def}), $\appZ \graphcastZ{\zop{\mathbb{c}_\alpha}}{\zop{\mathbb{c}_\beta}}(X) = X^!$ by construction---the graph pushforward of \Cref{def:semantic-graph-cast}.
 
 The \texttt{graph} case defines $\spec{\lvar{x}} \triangleq \lvar{x} \eqS \lamS \lvar{z}:\alpha' \timesS \beta' \mapsto \exists \var{z}:\alpha \timesS \beta,\ (\appS x(\fst\var{z}) \eqS \some(\snd\var{z})) \andS \spec{\lvar{z}}$. We show its $\lamS$-body denotes $X^!$ pointwise at $v=(a',b')$.
 
@@ -991,27 +1047,12 @@ Fix $\Delta$ with $\interpS{\aterm{x}{\Delta}} = \denval{X}$; by typing $X \in \
 \begin{equation}\label{eq:zspec_chpred}
   \Phi_{a,b} = \topZ \iff \appZ c(a) = b.
 \end{equation}
-Define $X^! : \interpZ{\alpha'} \to \mathbb{B}$ by $X^!(b) = X(a_0)$ when $b = \appZ c(a_0)$ for some $a_0$, and $X^!(b) = \mathsf{false}$ otherwise; injectivity of $c$ makes this well-defined, and $\appZ \zop{\mathbb{c}}(X) = X^!$ by definition of the characteristic-predicate cast, which transports $X$ along $c$ (\Cref{fig:chpred-cast}).
+Define $X^! : \interpZ{\alpha'} \to \mathbb{B}$ by $X^!(b) = X(a_0)$ when $b = \appZ c(a_0)$ for some $a_0$, and $X^!(b) = \mathsf{false}$ otherwise; injectivity of $c$ makes this well-defined, and $\appZ \zop{\mathbb{c}}(X) = X^!$ by definition of the characteristic-predicate cast, which transports $X$ along $c$.
 
 The \texttt{chpred} case defines $\spec{\lvar{x}} \triangleq \lvar{x} \eqS \lamS \lvar{z}:\alpha' \mapsto \exists \var{z}:\alpha,\ \appS x(\var{z}) \andS \spec{\lvar{z}}$. Its $\lamS$-body denotes $X^!$ pointwise. If $b \notin \Ran(c)$, then by $(\ref{eq:zspec_chpred})$ no $a$ makes $\spec{\lvar{z}}$ true at $(a,b)$, so the existential is false $= X^!(b)$. If $b = \appZ c(a_0)$, the existential holds if and only if $X(a_0)=\mathsf{true}$: forward, $a_0$ witnesses it since $\Phi_{a_0,b}=\topZ$; backward, any witness $a$ satisfies $\appZ c(a)=b=\appZ c(a_0)$, hence $a=a_0$ by injectivity---and this is exactly $X^!(b)$.
 
 Thus the outer equality holds under $\lvar{x} \mapsto \denval{X^!}$, which is item~2. For item~3, at any typed target $\denval{Y}$ with $\tau_Y = \alpha' \toS \boolS$ the body is defined ($\appS x(\var{z})$ and the recursive $\spec{\lvar{z}}$ are boolean on typed data), and if it holds at $Y$ then $Y$ equals the body's denotation $X^! = \appZ \zop{\mathbb{c}}(X)$.
 \end{proof}
-
-\begin{figure}
-\begin{center}
-\begin{tikzpicture}[minimum size=1.6em]
-  \node (a)    at (0,1.2) {$\interpZ{\alpha}$};
-  \node (a')   at (3,1.2) {$\interpZ{\alpha'}$};
-  \node (bool) at (1.5,0) {$\mathbb{B}$};
-  \draw[funarr] (a) -- node[midway, above] {$c$} (a');
-  \draw[funarr] (a) -- node[midway, below left] {$X$} (bool);
-  \draw[funarr] (a') -- node[midway, below right] {$X^!$} (bool);
-\end{tikzpicture}
-\end{center}
-\caption{The characteristic-predicate cast transports $X$ along $c$: it satisfies $X^!(\appZ c(a)) = X(a)$ for every $a \in \interpZ{\alpha}$, and is false off $\Ran(c)$.}
-\label{fig:chpred-cast}
-\end{figure}
 
 \subsection{Case \texttt{opt}}
 
@@ -1021,11 +1062,12 @@ Assume $\stype{\Gamma}{x}{\optS\,\alpha}$, let $\mathbb{c}_\alpha : \castpath{\a
 \end{lemma}
 
 \begin{proof}
-Fix $\Delta$ with $\interpS{\aterm{x}{\Delta}} = \denval{X}$; then $\tau_X = \optS\,\alpha$, so $X$ is $\noneZ$ or $\someZ\ T$ with $T \in \interpZ{\alpha}$, and the semantic option cast acts as $\zop{\mathbb{c}}(\noneZ) = \noneZ$ and $\zop{\mathbb{c}}(\someZ\ T) = \someZ\ \appZ\zop{\mathbb{c}_\alpha}(T)$. The definition branches on the syntactic shape of $x$.
+Fix $\Delta$ with $\interpS{\aterm{x}{\Delta}} = \denval{X}$; then $\tau_X = \optS\,\alpha$, so $X$ is $\noneZ$ or $\someZ\ T$ with $T \in \interpZ{\alpha}$, and the semantic option cast acts as $\zop{\mathbb{c}}(\noneZ) = \noneZ$ and $\zop{\mathbb{c}}(\someZ\ T) = \someZ\ \appZ\zop{\mathbb{c}_\alpha}(T)$, loosening the payload by the inner cast. The definition branches on the syntactic shape of $x$.
 
 If $x$ is $\noneS_{\alpha}$, take $X^! = \noneS_{\alpha'}$: the spec $\lvar{x} \eqS \noneS_{\alpha'}$ holds at $\lvar{x} \mapsto \denval{X^!}$, and $\appZ\zop{\mathbb{c}}(X) = X^!$. If $x$ is $\some\ t$, then $X = \someZ\ T$ with $t$ denoting $\denval{T}$; the induction hypothesis on $t$ gives $T^!$ with $\appZ\zop{\mathbb{c}_\alpha}(T) = T^!$ and $\spec{\lvar{y}}$ true at $\lvar{y} \mapsto \denval{T^!}$, so $X^! = \someZ\ T^!$ makes the spec $\exists \lvar{y}:\alpha'.\ (\lvar{x} \eqS \some\ \lvar{y}) \andS \spec{\lvar{y}}$ true and $\appZ\zop{\mathbb{c}}(X) = X^!$. Otherwise the definition emits the dynamic test $\iteS (x \eqS \noneS_{\alpha})\,(\dots)\,(\dots)$: if $X = \noneZ$ it reduces to the first case, else $\tau_X = \optS\,\alpha$ forces $X = \someZ\ T_0$ and $\theS x$ denotes $\denval{T_0}$, reducing to the second with $X^! = \someZ\ T_0^!$. In every branch $\appZ\zop{\mathbb{c}}(X) = X^!$, which is item~2.
 
 For item~3, a typed target $\denval{Y}$ with $\tau_Y = \optS\,\alpha'$ is $\noneS_{\alpha'}$ or $\some\ U$; the equalities and the recursive $\spec{\lvar{y}}$ are defined in both, so $\spec{\lvar{x}}$ is defined, and if it holds then the same case analysis identifies $Y$ with $\appZ\zop{\mathbb{c}}(X)$.
+
 \end{proof}
 
 \subsection{Case \texttt{pair}}
@@ -1043,6 +1085,7 @@ Fix $\Delta$ with $\interpS{\aterm{x}{\Delta}} = \denval{X}$; as $\tau_X = \alph
 then holds with witnesses $\lvar{fst} = a^!$, $\lvar{snd} = b^!$; and since the pair cast is the product of the component casts, $\appZ\zop{(\mathbb{c}_\alpha,\mathbb{c}_\beta)}(\pair\ a\ b) = \pair\ a^!\ b^! = X^!$, which is item~2.
 
 For item~3, a typed target $\denval{Y}$ with $\tau_Y = \alpha' \timesS \beta'$ decomposes as $Y = \pair\ u\ v$; the pair equality and the recursive specifications are defined, so $\spec{\lvar{x}}$ is defined, and if it holds then recursive soundness gives $u = \appZ\zop{\mathbb{c}_\alpha}(a)$ and $v = \appZ\zop{\mathbb{c}_\beta}(b)$, whence $Y = X^! = \appZ\zop{(\mathbb{c}_\alpha,\mathbb{c}_\beta)}(X)$.
+
 \end{proof}
 
 \subsection{Case \texttt{fun}}
@@ -1053,7 +1096,7 @@ Assume $\stype{\Gamma}{x}{\alpha \toS \beta}$ with $\beta \neq \boolS$, let $\ma
 \end{lemma}
 
 \begin{proof}
-Fix $\Delta$ with $\interpS{\aterm{x}{\Delta}} = \denval{X}$, so $\tau_X = \alpha \toS \beta$. With $d_{\beta'}$ the canonical default of $\interpZ{\beta'}$, the semantic function cast conjugates $X$ by the component casts (\Cref{fig:fun-cast}):
+Fix $\Delta$ with $\interpS{\aterm{x}{\Delta}} = \denval{X}$, so $\tau_X = \alpha \toS \beta$. With $d_{\beta'}$ the canonical default of $\interpZ{\beta'}$, the semantic function cast conjugates $X$ by the component casts:
 \[
 X^!(a') \triangleq
 \begin{cases}
@@ -1074,22 +1117,5 @@ If $a' = \appZ c_\alpha(a)$ for the (unique, by injectivity) preimage $a$, the t
 
 Hence $\spec{\lvar{x}}$ holds at $Y$ if and only if $Y = X^!$ pointwise, and it is defined throughout, since the recursive $\spec{\lvar{a}}, \spec{\lvar{b}}$, the equalities and the default branch are all defined on typed data. Taking $Y = X^! = \appZ\zop{\mathbb{c}}(X)$ gives item~2, and the biconditional is item~3 in its sharpened, pointwise form.
 \end{proof}
-
-\begin{figure}
-\begin{center}
-\begin{tikzpicture}[minimum size=1.6em]
-  \node (a)  at (0,1.5) {$\interpZ{\alpha}$};
-  \node (a') at (3,1.5) {$\interpZ{\alpha'}$};
-  \node (b)  at (0,0)   {$\interpZ{\beta}$};
-  \node (b') at (3,0)   {$\interpZ{\beta'}$};
-  \draw[funarr] (a) -- node[midway, above] {$c_\alpha$} (a');
-  \draw[funarr] (b) -- node[midway, below] {$c_\beta$} (b');
-  \draw[funarr] (a) -- node[midway, left] {$X$} (b);
-  \draw[funarr] (a') -- node[midway, right] {$X^!$} (b');
-\end{tikzpicture}
-\end{center}
-\caption{The function cast conjugates $X$ by the component casts: over $\Ran(c_\alpha)$ the square commutes, $X^! = c_\beta \circ X \circ c_\alpha^{-1}$; off $\Ran(c_\alpha)$, $X^!$ takes the canonical default $d_{\beta'}$.}
-\label{fig:fun-cast}
-\end{figure}
 
 

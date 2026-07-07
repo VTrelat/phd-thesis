@@ -10,13 +10,12 @@ first-order syntax faithful to the raw proof-obligation format, and an abstract
 syntax suited to semantic reasoning.
 \Cref{sec:b-typing} defines the typing relation over both representations, annotating
 terms with their B types and preparing the ground for the semantic layer.
-\Cref{sec:b-wd} introduces the well-definedness predicate, which captures the semantic
-side conditions imposed by partial B operations.
 Finally, \Cref{sec:b-semantics} gives a denotational semantics for the abstract syntax,
-built over the ZFLean set-theoretic framework of \Cref{ch:zflean}; this semantic layer
+built over the ZFLean set-theoretic framework of \Cref{ch:zflean}; it also introduces the
+well-definedness predicate (\Cref{sec:b-wd}), which captures the semantic side conditions
+imposed by partial B operations and delimits where the denotation is total. This semantic layer
 is the foundation on which the certified encoding of \Cref{ch:beer} rests.
 
 \input{chapters/b/syntax.tex}
 \input{chapters/b/typing.tex}
-\input{chapters/b/wd.tex}
 \input{chapters/b/semantics.tex}

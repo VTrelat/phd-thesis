@@ -10,7 +10,7 @@ The abstract representation also uses parametric higher-order abstract syntax
 (PHOAS), as motivated in \Cref{sec:phoas}, and serves as the internal syntax for
 semantic reasoning.
 
-The development deliberately mirrors that of the source language, so that the two
+The development deliberately mirrors that of the source language of \Cref{ch:b}, so that the two
 sides of the encoding are described by parallel constructions; the differences
 are precisely those dictated by the gap between the set-theoretic B language and
 the many-sorted first-order language of SMT-LIB.
@@ -23,7 +23,7 @@ over a fixed signature of sorts and sorted function symbols.
 We therefore introduce a syntactic category of SMT types, with two base sorts,
 integers and Booleans, a unit sort, and three type constructors: functions,
 options, and pairs.
-Note that this type system is tailored to the our specific formalization needs and does not
+Note that this type system is tailored to our specific formalization needs and does not
 attempt to capture the full generality of SMT-LIB's sort system, which includes user-defined
 sorts and polymorphic type constructors.
 
@@ -74,7 +74,8 @@ We then define the syntactic category of SMT types as the following inductive ty
 Functions in SMT-LIB are first-class and total, so the function sort \(\tau \toS \sigma\) is the sort of total functions from \(\tau\) to \(\sigma\).
 This is a crucial point of divergence from the source language, and options will be used to
 model partiality.
-The unit sort \(\unitS\) is a singleton sort---whose sole inhabitant is \(\unitvalS\).
+The unit sort \(\unitS\) is a singleton sort, whose sole inhabitant is written \(\aop{\unitvalS}\) and
+only appears in the abstract syntax since we never emit a bare unit literal in the concrete syntax.
 
 \subsection{Concrete terms}
 \label{subsec:smt-concrete-terms}
@@ -82,19 +83,20 @@ The unit sort \(\unitS\) is a singleton sort---whose sole inhabitant is \(\unitv
 We then define a syntactic category for concrete SMT terms, giving a
 first-order representation of the fragment of SMT-LIB targeted by the encoding.
 This deep embedding constitutes the concrete layer of the formalization in Lean.
-Let \(\mathcal{V}\) be the type of variable names---in practice, the type \leaninl{String}.
+Concrete variables are names of type \leaninl{String}.
 \begin{definition}[Concrete terms][SMT.Term][SMT/Syntax.html\#SMT.Term]
   \label{def:smt-basic-syntax}
-                                                The constructors of \leaninl{SMT.Term} are listed below, where \(v\) is a name
-  in \(\mathcal{V}\), \(n\) is an integer, \(b\) is a Boolean value, \(\tau\) is
-  an SMT type, \(\vec v\) is a list of names, \(\vec\tau\) is a list of SMT
+                                                The constructors of \leaninl{SMT.Term} are listed below, where \(\var{v}\) is a name
+  in \leaninl{String}, \(n\) is an integer, \(b\) is a Boolean value, \(\tau\) is
+  an SMT type, \(\vec{\var{v}}\) is a list of names, \(\vec\tau\) is a list of SMT
   types, and \(\vec t\) is a list of terms.
+  As in \Cref{ch:b}, object variables are typeset in bold gray throughout.
 
   \begin{bnf}[colspec = {l@{}l@{\kern6pt}c@{\kern6pt}ll}]
     \leaninl{SMT.Term} $\,∋\, t, s$ ::=
-    | $\mathsf{var}\ v$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ // Atoms
+    | $\var{v}$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ // Atoms
     | $\regnotation{\appS{t}{s}}$ // Higher-order application
-    | $\regnotation{\lamS \vec v : \vec\tau \cdot t}$ && $\regnotation{\forallS \vec v : \vec\tau \cdot t}$ && $\regnotation{\existsS \vec v : \vec\tau \cdot t}$ // Binders
+    | $\regnotation{\lamS \vec{\var{v}} : \vec\tau \cdot t}$ && $\regnotation{\forallS \vec{\var{v}} : \vec\tau \cdot t}$ && $\regnotation{\existsS \vec{\var{v}} : \vec\tau \cdot t}$ // Binders
     | $t \regnotation{\eqS} s$ && $t \regnotation{\andS} s$ && $t \regnotation{\orS} s$  // Logic
     | $\regnotation{\notS t}$ && $t \regnotation{\impS} s$ && $\regnotation{\iteS}\ t\ s\ r$
     | $\regnotation{\someS} t$ && $\regnotation{\theS} t$ && $\regnotation{\noneS}$ && $\regnotation{\asS}\ t\ \tau$ // Options
@@ -103,6 +105,14 @@ Let \(\mathcal{V}\) be the type of variable names---in practice, the type \leani
     | $t \regnotation{\leS} s$ && $t \regnotation{\addS} s$ && $t \regnotation{\subS} s$ && $t \regnotation{\mulS} s$ // Arithmetic
   \end{bnf}
 \end{definition}
+
+\begin{note}
+  The concrete syntax provides no constructor for the unit \emph{value}: although
+  the sort \(\unitS\) exists, the encoder never emits a bare unit literal. The unit
+  value therefore figures only in the abstract syntax (\Cref{def:smt-abstract-syntax},
+  written \(\aop{\unitvalS}\)), where it serves as the default inhabitant of \(\unitS\)
+  (\Cref{def:smt-default}).
+\end{note}
 
 \subsection{Abstract syntax}
 \label{subsec:smt-abstract-syntax}
@@ -126,7 +136,7 @@ vector and a scope
 
   \begin{bnf}[colspec = {l@{}l@{\kern6pt}c@{\kern6pt}ll}]
     \leaninl{SMT.PHOAS.Term} $\,∋\, t, s$ ::=
-    | $\mathsf{var}\ v$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ // Atoms
+    | $\var{v}$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ // Atoms
     | $\appSa{t}{s}$ // Application
     | $\aop{\lamS} \vec\tau \cdot e$ && $\aop{\forallS} \vec\tau \cdot e$ // Binders
     | $t \abin{\eqS} s$ && $t \abin{\andS} s$ && $\aop{\notS} t$ && $\aop{\iteS}\ t\ s\ r$ // Logic
@@ -165,7 +175,7 @@ corresponding concrete constructors.
   \begin{align*}
     t \abin{\orS} s                    & \triangleq \aop{\notS}((\aop{\notS} t) \abin{\andS} (\aop{\notS} s)) \tag{disjunction}      \\
     t \abin{\impS} s                   & \triangleq \aop{\notS}(t \abin{\andS} (\aop{\notS} s)) \tag{implication}                     \\
-    \existsS \vec\tau \cdot P & \triangleq \aop{\notS}(\aop{\forallS} \vec v : \vec\tau \cdot \aop{\notS} P) \tag{existential quantification}
+    \existsS \vec\tau \cdot P & \triangleq \aop{\notS}(\aop{\forallS} \vec{\var{v}} : \vec\tau \cdot \aop{\notS} P) \tag{existential quantification}
   \end{align*}
 \end{definition}
 
@@ -176,9 +186,9 @@ We also get rid of the annotation construct \(\asS\) in the abstract syntax, sin
 
 \begin{note}
   In contrast with the bounded binders of B, which range over a domain
-  set \(D\) (written \(\vec v \inB D\)), SMT binders are sorted:
-  each bound variable \(v_i\) ranges over an entire sort \(\tau_i\) (written
-  \(\vec v : \vec\tau\)).
+  set \(D\) (written \(\vec{\var{v}} \inB D\)), SMT binders are sorted:
+  each bound variable \(\var{v_i}\) ranges over an entire sort \(\tau_i\) (written
+  \(\vec{\var{v}} : \vec\tau\)).
   This reflects the syntactic counterpart of another semantic shift, from membership constraints to
   sort membership.
 \end{note}
@@ -186,22 +196,22 @@ We also get rid of the annotation construct \(\asS\) in the abstract syntax, sin
 Substitution is defined directly on abstract terms; since the PHOAS
 representation delegates \(\alpha\)-conversion and capture-avoidance to Lean's
 meta-level binding infrastructure, the definition is homomorphic everywhere
-except at variables.
+except at variables and binders.
 
 \begin{definition}[Substitution][SMT.PHOAS.subst][SMT/PHOAS/Def.html\#SMT.PHOAS.subst]
   \label{def:smt-subst}
-  We write \(t[v \leftarrow s]\) for the substitution of the term \(s\) for the
-  variable \(v\) in \(t\). For a variable \(w : \mathcal{V}\),
+  We write \(t[\var{v} \leftarrow s]\) for the substitution of the term \(s\) for the
+  variable \(\var{v}\) in \(t\). For a variable \(\var{w} : \mathcal{V}\),
   \[
-    (\mathsf{var}\ w)[v \leftarrow s] \triangleq
+    (\var{w})[\var{v} \leftarrow s] \triangleq
     \begin{cases}
-      s               & \text{if } w = v, \\
-      \mathsf{var}\ w & \text{otherwise;}
+      s               & \text{if } \var{w} = \var{v}, \\
+      \var{w} & \text{otherwise;}
     \end{cases}
   \]
   for a binder with type vector \(\vec\tau\) and scope \(e\),
   \[
-    (\lamS \vec\tau \cdot e)[v \leftarrow s] \triangleq \lamS \vec\tau \cdot (\pink{\lambda} \vec x \mapsto (e\,\vec x)[v \leftarrow s]),
+    (\lamS \vec\tau \cdot e)[\var{v} \leftarrow s] \triangleq \lamS \vec\tau \cdot (\pink{\lambda} \vec x \mapsto (e\,\vec x)[\var{v} \leftarrow s]),
   \]
   and analogously for the universal binder; all remaining clauses are
   homomorphic on subterms.

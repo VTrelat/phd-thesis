@@ -147,11 +147,16 @@
 \newcommand{\capB}{\mathbin{\,\bop{\cap}}}
 \newcommand{\appB}{\mathord{\bop{@}\mkern-1mu}}
 \newcommand{\lambdaB}{\mathord{\bop{\lambda}}}
+\newcommand{\lambdaBa}{\aop{\lambdaB}}
 \newcommand{\forallB}{\mathord{\bop{\forall}}}
+\newcommand{\forallBa}{\aop{\forallB}}
 \newcommand{\existsB}{\mathord{\bop{\exists}}}
 \newcommand{\minB}{\mathop{\bop{{\min}}}}
 \newcommand{\maxB}{\mathop{\bop{{\max}}}}
-\newcommand{\cardB}[1]{\catop{\lvert #1 \rvert}{B}}
+\newcommand{\cardB}[1]{\bop{\lvert #1 \rvert}}
+\newcommand{\cardBa}[1]{\baop{\lvert #1 \rvert}}
+\newcommand{\bcomp}[2]{\bop{\{\, #1 \mid #2 \,\}}}
+\newcommand{\bcompa}[2]{\baop{\{\, #1 \mid #2 \,\}}}
 \newcommand{\domRestrB}{\mathbin{\bop{\triangleleft}}}
 \newcommand{\domSubtrB}{\mathbin{\bop{\dsub}}}
 \newcommand{\ranRestrB}{\mathbin{\bop{\triangleright}}}
@@ -256,8 +261,6 @@
 \newcommand{\fstZ}{\zop{\pi_1}}
 \newcommand{\sndZ}{\zop{\pi_2}}
 \newcommand{\IsFunc}{\ensuremath{\mathsf{IsFunc}}}
-
-\newcommand{\eqZ}{\mathrel{\zop{=}}}
 % \newcommand{\inZ}{\mathrel{\zop{\in}}}
 \newcommand{\andZ}{\mathbin{\zop{\land}}}
 \newcommand{\cupZ}{\mathbin{\zop{\cup}}}

@@ -7,7 +7,7 @@
 Recall that a B set of type $\setB \alpha$ is encoded as a characteristic predicate of SMT type $\regnotation{\toSMT{\alpha}} \toS \mathsf{bool}$, where $\toSMT{\alpha}$ denotes the SMT type image of $\alpha$.
 For any such predicate $F$, the retraction
 \[
-\regnotation{\retr{\setB \alpha}}(F) \;=\; \bigl\{ x \in \interpZ{\alpha} \;\big|\; \appZ F\bigl(\regnotation{\canon{\alpha}}(x)\bigr) \eqZ \topZ \bigr\}
+\regnotation{\retr{\setB \alpha}}(F) \;=\; \bigl\{ x \in \interpZ{\alpha} \;\big|\; \appZ F\bigl(\regnotation{\canon{\alpha}}(x)\bigr) = \topZ \bigr\}
 \]
 recovers the B-level set, where $\canon{\alpha} : \interpZ{\alpha} \to \interpZ{\toSMT{\alpha}}$ is the canonical isomorphism.
 

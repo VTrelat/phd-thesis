@@ -21,28 +21,22 @@ Lean.
 
 \begin{definition}[Concrete terms][B.Term][B/Syntax/Basic.html\#B.Term]
   \label{def:b-basic-syntax}
-                                                      Let \(\mathcal{V}\) be the type of variable names.
-  The constructors of \leaninl{B.Term} are listed below, where \(v\) is a name in
-  \(\mathcal{V}\), \(n\) is an integer, \(b\) is a Boolean value, and
-  \(\vec{v}\) is a list of names.
+  The constructors of \leaninl{B.Term} are listed below, where \(\var{v}\) is a name in
+  \leaninl{String}, \(n\) is an integer, \(b\) is a Boolean value, and
+  \(\vec{\var{v}}\) is a list of names. Object variables are typeset in bold gray
+  throughout.
 
   \begin{bnf}[colspec = {l@{}l@{\kern6pt}c@{\kern6pt}ll}]
     \leaninl{B.Term} $\,∋\, t, s$ ::=
-    | $\mathsf{var}\ v$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ && $\ZintB$ && $\ZboolB$ // Atoms
+    | $\var{v}$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ && $\ZintB$ && $\ZboolB$ // Atoms
     | $t \regnotation{\mapletB} s$ // Maplet
     | $t \regnotation{\addB} s$ && $t \regnotation{\subB} s$ && $t \regnotation{\mulB} s$ && $t \regnotation{\leB} s$ // Arithmetic
-    | $t \regnotation{\andB} s$ && $\regnotation{\notB} t$ && $t \regnotation{\eqB} s$ && $t \inB s$ && $\forallB \vec{v} \inB t \cdot s$ // Logic
-    | $\powB(t)$ && $t \prodB s$ && $t \regnotation{\cupB} s$ && $t \regnotation{\capB} s$ && $\regnotation{\{\,\vec{v} \inB t \mid s\,\}}$ // Set theory
+    | $t \regnotation{\andB} s$ && $\regnotation{\notB} t$ && $t \regnotation{\eqB} s$ && $t \inB s$ && $\forallB \vec{\var{v}} \inB t \cdot s$ // Logic
+    | $\powB(t)$ && $t \prodB s$ && $t \regnotation{\cupB} s$ && $t \regnotation{\capB} s$ && $\regnotation{\bcomp{\vec{\var{v}} \inB t}{s}}$ // Set theory
     | $\cardB{t}$
-    | $t \pfunB s$ && $\appB t\ s$ && $\regnotation{\lambdaB} \vec{v} \inB t \cdot\,s$ // Functions
+    | $t \pfunB s$ && $\appB t\ s$ && $\regnotation{\lambdaB} \vec{\var{v}} \inB t \cdot\,s$ // Functions
   \end{bnf}
 \end{definition}
-
-\begin{remark}
-  In the implementation, the type \(\mathcal{V}\) of variable names is an
-  abbreviation for \(\mathsf{String}\), since concrete variables are represented
-  by strings.
-\end{remark}
 
 \paragraph{Additional concrete terms.}
 
@@ -54,10 +48,10 @@ but treating them as primitive simplifies the subsequent encoding.
 
 \begin{example}
   For instance, universal quantification
-  \( \forallB \vec{v} \inB D \cdot P \) can be characterized by the following
+  \( \forallB \vec{\var{v}} \inB D \cdot P \) can be characterized by the following
   equality:
   \[
-    (\lambdaB \vec{v} \inB D \cdot P) \eqB (\lambdaB \vec{v} \inB D \cdot \mathsf{bool}\ \mathsf{true}).
+    (\lambdaB \vec{\var{v}} \inB D \cdot P) \eqB (\lambdaB \vec{\var{v}} \inB D \cdot \mathsf{bool}\ \mathsf{true}).
   \]
 \end{example}
 
@@ -69,7 +63,7 @@ We nevertheless define additional B connectives as derived forms, as listed belo
   \label{def:b-extra-syntax}
   The following B constructs are defined as derived forms in terms of the
   primitive syntax of \Cref{def:b-basic-syntax}. Let \(x, S, T, P, Q\) be B terms, and let
-  \(\vec{v}\) be a list of concrete variable names.
+  \(\vec{\var{v}}\) be a list of concrete variable names.
 
   \textbf{Logical connectives:}
   \begin{align*}
@@ -78,7 +72,7 @@ We nevertheless define additional B connectives as derived forms, as listed belo
     P \regnotation{\impB} Q                       & \triangleq (\notB P) \orB Q \tag{implication}                                            \\
     P \regnotation{\iffB} Q                       & \triangleq (P \impB Q) \andB (Q \impB P) \tag{bi-implication}                            \\
     P \regnotation{\neqB} Q                       & \triangleq \notB(P \eqB Q) \tag{negated equality}                                        \\
-    \regnotation{\existsB} \vec{v} \inB S \cdot P & \triangleq \notB(\forallB \vec{v} \inB S \cdot \notB P) \tag{existential quantification}
+    \regnotation{\existsB} \vec{\var{v}} \inB S \cdot P & \triangleq \notB(\forallB \vec{\var{v}} \inB S \cdot \notB P) \tag{existential quantification}
     \intertext{\textbf{Relations:}}
     S \bop{\leftrightarrow} T       & \triangleq \powB (S \prodB T) \tag{set of relations}
   \end{align*}
@@ -156,7 +150,7 @@ illustrated by the following example.
   Although intersection \( t \capB s \) is available as a primitive
   (\Cref{def:b-basic-syntax}), it can equally be expressed as the bounded comprehension
   \[
-    \{\,v \inB t \mid v \inB s\,\},
+    \bcomp{\var{v} \inB t}{\var{v} \inB s},
   \]
   which illustrates the pattern: the definition captures the intended semantics of
   intersection and, in particular, yields an associative and commutative operation.
@@ -199,11 +193,11 @@ non-empty powerset.
   Let \(S\) and \(T\) be B terms, and let \(\tau\) be a B type fixed by the parser, as
   annotated on the right of each equation.
   \begin{align*}
-    \varnothing_{\tau}  & \;\triangleq\; \{\,v \inB \lift{\alpha} \mid \mathsf{bool}\ \mathsf{false}\,\} \tag{\(\tau = \setB(\alpha)\)}            \\
-    S \regnotation{\subseteqB} T      & \;\triangleq\; \forallB v \inB S \cdot v \inB T                                           \\
+    \varnothing_{\tau}  & \;\triangleq\; \bcomp{\var{v} \inB \lift{\alpha}}{\mathsf{bool}\ \mathsf{false}} \tag{\(\tau = \setB(\alpha)\)}            \\
+    S \regnotation{\subseteqB} T      & \;\triangleq\; \forallB \var{v} \inB S \cdot \var{v} \inB T                                           \\
     S \regnotation{\notsubseteqB} T   & \;\triangleq\; \notB(S \subseteqB T)                                                      \\
-    S \regnotation{\ssubB} T          & \;\triangleq\; \{\,v \inB S \mid v \notinB T\,\}                                          \\
-    {\powB_1}_{\tau}(S) & \;\triangleq\; \{\,v \inB \powB(S) \mid \existsB x \inB \lift{\alpha} \cdot x \inB v \,\} \tag{\(\tau = \setB(\setB(\alpha))\)}
+    S \regnotation{\ssubB} T          & \;\triangleq\; \bcomp{\var{v} \inB S}{\var{v} \notinB T}                                          \\
+    {\powB_1}_{\tau}(S) & \;\triangleq\; \bcomp{\var{v} \inB \powB(S)}{\existsB \var{x} \inB \lift{\alpha} \cdot \var{x} \inB \var{v}} \tag{\(\tau = \setB(\setB(\alpha))\)}
   \end{align*}
 \end{definition}
 
@@ -218,9 +212,9 @@ A subset \(S\) of a set \(A\) is finite when there exists an injection from
   Let \(S\) be a B term, and let \(\tau\) be a B type;
   the total-injection space \(\injtfunB\) used below is introduced in \Cref{def:b-syntax-functions}.
   \begin{align*}
-    \mathsf{FIN}(S)            & \;\triangleq\; \{\, X \inB \powB(S) \mid \existsB n \inB \ZintB \cdot \existsB f \inB S \injtfunB \ZintB \cdot \forallB x, i \inB S \prodB \ZintB \cdot \\
-                               & \hspace{1cm}(x \mapletB i \inB f) \impB ((\mathsf{int}\ 0 \leB i) \andB (i \leB n)) \,\}                                                            \\
-    {\mathsf{FIN}_1}_{\tau}(S) & \;\triangleq\; \{\, X \inB \mathsf{FIN}(S) \mid X \neqB \varnothing_{\tau} \,\} \tag{\(\tau = \setB(\alpha)\)}
+    \mathsf{FIN}(S)            & \;\triangleq\; \bcomp{\var{X} \inB \powB(S)}{\existsB \var{n} \inB \ZintB \cdot \existsB \var{f} \inB S \injtfunB \ZintB \cdot \forallB \var{x}, \var{i} \inB S \prodB \ZintB \cdot \\
+                               & \hspace{1cm}(\var{x} \mapletB \var{i} \inB \var{f}) \impB ((\mathsf{int}\ 0 \leB \var{i}) \andB (\var{i} \leB \var{n}))}                                                            \\
+    {\mathsf{FIN}_1}_{\tau}(S) & \;\triangleq\; \bcomp{\var{X} \inB \mathsf{FIN}(S)}{\var{X} \neqB \varnothing_{\tau}} \tag{\(\tau = \setB(\alpha)\)}
   \end{align*}
 \end{definition}
 
@@ -236,8 +230,8 @@ numbers as a subset of integers\footnote{This marks another deviation from
   \label{def:b-syntax-arithmetic}
           Let \(i, j\) be B terms.
   \begin{align*}
-    \mathbb{N}       & \;\triangleq\; \{\, n \inB \ZintB \mid \mathsf{int}\ 0 \leB \mathsf{int}\ n \,\} \\
-    \regnotation{\intrangeB{i}{j}} & \;\triangleq\; \{\, n \inB \ZintB \mid i \leB n \andB n \leB j \,\}              \\
+    \mathbb{N}       & \;\triangleq\; \bcomp{\var{n} \inB \ZintB}{\mathsf{int}\ 0 \leB \mathsf{int}\ \var{n}} \\
+    \regnotation{\intrangeB{i}{j}} & \;\triangleq\; \bcomp{\var{n} \inB \ZintB}{i \leB \var{n} \andB \var{n} \leB j}              \\
     i \regnotation{\geB} j         & \;\triangleq\; j \leB i                                                          \\
     i \regnotation{\gtB} j         & \;\triangleq\; \notB(i \leB j)                                                   \\
     i \regnotation{\ltB} j         & \;\triangleq\; \notB(j \leB i)
@@ -257,7 +251,7 @@ The identity relation is the graph of the identity map on a set.
   \label{def:b-syntax-id}
   Let \(S\) be a B term.
   \[
-    \mathsf{id}(S) \;\triangleq\; \lambdaB v \inB S \cdot v
+    \mathsf{id}(S) \;\triangleq\; \lambdaB \var{v} \inB S \cdot \var{v}
   \]
 \end{definition}
 
@@ -272,8 +266,8 @@ belong to \(F\).
   \label{def:b-syntax-domRestrSub}
       Let \(F\) and \(R\) be B terms.
   \[
-    F \regnotation{\domRestrB} R \;\triangleq\; \{\, x, y \inB R \mid x \inB F \,\} \quad\text{and}\quad
-    F \regnotation{\domSubtrB} R \;\triangleq\; \{\, x, y \inB R \mid x \notinB F \,\}
+    F \regnotation{\domRestrB} R \;\triangleq\; \bcomp{\var{x}, \var{y} \inB R}{\var{x} \inB F} \quad\text{and}\quad
+    F \regnotation{\domSubtrB} R \;\triangleq\; \bcomp{\var{x}, \var{y} \inB R}{\var{x} \notinB F}
   \]
 \end{definition}
 
@@ -288,8 +282,8 @@ obtained by retaining only the pairs whose second component does not belong to
   \label{def:b-syntax-ranRestrSub}
       Let \(F\) and \(R\) be B terms.
   \[
-    R \regnotation{\ranRestrB} F \;\triangleq\; \{\, x, y \inB R \mid y \inB F \,\} \quad\text{and}\quad
-    R \regnotation{\ranSubtrB} F \;\triangleq\; \{\, x, y \inB R \mid y \notinB F \,\}
+    R \regnotation{\ranRestrB} F \;\triangleq\; \bcomp{\var{x}, \var{y} \inB R}{\var{y} \inB F} \quad\text{and}\quad
+    R \regnotation{\ranSubtrB} F \;\triangleq\; \bcomp{\var{x}, \var{y} \inB R}{\var{y} \notinB F}
   \]
 \end{definition}
 
@@ -301,8 +295,8 @@ components, respectively, of the pairs in \(R\).
   \label{def:b-syntax-dom-ran}
       Let \(R\) be a B term, and let \(\tau\) be a B type fixed by the parser, as annotated on the right.
   \begin{align*}
-    \domB[\tau](R) & \;\triangleq\; \{\, x \inB \lift{\alpha} \mid \existsB y \inB \lift{\beta} \cdot (x \mapletB y) \inB R \,\} \tag{\(\tau = \setB(\alpha \prodB \beta)\)} \\
-    \ranB[\tau](R) & \;\triangleq\; \{\, y \inB \lift{\beta} \mid \existsB x \inB \lift{\alpha} \cdot (x \mapletB y) \inB R \,\} \tag{\(\tau = \setB(\alpha \prodB \beta)\)}
+    \domB[\tau](R) & \;\triangleq\; \bcomp{\var{x} \inB \lift{\alpha}}{\existsB \var{y} \inB \lift{\beta} \cdot (\var{x} \mapletB \var{y}) \inB R} \tag{\(\tau = \setB(\alpha \prodB \beta)\)} \\
+    \ranB[\tau](R) & \;\triangleq\; \bcomp{\var{y} \inB \lift{\beta}}{\existsB \var{x} \inB \lift{\alpha} \cdot (\var{x} \mapletB \var{y}) \inB R} \tag{\(\tau = \setB(\alpha \prodB \beta)\)}
   \end{align*}
 \end{definition}
 
@@ -312,8 +306,8 @@ Cartesian product with its first and second components, respectively.
     POGReader/POGReader.html\#String.toBinaryOp]
   Let \(Q\) and \(R\) be B terms.
   \begin{align*}
-    \mathsf{prj}_1(Q, R) & \;\triangleq\; \{\, x, y, z \inB Q \prodB R \prodB Q \mid z \eqB x \,\} \\
-    \mathsf{prj}_2(Q, R) & \;\triangleq\; \{\, x, y, z \inB Q \prodB R \prodB R \mid z \eqB y \,\}
+    \mathsf{prj}_1(Q, R) & \;\triangleq\; \bcomp{\var{x}, \var{y}, \var{z} \inB Q \prodB R \prodB Q}{\var{z} \eqB \var{x}} \\
+    \mathsf{prj}_2(Q, R) & \;\triangleq\; \bcomp{\var{x}, \var{y}, \var{z} \inB Q \prodB R \prodB R}{\var{z} \eqB \var{y}}
   \end{align*}
 \end{definition}
 
@@ -330,7 +324,7 @@ first component does not occur as the first component of any pair in \(R\).
     POGReader/Builtins.html\#B.Term.overload]
   Let \(Q\) and \(R\) be B terms, and let \(\tau\) be a B type fixed by the parser.
   \[
-    Q \overloadB[\tau] R \;\triangleq\; \{\, x, y \inB \lift{\alpha}\! \prodB \lift{\beta} \mid \left(\left(x \mapletB y \inB Q\right) \andB \notB(x \inB \domB[\tau](R))\right) \orB (x \mapletB y \inB R) \,\}
+    Q \overloadB[\tau] R \;\triangleq\; \bcomp{\var{x}, \var{y} \inB \lift{\alpha}\! \prodB \lift{\beta}}{\left(\left(\var{x} \mapletB \var{y} \inB Q\right) \andB \notB(\var{x} \inB \domB[\tau](R))\right) \orB (\var{x} \mapletB \var{y} \inB R)}
   \]
   where \(\tau = \setB(\alpha \prodB \beta)\).
 \end{definition}
@@ -342,7 +336,7 @@ second components of each pair in \(R\).
   \label{def:b-syntax-inv-rel}
   Let \(R\) be a B term, and let \(\tau\) be a B type fixed by the parser.
   \[
-    R^{-1}_{\tau} \;\triangleq\; \{\, x, y \inB \lift{\beta} \prodB \lift{\alpha} \mid y \mapletB x \inB R \,\} \quad (\tau = \setB(\alpha \prodB \beta))
+    R^{-1}_{\tau} \;\triangleq\; \bcomp{\var{x}, \var{y} \inB \lift{\beta} \prodB \lift{\alpha}}{\var{y} \mapletB \var{x} \inB R} \quad (\tau = \setB(\alpha \prodB \beta))
   \]
 \end{definition}
 
@@ -353,7 +347,7 @@ that are related by \(R\) to some element of \(S\).
   \label{def:b-syntax-dir-image}
   Let \(R\) and \(S\) be B terms, and let \(\tau\) be a B type fixed by the parser.
   \[
-    R[S]_{\tau} \;\triangleq\; \{\, y \inB \lift{\alpha} \mid \existsB x \inB S \cdot x \mapletB y \inB R \,\} \tag{\(\tau = \setB(\alpha)\)}
+    R[S]_{\tau} \;\triangleq\; \bcomp{\var{y} \inB \lift{\alpha}}{\existsB \var{x} \inB S \cdot \var{x} \mapletB \var{y} \inB R} \tag{\(\tau = \setB(\alpha)\)}
   \]
 \end{definition}
 
@@ -364,14 +358,14 @@ The direct product of two relations \(Q\) and \(R\) is the set of pairs \(x \map
   \label{def:b-syntax-dirprod}
   Let \(Q\) and \(R\) be B terms, and let \(\tau\) be a B type fixed by the parser.
   \begin{align*}
-    Q \dirprodB[\tau] R & \;\triangleq\; \{\,
-    x, w \inB (\lift{\alpha} \prodB (\lift{\beta} \prodB \lift{\gamma})) \mid
-    \existsB y, z \in (\lift{\beta} \prodB \lift{\gamma}) \cdot \\
+    Q \dirprodB[\tau] R & \;\triangleq\; \bcomp{
+    \var{x}, \var{w} \inB (\lift{\alpha} \prodB (\lift{\beta} \prodB \lift{\gamma}))}{
+    \existsB \var{y}, \var{z} \in (\lift{\beta} \prodB \lift{\gamma}) \cdot \\
                         & \hspace{1cm}
-    (w \eqB y \mapletB z) \andB
-    (x \mapletB y \inB Q) \andB
-    (x \mapletB z \inB R)
-    \,\} \tag(\tau = \setB(\alpha \prodB (\beta \prodB \gamma)))
+    (\var{w} \eqB \var{y} \mapletB \var{z}) \andB
+    (\var{x} \mapletB \var{y} \inB Q) \andB
+    (\var{x} \mapletB \var{z} \inB R)
+    } \tag(\tau = \setB(\alpha \prodB (\beta \prodB \gamma)))
   \end{align*}
 \end{definition}
 
@@ -384,12 +378,12 @@ rich hierarchy of function spaces.
     POGReader/Builtins.html\#B.Term.tfun]
   \label{def:b-syntax-functions}
                   \begin{align*}
-    A \tfunB B     & \;\triangleq\; \{\, f \inB A \pfunB B \mid \forallB x \inB A \cdot \exists y \inB B, x \mapletB y \inB f \,\} \tag{total}                               \\
-    A \injpfunB B  & \;\triangleq\; \{\, f \inB A \pfunB B \mid \forallB x, y, z \inB A \prodB A \prodB B \cdot                                                              \\
-                   & \hspace{1cm} (x \mapletB z \inB f) \andB (y \mapletB z \inB f) \impB x \eqB y \,\} \tag{partial injective}                                          \\
-    A \surjpfunB B & \;\triangleq\; \{\, f \inB A \pfunB B \mid \forallB y \inB B \cdot \existsB x \inB A \cdot x \mapletB y \inB f \,\} \tag{partial surjective}            \\
-    A \injtfunB B  & \;\triangleq\; \{\, f \inB A \tfunB B \mid \forallB x, y \inB A \prodB A \cdot (\appB f\ x) \eqB (\appB f\ y) \impB x \eqB y \,\} \tag{total injective} \\
-    A \surjtfunB B & \;\triangleq\; \{\, f \inB A \tfunB B \mid \forallB y \inB B \cdot \existsB x \inB A \cdot x \mapletB y \inB f \,\} \tag{total surjective}
+    A \tfunB B     & \;\triangleq\; \bcomp{\var{f} \inB A \pfunB B}{\forallB \var{x} \inB A \cdot \exists \var{y} \inB B, \var{x} \mapletB \var{y} \inB \var{f}} \tag{total}                               \\
+    A \injpfunB B  & \;\triangleq\; \bcomp{\var{f} \inB A \pfunB B}{\forallB \var{x}, \var{y}, \var{z} \inB A \prodB A \prodB B \cdot                                                              \\
+                   & \hspace{1cm} (\var{x} \mapletB \var{z} \inB \var{f}) \andB (\var{y} \mapletB \var{z} \inB \var{f}) \impB \var{x} \eqB \var{y}} \tag{partial injective}                                          \\
+    A \surjpfunB B & \;\triangleq\; \bcomp{\var{f} \inB A \pfunB B}{\forallB \var{y} \inB B \cdot \existsB \var{x} \inB A \cdot \var{x} \mapletB \var{y} \inB \var{f}} \tag{partial surjective}            \\
+    A \injtfunB B  & \;\triangleq\; \bcomp{\var{f} \inB A \tfunB B}{\forallB \var{x}, \var{y} \inB A \prodB A \cdot (\appB \var{f}\ \var{x}) \eqB (\appB \var{f}\ \var{y}) \impB \var{x} \eqB \var{y}} \tag{total injective} \\
+    A \surjtfunB B & \;\triangleq\; \bcomp{\var{f} \inB A \tfunB B}{\forallB \var{y} \inB B \cdot \existsB \var{x} \inB A \cdot \var{x} \mapletB \var{y} \inB \var{f}} \tag{total surjective}
   \end{align*}
 \end{definition}
 
@@ -400,13 +394,13 @@ interval of natural numbers.
   \label{def:b-syntax-sequences}
   Let \(A\) be a B term, and let \(\tau\) be a B type.
   \begin{align*}
-    \mathsf{seq}(A)    & \;\triangleq\; \{\, s \inB \mathbb{N} \pfunB A \mid \existsB n \inB \ZintB \cdot s \inB (\intrangeB{\mathsf{int}\ 1}{n} \tfunB A) \,\}               \\
-    \mathsf{seq}_1(A)  & \;\triangleq\; \{\, s \inB \mathbb{N} \pfunB A \mid \left(\existsB n \inB \ZintB \cdot s \inB (\intrangeB{\mathsf{int}\ 1}{n} \tfunB A)\right) \andB \\
-                       & \hspace{1cm} \existsB x, y \inB \mathbb{N} \prodB A \cdot \appB s\ x \eqB y \,\} \tag{non-empty}                                                        \\
+    \mathsf{seq}(A)    & \;\triangleq\; \bcomp{\var{s} \inB \mathbb{N} \pfunB A}{\existsB \var{n} \inB \ZintB \cdot \var{s} \inB (\intrangeB{\mathsf{int}\ 1}{\var{n}} \tfunB A)}               \\
+    \mathsf{seq}_1(A)  & \;\triangleq\; \bcomp{\var{s} \inB \mathbb{N} \pfunB A}{\left(\existsB \var{n} \inB \ZintB \cdot \var{s} \inB (\intrangeB{\mathsf{int}\ 1}{\var{n}} \tfunB A)\right) \andB \\
+                       & \hspace{1cm} \existsB \var{x}, \var{y} \inB \mathbb{N} \prodB A \cdot \appB \var{s}\ \var{x} \eqB \var{y}} \tag{non-empty}                                                        \\
     \mathsf{iseq}(A)   & \;\triangleq\; \mathsf{seq}(A) \capB (\mathbb{N} \injpfunB A) \tag{injective}                                                                               \\
     \mathsf{iseq}_1(A) & \;\triangleq\; \mathsf{seq}_1(A) \capB (\mathbb{N} \injpfunB A) \tag{non-empty injective}                                                                   \\
     \mathsf{perm}(A)   & \;\triangleq\; \mathsf{iseq}(A) \capB (A \surjpfunB A) \tag{permutations}                                                                                   \\
-    \mathsf{size}(s)   & \;\triangleq\; \cardB{\domB_{\setB (\intB \prodB \tau)}(s)}
+    \mathsf{size}(A)   & \;\triangleq\; \cardB{\domB_{\setB (\intB \prodB \tau)}(A)}
   \end{align*}
 \end{definition}
 
@@ -451,13 +445,13 @@ To distinguish the two syntactic categories, we reuse the constructor names of
       The constructors for abstract terms are listed below, where \(v\) is a variable in
   \(\mathcal{V}\), \(n\) is an integer, and \(b\) is a Boolean value.
 
-  \begin{bnf}[colspec = {l@{}l@{\kern4pt}c@{\kern4pt}ll}]
-    \leaninl{B.PHOAS.Term} $\,∋\, t, s$ ::=
-    | $\mathsf{var}\ v$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ && $\ZintB$ && $\ZboolB$ // Atoms
+  \begin{bnf}[colspec = {l@{}l@{\kern2pt}c@{\kern2pt}ll}]
+    \leaninl{PHOAS.Term} $\,∋\, t, s$ ::=
+    | $\var{v}$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ && $\ZintB$ && $\ZboolB$ // Atoms
     | $t \mapletB' s$ // Maplet
     | $t \addB' s$ && $t \subB' s$ && $t \mulB' s$ && $t \leB' s$ // Arithmetic
     | $t \andB' s$ && $\notB' t$ && $t \eqB' s$ && $t \inB' s$ && $\forallB' t \cdot e$ // Logic
-    | $\powB'(t)$ && $t \prodB' s$ && $t \cupB' s$ && $t \capB' s$ && $\{\, t \mid e\,\}$ // Set theory
+    | $\powB'(t)$ && $t \prodB' s$ && $t \cupB' s$ && $t \capB' s$ && $\bcompa{t}{e}$ // Set theory
     | $t \pfunB' s$ && $\appB' t\ s$ && $\lambdaB' t \cdot\,e$ // Functions
   \end{bnf}
 
@@ -478,21 +472,21 @@ meta-level binding infrastructure.
 \begin{definition}[Substitution][B.PHOAS.Term.subst][B/PHOAS/Basic.html\#B.PHOAS.Term.subst]
   Substitution is defined structurally on abstract terms; the only non-homomorphic
   cases are variables and binders.
-  We write \(t[v \leftarrow e]\) for the capture-avoiding substitution of the
-  term \(e\) for the variable \(v\) in the term \(t\).
+  We write \(t[\var{v} \leftarrow e]\) for the capture-avoiding substitution of the
+  term \(e\) for the variable \(\var{v}\) in the term \(t\).
 
-  For an arbitrary variable \(w : \mathcal{V}\), substitution in
-  \(\mathsf{var}\ w\) is defined as follows:
+  For an arbitrary variable \(\var{w} : \mathcal{V}\), substitution in
+  \(\var{w}\) is defined as follows:
   \begin{align*}
-    (\mathsf{var}\ w) [v \leftarrow e]    & \triangleq
+    (\var{w}) [\var{v} \leftarrow e]    & \triangleq
     \begin{cases}
-      e               & \text{if } w = v \\
-      \mathsf{var}\ w & \text{otherwise}
+      e               & \text{if } \var{w} = \var{v} \\
+      \var{w} & \text{otherwise}
     \end{cases}
     \intertext{For a binder \(\int\) with domain \(D\) and scope \(t\), substitution in \(\int_D t\) is defined as follows:}
-    \left(\int_D t\right)[v \leftarrow e] & \triangleq \int_{D[v \leftarrow e]} \left(\lambda x \mapsto (t\ x)[v \leftarrow e]\right)
-    \intertext{All remaining clauses are homomorphic. For an \(n\)-ary constructor \(c\) with subterms \(t_1, \ldots, t_n\), substitution is defined as follows:}
-    c(t_1, \ldots, t_n)[v \leftarrow e]   & \triangleq c(t_1[v \leftarrow e], \ldots, t_n[v \leftarrow e])
+    \left(\int_D t\right)[\var{v} \leftarrow e] & \triangleq \int_{D[\var{v} \leftarrow e]} \left(\pink{\lambda} x \mapsto (t\ x)[\var{v} \leftarrow e]\right)
+    \intertext{where \(\pink{\lambda}\) is the meta-level binder. All remaining clauses are homomorphic. For an \(n\)-ary constructor \(c\) with subterms \(t_1, \ldots, t_n\), substitution is defined as follows:}
+    c(t_1, \ldots, t_n)[\var{v} \leftarrow e]   & \triangleq c(t_1[\var{v} \leftarrow e], \ldots, t_n[\var{v} \leftarrow e])
   \end{align*}
 \end{definition}
 
@@ -551,15 +545,15 @@ The following example illustrates this reification process.
   \begin{leanlisting}
 λᴮ' ℕ ×ᴮ ℕ · fun (x : Fin 2 → 𝒱) ↦ .var (x 0) +ᴮ' .var (x 1)
 \end{leanlisting}
-  Reifying this term with a name generation strategy that produces the names \((\mathbf{a}_i)_{i \in \mathbb{N}}\) yields the following concrete term:
+  Reifying this term with a name generation strategy that produces the names \((\var{a}_i)_{i \in \mathbb{N}}\) yields the following concrete term:
   \[
-    \lambdaB \mathbf{a}_0, \mathbf{a}_1 \inB \mathbb{N} \prodB \mathbb{N} \cdot \mathbf{a}_0 \addB \mathbf{a}_1
+    \lambdaB \var{a}_0, \var{a}_1 \inB \mathbb{N} \prodB \mathbb{N} \cdot \var{a}_0 \addB \var{a}_1
   \]
-  A name generation strategy that produces the same name \(\mathbf{x}\) for both
+  A name generation strategy that produces the same name \(\var{x}\) for both
   variables would instead collapse the two bound variables and yield the
   following non-faithful reification:
   \[
-    \lambdaB \mathbf{x}, \mathbf{x} \inB \mathbb{N} \prodB \mathbb{N} \cdot \mathbf{x} \addB \mathbf{x}
+    \lambdaB \var{x}, \var{x} \inB \mathbb{N} \prodB \mathbb{N} \cdot \var{x} \addB \var{x}
   \]
 \end{example}
 
@@ -589,15 +583,15 @@ binders.
   The abstraction of \(t\) over \(\Delta\), denoted by \(\aterm{t}{\Delta}\),
   is defined structurally on the syntax of \(t\), with variables and binders as
   the only non-homomorphic cases.
-  For a variable \(v\), abstraction is given by lookup in \(\Delta\):
+  For a variable \(\var{v}\), abstraction is given by lookup in \(\Delta\):
   \begin{align*}
-    \aterm{v}{\Delta}                       & \triangleq \Delta(v)
+    \aterm{\var{v}}{\Delta}                       & \;\triangleq\; \Delta(\var{v})
     \intertext{For any non-binder \(n\)-ary concrete constructor \(c\) with subterms \(t_1, \dots, t_n\) and abstract counterpart \(c'\), abstraction is defined homomorphically on subterms:}
-    \aterm{c(t_1, \dots, t_n)}{\Delta}      & \triangleq c'(\aterm{t_1}{\Delta}, \dots, \aterm{t_n}{\Delta})
-    \intertext{For a concrete binder \(\int\) with abstract counterpart \(\int'\), bound concrete variables \(\vec{v} = (v_1, \dots, v_n)\), domain \(D\), and body \(t\), abstraction extends the renaming context with the bound variables and abstracts the body under this extended context:}
-    \aterm{\int_{\vec{v} \inB D} t}{\Delta} & \triangleq \int_{\aterm{D}{\Delta}}' \left(\lambda x_1\ \dots\ x_n \mapsto \aterm{t}{\Delta[v_1 \coloneq x_1, \dots, v_n \coloneq x_n]}\right)
+    \aterm{c(t_1, \dots, t_n)}{\Delta}      & \;\triangleq\; c'(\aterm{t_1}{\Delta}, \dots, \aterm{t_n}{\Delta})
+    \intertext{For a concrete binder \(\int\) with abstract counterpart \(\int'\), bound concrete variables \(\vec{\var{v}} = (\var{v_1}, \dots, \var{v_n})\), domain \(D\), and body \(t\), abstraction extends the renaming context with the bound variables and abstracts the body under this extended context:}
+    \aterm{\int_{\vec{\var{v}} \inB D} t}{\Delta} & \;\triangleq\; \int_{\aterm{D}{\Delta}}' \left(\pink{\lambda} x_1\ \dots\ x_n \mapsto \aterm{t}{\Delta[\var{v_1} \coloneq x_1, \dots, \var{v_n} \coloneq x_n]}\right)
   \end{align*}
-  where \(\Delta[v_1 \coloneq x_1, \dots, v_n \coloneq x_n]\) denotes the
-  extension of \(\Delta\) with the mappings \(v_i \mapsto x_i\), for
+  where \(\Delta[\var{v_1} \coloneq x_1, \dots, \var{v_n} \coloneq x_n]\) denotes the
+  extension of \(\Delta\) with the mappings \(\var{v_i} \mapsto x_i\), for
   \(i \in \{1, \dots, n\}\).
 \end{definition}

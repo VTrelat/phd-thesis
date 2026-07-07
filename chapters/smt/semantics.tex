@@ -108,13 +108,13 @@ The defining equations are detailed below, written \(\interpS{t} \triangleq
 constructed alongside the value.
 
 \paragraph{Variables and literals.}
-Variables denote themselves: for any variable \(v : \SDom\),
-\(\interpS{v} \triangleq v\). For an integer \(n\), a Boolean \(b\), and the unit
+Variables denote themselves: for any variable \(\var{v} : \SDom\),
+\(\interpS{\var{v}} \triangleq \var{v}\). For an integer \(n\), a Boolean \(b\), and the unit
 value,
 \[
   \interpS{n} \triangleq \denval{\zop{n}}[\intS],\quad
   \interpS{b} \triangleq \denval{\zop{b}}[\boolS],\quad
-  \interpS{\unitvalS} \triangleq \denval{\emptyset}[\unitS],
+  \interpS{\aop{\unitvalS}} \triangleq \denval{\emptyset}[\unitS],
 \]
 where \(\zop{n}\) and \(\zop{b}\) are the ZFC encodings of integers and Booleans.
 \begin{proofconstruct}
@@ -127,13 +127,13 @@ where \(\zop{n}\) and \(\zop{b}\) are the ZFC encodings of integers and Booleans
 \paragraph{Pairs and projections.}
 Given \(\interpS{t} = \denval{X}[\alpha]\) and \(\interpS{s} = \denval{Y}[\beta]\),
 \[
-  \interpS{{\pairS{t}{s}}} \triangleq \denval{\pairZ{X}{Y}}[\alpha \timesS \beta],
+  \interpS{\pairSa{t}{s}} \triangleq \denval{\pairZ{X}{Y}}[\alpha \timesS \beta],
 \]
 using Kuratowski pairs (see \Cref{subsec:zflean-sets}). Projections are defined when the argument has a pair
 type: given \(\interpS{t} = \denval{T}[\alpha \timesS \beta]\),
 \[
-  \interpS{\fstS t} \triangleq \denval{\fstZ(T)}[\alpha], \qquad
-  \interpS{\sndS t} \triangleq \denval{\sndZ(T)}[\beta],
+  \interpS{\fstSa t} \triangleq \denval{\fstZ(T)}[\alpha], \qquad
+  \interpS{\sndSa t} \triangleq \denval{\sndZ(T)}[\beta],
 \]
 where \(\fstZ,\, \sndZ\) are the set-theoretic projections of \Cref{def:zflean-projections}.
 \begin{proofconstruct}
@@ -151,11 +151,11 @@ Given \(\interpS{t} = \denval{X}[\intS]\) and \(\interpS{s} = \denval{Y}[\intS]\
 (otherwise the denotation is undefined), arithmetic lifts the corresponding ZFC
 operations:
 \[
-  \interpS{t \addS s} \triangleq \denval{X \addZ Y}[\intS],\quad
-  \interpS{t \subS s} \triangleq \denval{X \subZ Y}[\intS],\quad
-  \interpS{t \mulS s} \triangleq \denval{X \mulZ Y}[\intS],
+  \interpS{t \aop{\addS} s} \triangleq \denval{X \addZ Y}[\intS],\quad
+  \interpS{t \aop{\subS} s} \triangleq \denval{X \subZ Y}[\intS],\quad
+  \interpS{t \aop{\mulS} s} \triangleq \denval{X \mulZ Y}[\intS],
 \]
-and comparison yields a Boolean: \(\interpS{t \leS s} \triangleq \denval{X \leqZ Y}[\boolS]\).
+and comparison yields a Boolean: \(\interpS{t \aop{\leS} s} \triangleq \denval{X \leqZ Y}[\boolS]\).
 \begin{proofconstruct}
   All membership proofs are instances of
   {\small\leancodeptr{overloadBinOp\_mem}{Extra/ZFC_Extra.html\#overloadBinOp_mem}},
@@ -168,9 +168,9 @@ and comparison yields a Boolean: \(\interpS{t \leS s} \triangleq \denval{X \leqZ
 Given \(\interpS{t} = \denval{X}[\tau]\) and \(\interpS{s} = \denval{Y}[\sigma]\),
 the primitive connectives lift their ZFC counterparts in the two-element Boolean algebra \(\Zbool\):
 \begin{align*}
-  \interpS{t \eqS s}  & \triangleq \denval{X \eqZ Y}[\boolS] && \text{when } \tau = \sigma, \\
-  \interpS{t \andS s} & \triangleq \denval{X \andZ Y}[\boolS] && \text{when } \tau = \sigma = \boolS, \\
-  \interpS{\notS t}   & \triangleq \denval{\negZ X}[\boolS] && \text{when } \tau = \boolS.
+  \interpS{t \aop{\eqS} s}  & \triangleq \denval{X = Y}[\boolS] && \text{when } \tau = \sigma, \\
+  \interpS{t \aop{\andS} s} & \triangleq \denval{X \andZ Y}[\boolS] && \text{when } \tau = \sigma = \boolS, \\
+  \interpS{\aop{\notS} t}   & \triangleq \denval{\negZ X}[\boolS] && \text{when } \tau = \boolS.
 \end{align*}
 Disjunction, implication, and the existential quantifier are interpreted through
 their definitions as derived forms (\Cref{def:smt-derived}).
@@ -186,16 +186,22 @@ their definitions as derived forms (\Cref{def:smt-derived}).
 Given \(\interpS{t} = \denval{T}[\tau]\), options are interpreted by the tagged encoding
 of \Cref{def:smt-type-interp}:
 \[
-  \interpS{\someS t} \triangleq \denval{\someZ\,T}[\optS\tau],\qquad
-  \interpS{\noneS_{\tau}} \triangleq \denval{\noneZ}[\optS\tau].
+  \interpS{\someSa t} \triangleq \denval{\someZ\,T}[\optS\tau],\qquad
+  \interpS{\aop{\noneS}_{\tau}} \triangleq \denval{\noneZ}[\optS\tau].
 \]
 Conversely, given \(\interpS{t} = \denval{T}[\optS\tau]\),
 \[
-  \interpS{\theS t} \triangleq \denval{\theZ\,T}[\tau].
+  \interpS{\theSa t} \triangleq \denval{\theZ\,T}[\tau].
 \]
+Here \(\theZ\) is the selector of the option encoding (\Cref{def:zflean-sum}): it satisfies
+\(\theZ(\someZ X) = X\), and on \(\noneZ\) it returns a designated element of the carrier
+\(\interpZ{\tau}\)---well-defined because \(\interpZ{\tau}\) is non-empty
+by \Cref{thm:smt-type-nonempty}. It is therefore \emph{total}, faithfully reflecting
+SMT-LIB's treatment of a datatype selector applied to a non-matching constructor as
+underspecified rather than undefined.
 For the unit type \(\unitS\),
 \[
-  \interpS{\unitvalS} \triangleq \denval{\emptyset}[\unitS].
+  \interpS{\aop{\unitvalS}} \triangleq \denval{\emptyset}[\unitS].
 \]
 
 \begin{proofconstruct}
@@ -213,7 +219,7 @@ function \(\mathbb{d}\):
 Let \(\vec t = (t_1, \dots, t_n)\) be a family of SMT terms such that every \(t_i\) has a denotation.
 The denotation of the distinctness predicate is then defined as
 \[
-  \interpS{\distinctS \vec t} \triangleq \denval{\mathbb{d}((\interpS{t_i})_i)}[\boolS].
+  \interpS{\distinctSa \vec t} \triangleq \denval{\mathbb{d}((\interpS{t_i})_i)}[\boolS].
 \]
 \begin{proofconstruct}
   The proof that \(\mathbb{d}((\interpS{t_i})_i) \in \Zbool\) is established by structural
@@ -222,8 +228,8 @@ The denotation of the distinctness predicate is then defined as
 \end{proofconstruct}
 
 \paragraph{Application.}
-Application is the only genuinely partial operation, and is interpreted by graph
-lookup. Given \(\interpS{f} = \denval{F}[\sigma \toS \tau]\) and
+Application is the only genuinely partial operation, and is
+interpreted by graph lookup. Given \(\interpS{f} = \denval{F}[\sigma \toS \tau]\) and
 \(\interpS{x} = \denval{X}[\xi]\), the denotation is defined when the types
 match (\(\sigma = \xi\)), \(F\) is a functional graph from
 \(\interpZ{\sigma}\) to \(\interpZ{\tau}\), and \(X\) lies in its domain; letting
@@ -246,8 +252,8 @@ match (\(\sigma = \xi\)), \(F\) is a functional graph from
 \begin{remark}
   \label{rem:smt-wd}
   This is the only well-definedness side condition in the SMT semantics. The
-  source language additionally requires finiteness for cardinality, minimum, and
-  maximum (\Cref{sec:b-wd}); SMT-LIB has no such operators in the fragment
+  source language additionally requires finiteness for cardinality (\Cref{sec:b-wd});
+  SMT-LIB has no such operators in the fragment
   considered, and its function spaces are total, so the denotation is partial
   only at application---and even there, the adequacy results below show that the
   side condition is automatically satisfied for well-typed terms whose function
@@ -291,7 +297,7 @@ The denotation of the lambda abstraction is then given by the following set-leve
 \):
 
 \[
-  \interpS{\lamS \vec\tau \cdot e}
+  \interpS{\aop{\lamS} \vec\tau \cdot e}
   \triangleq
   \denval{\Lambda}[\tau^{\times} \toS \gamma][\pf{}{\lamS}].
 \]
@@ -299,7 +305,7 @@ The denotation of the lambda abstraction is then given by the following set-leve
 \emph{Universal quantification} is denoted by the bounded infimum of the body values
 over the domain, taken in the two-element Boolean algebra:
 \[
-  \interpS{\forallS \vec\tau \cdot P}
+  \interpS{\aop{\forallS} \vec\tau \cdot P}
   \triangleq
   \denval{\bigcap \{\, y \in \Zbool \mid \exists z \in \mathcal{D},\ y = \Phi(z) \,\}}[\boolS][\pf{}{\forallS}],
 \]
@@ -312,7 +318,7 @@ in contrast to the source language.
 \end{note}
 
 \emph{Existential quantification} is denoted by the derived form
-\(\existsS \vec\tau \cdot P \triangleq \notS(\forallS \vec\tau \cdot \notS P)\).
+\(\aop{\existsS} \vec\tau \cdot P \triangleq \notS(\forallS \vec\tau \cdot \notS P)\).
 
 \begin{proofconstruct}
   For lambda abstraction, \(\pf{}{\lamS} : \Lambda \in {\interpZ{\gamma}}^{\mathcal{D}}\)
@@ -364,17 +370,17 @@ denotation, so that \(\interpS{\cdot}\) never ascribes conflicting types to a te
 
 Second, the result implies that, over well-formed contexts, the static type of a
 term is independent of the context in which it is derived. This may seem
-surprising: one might expect the same variable \(x\) to be typed differently under
+surprising: one might expect the same variable \(\var{x}\) to be typed differently under
 different contexts, as in
 \[
-  \satype{\{ x \mapsto \intS\}}{\mathsf{var}\ x}{\intS} \quad\text{and}\quad
-  \satype{\{ x \mapsto \boolS\}}{\mathsf{var}\ x}{\boolS},
+  \satype{\{ \var{x} \mapsto \intS\}}{\var{x}}{\intS} \quad\text{and}\quad
+  \satype{\{ \var{x} \mapsto \boolS\}}{\var{x}}{\boolS},
 \]
-leaving the type carried by \(\interpS{\mathsf{var}\ x}\) ambiguous. The ambiguity is
-only apparent. By definition \(\interpS{\mathsf{var}\ x} \triangleq x\), where \(x\)
+leaving the type carried by \(\interpS{\var{x}}\) ambiguous. The ambiguity is
+only apparent. By definition \(\interpS{\var{x}} \triangleq \var{x}\), where \(\var{x}\)
 is a triple \(\denval{X}[\tau][\irrelprf]\) carrying a fixed intrinsic type
 \(\tau\). Well-formedness (\Cref{def:smt-wftc}) requires every context to assign
-\(x\) precisely this intrinsic type, so the two contexts above cannot both be
+\(\var{x}\) precisely this intrinsic type, so the two contexts above cannot both be
 well-formed---one would demand \(\tau = \intS\), the other \(\tau = \boolS\)---and
 the denotation unambiguously carries \(\tau\). More generally, the variable rule is
 the only context-sensitive rule, and well-formedness pins every variable to its
@@ -401,8 +407,8 @@ covers the term's free variables.
   By induction on the typing derivation \(\stype{\Gamma}{t}{\tau}\). We proceed by a case analysis divided into four groups.
 
   \paragraph{Variables and literals.}
-  For a variable, type-compatibility supplies a domain value \(\Delta(v)\) of
-  type \(\tau\); abstraction maps \(\mathsf{var}\ v\) to it, variables are denoted by
+  For a variable, type-compatibility supplies a domain value \(\Delta(\var{v})\) of
+  type \(\tau\); abstraction maps \(\var{v}\) to it, variables are denoted by
   themselves. Literals and the unit value are immediate, with the membership
   proofs constructed in \Cref{subsec:smt-denote}.
 
@@ -425,8 +431,8 @@ covers the term's free variables.
   \paragraph{Binders.}
   We treat the three binder cases uniformly. Inversion of the binder typing rule
   supplies, for some arity \(n \geq 1\), a type vector \(\vec\tau\) and a scoped body
-  \(\varphi\) well-typed under \(\Gamma[\vec v:\vec\tau]\) for every family of variables
-  \(\vec v\) carrying the types \(\vec\tau\), with type \(\boolS\) for universal
+  \(\varphi\) well-typed under \(\Gamma[\vec{\var{v}}:\vec\tau]\) for every family of variables
+  \(\vec{\var{v}}\) carrying the types \(\vec\tau\), with type \(\boolS\) for universal
   quantification and some \(\gamma\) for lambda abstraction.
   The argument proceeds in four steps.
     
@@ -438,7 +444,7 @@ covers the term's free variables.
   \smallskip\noindent\emph{Step 2: body denotation at typed tuples.} Each \(z\) induces a family
     \(\vec z = (\denval{z_i}[\tau_i])_i\) of the prescribed types.
     The renaming context \(\Delta\) is extended to
-    \(\Delta' \coloneq \Delta[\vec v \leftarrow \vec z]\);
+    \(\Delta' \coloneq \Delta[\vec{\var{v}} \leftarrow \vec z]\);
     the induction hypothesis, applied to the body under \(\Delta'\)
     yields a body denotation of the right type, namely \(\boolS\)
     for universal quantification and \(\gamma\) for lambda abstraction.
@@ -491,5 +497,5 @@ spaces are total: \(\interpZ{\sigma \toS \tau} = {\interpZ{\tau}}^{\interpZ{\sig
 is the set of total functions, so the denotation is partial only at function application,
 and even there only due to the type-matching guard---a guard that completeness shows is
 automatically satisfied for well-typed terms. On the source side, by contrast, partiality
-arises at every partial operator, \eg application, cardinality, minimum, and maximum,
+arises at every partial operator, \eg application and cardinality,
 all requiring explicit well-definedness conditions.

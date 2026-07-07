@@ -185,9 +185,9 @@ In each case, the construction of the proof \(\pf{\tau}{X}\) is detailed.
 
 \paragraph{Literals and constants.}
 The immediate consequence of our choice of representation is that variables denote themselves.
-For any variable \(v : \BDom\),
+For any variable \(\var{v} : \BDom\),
 \[
-  \interpB{v} \triangleq v
+  \interpB{\var{v}} \triangleq \var{v}
 \]
 For any integer \(n\) and Boolean \(b\),
 \[
@@ -244,7 +244,7 @@ Given \(\interpB{t} = \denval{X}[\tau]\) and \(\interpB{u} = \denval{Y}[\sigma]\
   \intertext{When \(\tau = \boolB\) and \(\sigma = \boolB\),}
   \interpB{t \andB u} & \triangleq \denval{X \regnotation{\andZ} Y}[\boolB]
   \intertext{When \(\tau = \sigma\),}
-  \interpB{t \eqB u}  & \triangleq \denval{X \regnotation{\eqZ} Y}[\boolB]
+  \interpB{t \eqB u}  & \triangleq \denval{X = Y}[\boolB]
   \intertext{When \(\sigma = \setB\tau\),}
   \interpB{t \inB u}  & \triangleq \denval{X \in Y}[\boolB]
 \end{align*}
@@ -328,11 +328,11 @@ ZFC separation, lambda abstraction as graph construction---so, an underlying sep
 universal quantification as bounded infimum---\ie a set-level conjunction folded over the
 quantification domain---in the two-element Boolean algebra.
 
-We start with the most straightforward case of set comprehension \(\{D \mid P\}\), where \(D\) is a term and \(P\) is a scoped term.
+We start with the most straightforward case of set comprehension \(\bcompa{D}{P}\), where \(D\) is a term and \(P\) is a scoped term.
 Definedness assumptions are the following:
 \begin{itemize}
   \item \(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^{\times}]\), where \(\tau^{\times}\) is a product type \(\tau_1 \prodB \cdots \prodB \tau_n\) of the binder's arity;
-  \item For any family of variables \(\vec x = (x_1, \cdots, x_n)\) of the binder's arity such that, for all \(i\), \(x_i\) carries the B type \(\tau_i\), and such that \(\pairZ{x_1}{\cdots, x_n} \in \mathcal{D}\), \(P(\vec x)\) has a denotation.
+  \item For any family of variables \(\vec{\var{x}} = (\var{x_1}, \cdots, \var{x_n})\) of the binder's arity such that, for all \(i\), \(\var{x_i}\) carries the B type \(\tau_i\), and such that \(\pairZ{\var{x_1}}{\cdots, \var{x_n}} \in \mathcal{D}\), \(P(\vec{\var{x}})\) has a denotation.
 \end{itemize}
 We can therefore define the following scoped denotation \(\mathfrak{P} : \mathsf{ZFSet} \to \BDom\) of the body \(P\).
 For any set argument \(z\), \(\mathfrak{P}(z)\) is defined by the following case distinction:
@@ -357,7 +357,7 @@ For any set argument \(z\), \(\mathfrak{P}(z)\) is defined by the following case
 
 The denotation of the whole comprehension is then given by separating \(\mathcal{D}\) on those \(z\) whose body denotes \(\topZ\), using ZFC separation (\leancodeptr{.sep}{Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.sep}), or with usual set-builder notation:
 \[
-  \interpB{\{D \mid P\}}
+  \interpB{\bcompa{D}{P}}
   \;\triangleq\;
   \denval{\{ z \in \mathcal{D} \mid \mathfrak{P}(z) = \topZ \}}[\setB\tau^\times][\pf{\setB\tau^{\times}}{\{ \mathcal{D} \mid \mathfrak{P} = \topZ \}}]
 \]
@@ -374,7 +374,7 @@ For lambda abstraction \(\lambdaB' D \cdot E\), the result is the graph of the f
 the body. The definition is quite similar to set comprehension, with the technicality that the return type of the body is not known at this point without typing information, so we need to compute it on the fly as we define the denotation of the body. The assumptions are also similar:
 \begin{itemize}
   \item \(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^{\times}]\) as before;
-  \item For any family of variables \(\vec x = (x_1, \cdots, x_n)\) of the binder's arity such that, for all \(i\), \(x_i\) carries the B type \(\tau_i\), and such that \(\pairZ{x_1}{\cdots, x_n} \in \mathcal{D}\), \(E(\vec x)\) has a denotation.
+  \item For any family of variables \(\vec{\var{x}} = (\var{x_1}, \cdots, \var{x_n})\) of the binder's arity such that, for all \(i\), \(\var{x_i}\) carries the B type \(\tau_i\), and such that \(\pairZ{\var{x_1}}{\cdots, \var{x_n}} \in \mathcal{D}\), \(E(\vec{\var{x}})\) has a denotation.
 \end{itemize}
 We define the following scoped denotation\footnotemark \(\mathcal{E} : \mathsf{ZFSet} \to \mathsf{Prop}\) of the body \(E\), for any set argument \(z\), by distinguishing whether \(\mathcal{D}\) is empty or not:
 \footnotetext{
@@ -426,12 +426,12 @@ algebra $\Zbool$.
 The assumptions are again similar to the previous cases:
 \begin{itemize}
   \item \(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^{\times}]\), with \(\tau^\times = \tau_1 \times \cdots \times \tau_n\) as before;
-  \item For any family of variables \(\vec x = (x_i)_{1 \leq i \leq n}\) of the binder's arity such that, for all \(i\), \(x_i\) carries the B type \(\tau_i\), and such that \(\pairZ{x_1}{\cdots, x_n} \in \mathcal{D}\), \(P(\vec x)\) has a denotation.
+  \item For any family of variables \(\vec{\var{x}} = (\var{x_i})_{1 \leq i \leq n}\) of the binder's arity such that, for all \(i\), \(\var{x_i}\) carries the B type \(\tau_i\), and such that \(\pairZ{\var{x_1}}{\cdots, \var{x_n}} \in \mathcal{D}\), \(P(\vec{\var{x}})\) has a denotation.
 \end{itemize}
 The scoped denotation \(\mathfrak{P}\) of the body \(P\) is defined exactly as in the set comprehension case.
 The intuition is the following: when the domain \(D\) is finite, so is its denotation \(\mathcal{D} = \{e_1, \cdots, e_k\}\). Universal quantification over that domain is then naturally expressed as the following enumerated conjunction:
 \[
-  \interpB{\forallB' D \cdot\,P} \;=\; \mathfrak{P}(e_1) \andZ \cdots \andZ \mathfrak{P}(e_k) \;=\; \regnotation{\bigandZ}_{i = 1}^k \mathfrak{P}(e_i) \;=\; \bigandZ_{e \in \mathcal{D}} \mathfrak{P}(e)
+  \interpB{\forallBa D \cdot\,P} \;=\; \mathfrak{P}(e_1) \andZ \cdots \andZ \mathfrak{P}(e_k) \;=\; \regnotation{\bigandZ}_{i = 1}^k \mathfrak{P}(e_i) \;=\; \bigandZ_{e \in \mathcal{D}} \mathfrak{P}(e)
 \]
 
 This enumerated form is only an \emph{intuition} for the finite case, but we genuinely generalize it to arbitrary domains.
@@ -446,7 +446,7 @@ The second technicality is that our model of ZFC does not offer such generalized
 \]
 Overall, the denotation of the whole quantification---on non-empty domains---is given by:
 \[
-  \interpB{\forallB' D \cdot\,P}
+  \interpB{\forallBa D \cdot\,P}
   \triangleq
   \denval{\bigcap \{z \in \ZboolB \mid \exists x \in \mathcal{D},\, y = \mathfrak{P}(x) \}}[\boolB][\pf{}{}]
 \]
@@ -454,6 +454,8 @@ Overall, the denotation of the whole quantification---on non-empty domains---is 
 \begin{proofconstruct}
   The proof \(\pf{}{} : \bigcap \{z \in \ZboolB \mid \exists x \in \mathcal{D},\, y = \mathfrak{P}(x) \} \in \interpZ{\boolB}\) naturally follows from the algebra being structurally closed under conjunction.
 \end{proofconstruct}
+
+\input{chapters/b/wd.tex}
 
 \subsection{Basic properties}
 \label{subsec:b-sem-properties}
@@ -498,15 +500,18 @@ interpretations as a value of different types; for instance, the set
 \(\{\emptyset, \{\emptyset\}\}\) is usually identified either with the natural number \(2\), or the
 set of Booleans \(\mathbb{B}\), or potentially other sets.
 
-We now turn to completeness, asserting that well-typed, well-defined terms have a
-denotation, with the expected type.
+Note that adequacy carries no well-definedness hypothesis: it constrains whatever denotation
+happens to exist, whereas well-definedness is what \emph{guarantees} one. This is the content
+of completeness, asserting that well-typed, well-defined terms have a denotation, with the
+expected type.
 
 \begin{theorem}[Denotation typing-completeness][B.denote\_exists\_of\_typing][B/Reasoning/DenotationTotality.html\#B.denote_exists_of_typing]
   \label{thm:b-denote-complete}
-  Let \(\Gamma\) be a well-formed abstract typing context, and let
-  \(t : \mathsf{PHOAS.Term}\,\BDom\) be a well-defined PHOAS term such that
-  \(\batype{\Gamma}{t}{\tau}\). Then \(t\) has a denotation carrying type \(\tau\), \ie there
-  exists a set \(T \in \interpZ{\tau}\) such that
+  Let \(\Gamma\) be a well-formed abstract typing context and let
+  \(t : \mathsf{PHOAS.Term}\,\BDom\) be well-typed, \(\batype{\Gamma}{t}{\tau}\), and
+  well-defined in the sense of \Cref{def:b-welldefined}, \(\WD(t)\).
+  Then \(t\) has a denotation carrying type \(\tau\), \ie there exists
+  a set \(T \in \interpZ{\tau}\) such that
   \[
     \interpB{t} = \denval{T}[\tau].
   \]
@@ -562,8 +567,8 @@ denotation, with the expected type.
           \(D = D^\times \triangleq D_1 \prodB \cdots \prodB D_n\);
     \item each component is well-typed: \(\forall i,\, \batype{\Gamma}{D_i}{\setB\alpha_i}\);
     \item for every family of PHOAS variables
-          \(\vec v = (v_1,\cdots,v_n)\) such that each \(v_i\) carries the B type \(\alpha_i\),
-          the body \(\varphi(\vec v)\) is well-typed under the extended context \(\Gamma[\vec v : \vec\alpha]\),
+          \(\vec{\var{v}} = (\var{v_1},\cdots,\var{v_n})\) such that each \(\var{v_i}\) carries the B type \(\alpha_i\),
+          the body \(\varphi(\vec{\var{v}})\) is well-typed under the extended context \(\Gamma[\vec{\var{v}} : \vec\alpha]\),
           with type \(\boolB\) for set comprehension and universal quantification, and
           some type \(\gamma\) for lambda abstraction.
   \end{itemize}
@@ -653,11 +658,31 @@ denotation, with the expected type.
   \(\pf{\tau}{T}\), which concludes the proof.
 \end{proof}
 
+Adequacy and completeness combine into the statement actually consumed downstream: on the
+well-typed, well-defined fragment the denotation is a genuine total function into values of
+the expected type.
+
+\begin{corollary}[Totality of the denotation][B.denote\_isSome\_of\_typing][B/Reasoning/DenotationTotality.html\#B.denote_isSome_of_typing]
+  \label{cor:b-denote-total}
+  Let \(\Gamma\) be a well-formed abstract typing context and let \(t : \mathsf{PHOAS.Term}\,\BDom\)
+  satisfy \(\batype{\Gamma}{t}{\tau}\) and \(\WD(t)\). Then \(\interpB{t}\) is defined. Consequently,
+  the partial map \(\interpB{\cdot}\) restricts to a \emph{total} function on the well-typed,
+  well-defined fragment.
+\end{corollary}
+
+\begin{proof}
+  The denotation \(\interpB{t} = \denval{T}[\tau]\) supplied by \Cref{thm:b-denote-complete} witnesses
+  that \(\interpB{t}\) is defined.
+\end{proof}
+
+This total restriction is precisely the regime in which every B proof obligation lives---Atelier~B
+rejects ill-typed expressions, and \(\WD\) discharges partiality---and the interface on which the
+certified encoding of \Cref{ch:beer} operates.
+
 \subsection{Conclusion}
 
 This chapter has established the formal foundations of the B mathematical language required by the rest of this work.
 A dual syntactic representation was introduced: a concrete first-order syntax for parsing proof obligations, and an abstract syntax suited to semantic reasoning without variable-capture issues.
-A typing relation and a well-definedness predicate capturing the semantic side conditions of partial operations complete the static layer.
-The denotational semantics, built over the ZFLean set-theoretic framework, rests on a semantic domain with intrinsic B types: a correct-by-construction design that eliminates all type-correctness side conditions from the denotation clauses and confines partiality to genuine semantic conditions.
-The two key properties---typing-soundness (\Cref{thm:b-denote-type-det}) and typing-completeness (\Cref{thm:b-denote-complete})---assert that well-typed, well-defined terms always denote a value of their statically assigned type, and that no term can denote values of two distinct types.
+A typing relation forms the static layer; the denotational semantics, built over the ZFLean set-theoretic framework, then rests on a semantic domain with intrinsic B types---a correct-by-construction design that eliminates all type-correctness side conditions from the denotation clauses and confines partiality to genuine semantic conditions, isolated by a well-definedness predicate.
+Three properties tie the layers together: typing-soundness (\Cref{thm:b-denote-type-det}) forbids a term from denoting values of two distinct types; typing-completeness (\Cref{thm:b-denote-complete}) makes every well-typed, well-defined term denote a value of its statically assigned type; and totality (\Cref{cor:b-denote-total}) recasts the two as a total denotation function on that fragment.
 The syntax, typing, and semantics of this chapter together form the source-language contract against which the certified encoding of \Cref{ch:beer} is verified. 

@@ -17,24 +17,28 @@ It nonetheless serves the same two purposes as on the source side, as detailed i
 
 Concrete typing is defined over the first-order syntax of
 \Cref{def:smt-basic-syntax}. The rules are syntax-directed and form judgments
-\(\stype{\Gamma}{t}{\tau}\), where \(\Gamma : \mathcal{V} \rightharpoonup \mathsf{SMTType}\) is a
+\(\stype{\Gamma}{t}{\tau}\), where \(\Gamma : \mathsf{String} \rightharpoonup \mathsf{SMTType}\) is a
 typing context, \ie a map from concrete variables to SMT types \leaninl{SMTType},
 \(t\) is a concrete SMT term, and \(\tau\) is an SMT type.
 The binder rules share a side condition, analogous to \Cref{eq:def-bind} but expressed with sort
 annotations rather than a domain set.
-For a body \(t\), bound variables \(\vec v\), and SMT types \(\vec\tau\), we write
+For a body \(t\), bound variables \(\vec{\var{v}}\), and SMT types \(\vec\tau\), we write
 \begin{equation}
   \begin{aligned}
-    \mathsf{Bind}(\Gamma,\vec v,\vec\tau,t) \coloneq
-      &\underbrace{(\forall v \in \vec v,\; v \notin \Gamma)}_{\text{bound variables are fresh for }\Gamma}
-      \;\land\; \underbrace{(\forall v \in \vec v,\; v \notin \mathsf{bv}(t))}_{\text{not already bound in the body}} \\[1ex]
-      \land{} &\underbrace{0 < |\vec v|}_{\text{non-empty}}
-      \;\land\; \underbrace{|\vec v| = |\vec\tau|}_{\text{equal length}}
+    \mathsf{Bind}(\Gamma,\vec{\var{v}},\vec\tau,t) \coloneq
+      &\underbrace{(\forall \var{v} \in \vec{\var{v}},\; \var{v} \notin \Gamma)}_{\text{bound variables are fresh for }\Gamma}
+      \;\land\; \underbrace{(\forall \var{v} \in \vec{\var{v}},\; \var{v} \notin \mathsf{bv}(t))}_{\text{not already bound in the body}} \\[1ex]
+      \land{} &\underbrace{0 < |\vec{\var{v}}|}_{\text{non-empty}}
+      \;\land\; \underbrace{|\vec{\var{v}}| = |\vec\tau|}_{\text{equal length}}
   \end{aligned}
   \tag{Bind\textsuperscript{S} def.}
   \label{eq:def-bind-smt}
 \end{equation}
-where \(\mathsf{bv}(t)\) denotes the bound variables of \(t\). We further keep the notation
+where \(\mathsf{bv}(t)\) is the set of variables bound in \(t\): binders add the variables
+they introduce, \ie
+\(\mathsf{bv}(\lamS \vec{\var{v}} : \vec\tau \cdot t) \coloneq \vec{\var{v}} \cup \mathsf{bv}(t)\) and likewise for
+\(\forallS\) and \(\existsS\); other constructors are homomorphic---the union of
+its subterms' bound-variable sets, and \(\emptyset\) on atoms. We further keep the notation
 \(\tau^{\times} \coloneq \tau_1 \timesS \cdots \timesS \tau_n\) for the
 right-nested pair SMT type associated with \(\vec\tau\).
 
@@ -45,8 +49,8 @@ right-nested pair SMT type associated with \(\vec\tau\).
   \paragraph{Atoms and application.}
   \begin{mathpar}
     \typingrule{smt-concrete-typing}{var}
-      {\Gamma(v)=\tau}
-      {\stype{\Gamma}{\mathsf{var}\ v}{\tau}}
+      {\Gamma(\var{v})=\tau}
+      {\stype{\Gamma}{\var{v}}{\tau}}
     \and
     \typingrule{smt-concrete-typing}{int}
       { }
@@ -63,19 +67,19 @@ right-nested pair SMT type associated with \(\vec\tau\).
   \paragraph{Binders.}
   \begin{mathpar}
     \typingrule{smt-concrete-typing}{lambda}
-      {\mathsf{Bind}(\Gamma,\vec v,\vec\tau,t) \quad \stype{\Gamma[\vec v:\vec\tau]}{t}{\gamma}}
-      {\stype{\Gamma}{\lamS \vec v : \vec\tau \cdot t}{\tau^{\times} \toS \gamma}}
+      {\mathsf{Bind}(\Gamma,\vec{\var{v}},\vec\tau,t) \quad \stype{\Gamma[\vec{\var{v}}:\vec\tau]}{t}{\gamma}}
+      {\stype{\Gamma}{\lamS \vec{\var{v}} : \vec\tau \cdot t}{\tau^{\times} \toS \gamma}}
     \and
     \typingrule{smt-concrete-typing}{forall}
-      {\mathsf{Bind}(\Gamma,\vec v,\vec\tau,P) \quad \stype{\Gamma[\vec v:\vec\tau]}{P}{\boolS}}
-      {\stype{\Gamma}{\forallS \vec v : \vec\tau \cdot P}{\boolS}}
+      {\mathsf{Bind}(\Gamma,\vec{\var{v}},\vec\tau,P) \quad \stype{\Gamma[\vec{\var{v}}:\vec\tau]}{P}{\boolS}}
+      {\stype{\Gamma}{\forallS \vec{\var{v}} : \vec\tau \cdot P}{\boolS}}
     \and
     \typingrule{smt-concrete-typing}{exists}
-      {\mathsf{Bind}(\Gamma,\vec v,\vec\tau,P) \quad \stype{\Gamma[\vec v:\vec\tau]}{P}{\boolS}}
-      {\stype{\Gamma}{\existsS \vec v : \vec\tau \cdot P}{\boolS}}
+      {\mathsf{Bind}(\Gamma,\vec{\var{v}},\vec\tau,P) \quad \stype{\Gamma[\vec{\var{v}}:\vec\tau]}{P}{\boolS}}
+      {\stype{\Gamma}{\existsS \vec{\var{v}} : \vec\tau \cdot P}{\boolS}}
   \end{mathpar}
-  where \(\Gamma[\vec v:\vec\tau]\) denotes the context extension of \(\Gamma\) with the bindings
-  \(v_i : \tau_i\) for each \(v_i\) in \(\vec v\) and corresponding \(\tau_i\) in \(\vec\tau\), and
+  where \(\Gamma[\vec{\var{v}}:\vec\tau]\) denotes the context extension of \(\Gamma\) with the bindings
+  \(\var{v_i} : \tau_i\) for each \(\var{v_i}\) in \(\vec{\var{v}}\) and corresponding \(\tau_i\) in \(\vec\tau\), and
   \(\tau^{\times}\) is the right-nested pair SMT type associated with \(\vec\tau\).
   \paragraph{Logic.}
   \begin{mathpar}
@@ -188,12 +192,12 @@ rule. They are available under the names
 {\small\leancodeptr{SMT.Typing.appE}{SMT/Typing.html\#SMT.Typing.appE}},
 {\small\leancodeptr{SMT.Typing.pairE}{SMT/Typing.html\#SMT.Typing.pairE}},
 {\small\leancodeptr{SMT.Typing.lambdaE}{SMT/Typing.html\#SMT.Typing.lambdaE}},
-\etc, and each proof is immediate by case analysis on the derivation, which
-reduces to a single branch. For instance, inversion for pairs reads as follows.
+and similarly for the remaining rules. Each proof is immediate by case analysis on
+the derivation, which reduces to a single branch. For instance, inversion for pairs reads as follows.
 
 \begin{lemma}[Pair typing inversion][SMT.Typing.pairE][SMT/Typing.html\#SMT.Typing.pairE]
   Let \(\Gamma\) be a typing context, \(x, y\) concrete SMT terms, and \(\tau\)
-  an SMT type. If \(\stype{\Gamma}{\pairS(x, y)}{\tau}\), then \(\tau\) is a pair
+  an SMT type. If \(\stype{\Gamma}{\pairSa{x}{y}}{\tau}\), then \(\tau\) is a pair
   SMT type whose components type the two projections:
   \[
     \exists\,\alpha,\beta,\quad \tau = \alpha \timesS \beta \;\land\;
@@ -233,16 +237,16 @@ a term; bindings for variables absent from the term may be discarded.
 \begin{proof}
   By induction on the derivation \(\stype{\Xi}{t}{\tau}\).
   
-  In the variable case \(t = \mathsf{var}\ v\),
-  the hypothesis gives \(v \in \Gamma\); since
-  \(\Gamma \subseteq \Xi\) and \(\Xi(v) = \tau\), the two contexts
-  agree on \(v\), and the variable rule applies under \(\Gamma\).
+  In the variable case \(t = \var{v}\),
+  the hypothesis gives \(\var{v} \in \Gamma\); since
+  \(\Gamma \subseteq \Xi\) and \(\Xi(\var{v}) = \tau\), the two contexts
+  agree on \(\var{v}\), and the variable rule applies under \(\Gamma\).
   
   Constants are immediate; compound non-binder terms follow from the induction
   hypotheses on their subterms.
   
   For a binder, the induction hypothesis is applied to the body under the contexts extended by the
-  bound variables, \(\Gamma[\vec v:\vec\tau] \subseteq \Xi[\vec{v}:\vec\tau]\); a free variable of the body is either bound by the binder---and
+  bound variables, \(\Gamma[\vec{\var{v}}:\vec\tau] \subseteq \Xi[\vec{\var{v}}:\vec\tau]\); a free variable of the body is either bound by the binder---and
   hence present in the extension---or free in the whole term, and thus in
   \(\Gamma\). The freshness side condition \(\mathsf{Bind}\) is preserved because the
   bound variables, fresh for \(\Xi\), remain fresh for the smaller context \(\Gamma\);
@@ -267,7 +271,7 @@ a term; bindings for variables absent from the term may be discarded.
   
   In a binder case, the freshness premise of \(\mathsf{Bind}\) \eqref{eq:def-bind-smt} under \(\Xi\)
   is exactly the added hypothesis, and it propagates to the body, whose bound variables
-  remain fresh for the extension \(\Xi[\vec v:\vec\tau]\): they avoid \(\Xi\) by
+  remain fresh for the extension \(\Xi[\vec{\var{v}}:\vec\tau]\): they avoid \(\Xi\) by
   hypothesis and avoid the binder's own variables by \(\mathsf{Bind}\). This is the sole
   point of departure from strengthening: enlarging the context can violate binder
   freshness, whence the side condition.
@@ -287,8 +291,9 @@ The non-binder rules are identical to their concrete counterparts. As in
 bound variables: variable management is delegated to Lean's meta-level, and the
 body is typed under any extension of the context with arbitrary families of
 variables carrying the prescribed SMT type---in practice, \(\mathcal{V}\) is equipped
-with an intrinsic type-assignment function, mirroring the the constraint enforced on
-the source side.
+with a type-assignment function \(\mathcal{V} \to \mathsf{SMTType}\), mirroring the constraint
+enforced on the source side (\Cref{rem:b-constraint-on-V}). We call the image of
+\(v : \mathcal{V}\) under this function the \emph{intrinsic} SMT type carried by \(v\).
 
 We illustrate the binder rules with the lambda rule; the universal rule is
 analogous. Given a family of SMT types \(\vec\tau : \mathsf{Fin}\,n \to
@@ -297,17 +302,16 @@ analogous. Given a family of SMT types \(\vec\tau : \mathsf{Fin}\,n \to
 
 \begin{mathpar}
   \typingrule{smt-abstract-typing}{lambda}
-  {\forall \vec v,\, \satype{\Gamma[\vec v:\vec\tau]}{e(\vec v)}{\gamma}}
+  {\forall \vec{\var{v}},\, \satype{\Gamma[\vec{\var{v}}:\vec\tau]}{e(\vec{\var{v}})}{\gamma}}
   {\satype{\Gamma}{\lamS \vec\tau \cdot e}{\tau^{\times} \toS \gamma}}
 \end{mathpar}
-where the vector \(\vec v\) of variables ranges over all families of variables carrying the
+where the vector \(\vec{\var{v}}\) of variables ranges over all families of variables carrying the
 expected SMT types.
 
 As for the concrete system, we prove inversion lemmas for every abstract rule,
 with the same names as their concrete counterparts, \eg\@
 {\small\leancodeptr{SMT.PHOAS.Typing.appE}{SMT/HOTyping/Rules.html\#SMT.PHOAS.Typing.appE}},
-{\small\leancodeptr{SMT.PHOAS.Typing.lambdaE}{SMT/HOTyping/Rules.html\#SMT.PHOAS.Typing.lambdaE}},
-\etc
+{\small\leancodeptr{SMT.PHOAS.Typing.lambdaE}{SMT/HOTyping/Rules.html\#SMT.PHOAS.Typing.lambdaE}}, and so on.
 
 \paragraph{Determinism.}
 A basic expected property of the abstract type system is determinism: a term has at most
@@ -334,8 +338,9 @@ adequacy result of \Cref{thm:smt-denote-type-det} rests.
 
 The two type systems are connected by a context abstraction that lifts concrete
 typing derivations to the PHOAS setting. As in \Cref{subsec:b-typing-abstraction},
-the variable type \(\mathcal{V}\) is, in practice, instantiated with a semantic domain satisfying
-the constraint mentioned earlier.
+the variable type \(\mathcal{V}\) is, in practice, instantiated with a semantic domain
+equipped with the type-assignment function \(\mathcal{V} \to \mathsf{SMTType}\) introduced above, so
+that every variable \(\var{v} : \mathcal{V}\) carries an intrinsic SMT type.
 
 Recall that a renaming, or valuation when instantiated with the semantic domain, is a partial map
 \(\Delta : \mathsf{String} \rightharpoonup \mathcal{V}\). We first abstract typing contexts.
@@ -345,26 +350,26 @@ Recall that a renaming, or valuation when instantiated with the semantic domain,
       Let \(\Gamma\) be a concrete typing context and
   \(\Delta : \mathsf{String} \rightharpoonup \mathcal{V}\) a renaming. The
   abstract context \(\aterm{\Gamma}{\Delta} : \mathcal{V} \rightharpoonup
-  \mathsf{SMTType}\) is defined on \(v : \mathcal{V}\) whenever there is a
-  concrete name \(k\) with \(\Delta(k) = v\) and \(\Gamma(k) = \tau\), where
-  \(\tau\) is the intrinsic SMT type carried by \(v\); in that case it maps \(v\) to
+  \mathsf{SMTType}\) is defined on \(\var{v} : \mathcal{V}\) whenever there is a
+  concrete name \(\var{k}\) with \(\Delta(\var{k}) = \var{v}\) and \(\Gamma(\var{k}) = \tau\), where
+  \(\tau\) is the intrinsic SMT type carried by \(\var{v}\); in that case it maps \(\var{v}\) to
   \(\tau\):
   \[
-    \aterm{\Gamma}{\Delta}(v) \coloneq
-      \tau \quad\text{if } \exists k,\, \Delta(k) = v \land \Gamma(k) = \tau
+    \aterm{\Gamma}{\Delta}(\var{v}) \coloneq
+      \tau \quad\text{if } \exists \var{k},\, \Delta(\var{k}) = \var{v} \land \Gamma(\var{k}) = \tau
   \]
 \end{definition}
 
-The coherence condition \(\Gamma(k) = \tau\) requires the SMT type declared by
-\(\Gamma\) for the preimage \(k\) to coincide with the intrinsic SMT type of the
-domain element \(v\). Baking this check into the definition makes
+The coherence condition \(\Gamma(\var{k}) = \tau\) requires the SMT type declared by
+\(\Gamma\) for the preimage \(\var{k}\) to coincide with the intrinsic SMT type of the
+domain element \(\var{v}\). Baking this check into the definition makes
 \(\aterm{\Gamma}{\Delta}\) well-formed by construction, in the following sense.
 
 \begin{definition}[Well-formed abstract context][SMT.PHOAS.WFTC][SMT/Reasoning/Lemmas.html\#SMT.PHOAS.WFTC]
   \label{def:smt-wftc}
   An abstract context \(\Gamma : \mathcal{V} \rightharpoonup \mathsf{SMTType}\)
   is \emph{well-formed} if every assignment respects the intrinsic SMT type:
-  for all \(v\) and \(\tau\), if \(\Gamma(v) = \tau\) then \(v\) carries the intrinsic SMT
+  for all \(\var{v}\) and \(\tau\), if \(\Gamma(\var{v}) = \tau\) then \(\var{v}\) carries the intrinsic SMT
   type \(\tau\) in the domain \(\mathcal{V}\).
 \end{definition}
 
@@ -389,7 +394,7 @@ SMT type-compatible with \(\Gamma\).
   \begin{enumerate}[label=(\roman*), nosep]
     \item \(\Delta\) is defined on every free variable of \(t\), and
     \item \(\Delta\) is SMT type-compatible with \(\Gamma\): whenever
-          \(\Gamma(v) = \sigma\), the value \(\Delta(v)\) is defined and carries
+          \(\Gamma(\var{v}) = \sigma\), the value \(\Delta(\var{v})\) is defined and carries
           intrinsic SMT type \(\sigma\).
   \end{enumerate}
   Then typing is preserved by abstraction:
@@ -400,12 +405,12 @@ SMT type-compatible with \(\Gamma\).
 \begin{proof}
   By induction on the derivation \(\stype{\Gamma}{t}{\tau}\).
 
-  In the variable case \(t = \mathsf{var}\ v\), inversion gives
-  \(\Gamma(v) = \tau\); SMT type-compatibility yields a domain value
-  \(\Delta(v)\) of intrinsic SMT type \(\tau\), and by
+  In the variable case \(t = \var{v}\), inversion gives
+  \(\Gamma(\var{v}) = \tau\); SMT type-compatibility yields a domain value
+  \(\Delta(\var{v})\) of intrinsic SMT type \(\tau\), and by
   \Cref{def:smt-context-abstraction} the abstract context maps it to
-  \(\aterm{\Gamma}{\Delta}(v) \triangleq \Gamma(v) = \tau\). Since
-  \(\aterm{\mathsf{var}\ v}{\Delta} \triangleq \Delta(v)\), the abstract variable rule
+  \(\aterm{\Gamma}{\Delta}(\var{v}) \triangleq \Gamma(\var{v}) = \tau\). Since
+  \(\aterm{\var{v}}{\Delta} \triangleq \Delta(\var{v})\), the abstract variable rule
   concludes. Constants carry no free variables and are immediate.
 
   For compound non-binders, combining rule inversion with induction hypotheses
@@ -413,7 +418,7 @@ SMT type-compatible with \(\Gamma\).
   rule reconstructs the derivation.
 
   For binders, both the context and the renaming are extended with fresh bindings
-  for the bound variables: a family \(\vec v\) of domain values carrying the
+  for the bound variables: a family \(\vec{\var{v}}\) of domain values carrying the
   SMT types \(\vec\tau\) is introduced, the renaming is updated, and the induction hypothesis is
   invoked on the body under the extended context.
 \end{proof}

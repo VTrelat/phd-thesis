@@ -1,4 +1,4 @@
-\section{Well-definedness}
+\subsection{Well-definedness}
 \label{sec:b-wd}
 
 Many B operators are \emph{partial}: they yield a meaningful value only on a strict subset
@@ -6,7 +6,8 @@ of their well-typed arguments. Function application \(\appB' f\,x\) presupposes 
 denotes a function and that \(x\) lies in its domain; cardinality \(\cardB{S}\) presupposes
 that \(S\) is finite. Typing (\Cref{sec:b-typing}) constrains the \emph{shape} of these
 expressions, but cannot express such conditions: they depend on the \emph{values} the
-subterms denote, not on their syntax. The missing layer is \emph{well-definedness}---the
+subterms denote, not on their syntax, and therefore lie at the semantic level.
+The missing layer is \emph{well-definedness}---the
 side conditions under which every partial operator in a term is applied within its domain.
 
 \paragraph{Well-definedness in the B method.}
@@ -15,59 +16,48 @@ operator occurring in a proof obligation, Atelier~B emits a separate \emph{well-
 (WD) obligation---a side goal asserting that the operator is used within its domain---and
 assumes that condition when discharging the main goal~\cite{abrial1996bbook}
 (see~\Cref{sec:b-method}). A partial operator is read as a bounded Hilbert choice
-\(\epsilon\,x \inB S \cdot \varphi\), left unspecified when no element of \(S\) satisfies
+\(\epsilon\,\var{x} \inB S \cdot \varphi\), left unspecified when no element of \(S\) satisfies
 \(\varphi\); its WD condition is precisely that some element does. This keeps the goal logic
 total, at the price of detaching the conditions from the operators that induce them: the
 obligations are generated globally, and their correspondence with the partial operators of
 the goal is left implicit.
 
 \paragraph{A semantic account.}
-The denotational semantics of \Cref{sec:b-semantics} instead takes partiality at face value:
-the denotation \(\interpB{\cdot}\) is a genuine \emph{partial} function on terms, undefined
-exactly when a partial operator is evaluated outside its domain. Well-definedness is then not
-an external catalogue of obligations but a single predicate \(\regnotation{\WD}\) that
-collects, by structural recursion on a term, the conditions under which all of its partial
-operators denote. Each condition is stated directly against the denotations of subterms---the
-finiteness of a denoted set, the functionality of a denoted relation---so that
-well-definedness is grounded in the very semantic objects it constrains. We introduce the
-predicate ahead of the denotation \(\interpB{\cdot}\) and the semantic domain \(\BDom\) on which it
-acts---both defined in \Cref{sec:b-semantics} (\Cref{def:b-dom} and \Cref{def:b-denote})---because it
-is exactly the precondition under which that denotation is total (\Cref{thm:b-denote-complete}).
+The denotation \(\interpB{\cdot}\) developed above (\Cref{subsec:b-denote}) instead takes partiality
+at face value: it is a genuine \emph{partial} function on terms, undefined exactly when a partial
+operator is evaluated outside its domain. Well-definedness is then not an external catalogue of
+obligations but a single predicate \(\regnotation{\WD}\) that collects, by structural recursion on
+a term, the conditions under which all of its partial operators denote. Each condition is stated
+directly against the denotations of subterms---the finiteness of a denoted set, the functionality
+of a denoted relation---so that well-definedness is grounded in the very semantic objects it
+constrains. Acting on the semantic domain \(\BDom\) of \Cref{def:b-dom} and the denotation
+just introduced in \Cref{def:b-denote}, \(\WD\) is exactly the precondition under which that
+denotation is total (\Cref{thm:b-denote-complete}).
 
 \begin{definition}[Well-definedness predicate][B.PHOAS.WellDefined][B/Reasoning/WellDefined.html\#B.PHOAS.WellDefined]
   \label{def:b-welldefined}
   The predicate \(\WD : \mathsf{PHOAS.Term}\,\BDom \to \mathsf{Prop}\) is defined by structural
-  recursion. On variables, literals, and the type constants, and on every total constructor, it
-  is purely propagational:
-  \[
-    \WD(t) \triangleq
-    \begin{cases}
-      \top
-        & t \text{ a variable, an integer or Boolean literal, or } \ZintB,\ \ZboolB; \\[2pt]
-      \WD(t_1) \land \cdots \land \WD(t_k)
-        & t = c(t_1, \dots, t_k),\ c \text{ neither a binder nor a partial operator}; \\[2pt]
-      \WD(D) \land \forall \vec v,\ \WD\big(P(\vec v)\big)
-        & t \text{ a binder } \{D \mid P\},\ \lambdaB' D \cdot P, \text{ or } \forallB' D \cdot P,
-    \end{cases}
-  \]
-  where the binder clause requires the body \(P\) to be well-defined under every instantiation
-  \(\vec v\) of its bound variables. At the two partial operators, \(\WD\) requires the
-  well-definedness of the immediate subterms together with the semantic side condition that
-  makes the operator denote:
-  \begin{description}
-    \item[\(\appB' f\,x\):] writing \(\interpB{f} = \denval{F}[\setB(\tau \prodB \sigma)]\) and
-          \(\interpB{x} = \denval{X}[\tau]\), the value \(F\) is a partial function from
-          \(\interpZ{\tau}\) to \(\interpZ{\sigma}\) and \(X\) belongs to its domain:
-          \(\IsPFunc\ F\ \interpZ{\tau}\ \interpZ{\sigma}\) and \(X \in \Dom(F)\);
-    \item[\(\cardB{S}\):] writing \(\interpB{S} = \denval{S'}[\setB\alpha]\), the value \(S'\)
-          is finite: \(\IsFinite\ S'\).
-  \end{description}
+  recursion. It is purely propagational on the total fragment, and at the only two partial
+  operators---application and cardinality---it additionally imposes
+  the semantic side condition under which the operator denotes:
+  \begin{align*}
+    \WD(t)                          & \;\triangleq\; \top,\quad \text{ where \(t\) is an atom or a constant}, \\
+    \WD\big(c(t_1, \dots, t_k)\big) & \;\triangleq\; \WD(t_1) \land \cdots \land \WD(t_k), \quad \text{ where \(c\) is a non-binder constructor}, \\
+    \WD\big(\smallint_D P\big)       & \;\triangleq\; \WD(D) \land \forall \vec{\var{v}},\ \WD\big(P(\vec{\var{v}})\big), \quad \text{ where \(\smallint \in \left\{\lambdaBa, \forallBa, \bcompa{\cdot}{\cdot}\right\}\)}\\
+    \WD\big(\appB' f\,x\big)        & \;\triangleq\; \WD(f) \land \WD(x) \land \IsPFunc\ F\ \interpZ{\tau}\ \interpZ{\sigma} \land X \in \Dom(F), \\
+    \WD\big(\cardBa{S}\big)          & \;\triangleq\; \WD(S) \land \IsFinite\ S'.
+  \end{align*}
+  The first three clauses cover, respectively, an atom or type constant \(t\), a total non-binder
+  constructor \(c\), and a binder \(\bcompa{D}{P}\)---the last applying identically to
+  \(\lambdaB' D \cdot P\) and \(\forallB' D \cdot P\), and requiring the body \(P\) to be well-defined
+  under every instantiation \(\vec{\var{v}}\) of its bound variables. In the two partial clauses the
+  side conditions are stated against the subterm denotations: writing
+  \(\interpB{f} = \denval{F}[\setB(\tau \prodB \sigma)]\), \(\interpB{x} = \denval{X}[\tau]\), and
+  \(\interpB{S} = \denval{S'}[\setB\alpha]\), the value \(F\) must be a partial function from
+  \(\interpZ{\tau}\) to \(\interpZ{\sigma}\) with \(X\) in its domain, and \(S'\) must be finite.
 \end{definition}
 
-\paragraph{Role.}
-The predicate is vacuous on the total fragment and contributes one condition at each occurrence
-of a partial operator; in particular, \(\WD(t)\) holds trivially whenever \(t\) is built without
-\(\appB'\) or \(\cardB{\cdot}\). Its significance is fixed by the
+The significance of well-definedness is fixed by the
 typing-completeness theorem (\Cref{thm:b-denote-complete}): a well-typed term denotes a value of
 its static type \emph{as soon as it is well-defined}. Indeed, \(\WD(t)\) supplies exactly the
 witnesses---functionality and domain membership for application, and finiteness for
@@ -75,13 +65,26 @@ cardinality---that the partial clauses of \(\interpB{\cdot}\)
 (\Cref{subsec:b-denote}) require in order to select their defined branch. Well-definedness is
 thus the precise boundary between the partial denotation and the total restriction on which the
 certified encoding of \Cref{ch:beer} relies. Defined here on the abstract syntax used for
-semantic reasoning (\Cref{sec:b-syntax}), the predicate transfers to the concrete first-order
+semantic reasoning, the predicate transfers to the concrete first-order
 syntax through abstraction, so that obligations stated over concrete terms inherit the same
 discipline.
 
-\begin{example}[Propagation and side conditions]
-  The term \(\cardB{S} \leB \cardB{T}\), with \(S, T\) free variables of type \(\setB\intB\), has
-  the two cardinalities as its only partial operators. Unfolding \Cref{def:b-welldefined}, its
-  well-definedness reduces to the requirement that \(S\) and \(T\) each denote a finite set, the
-  comparison \(\leB\) contributing nothing.
+\begin{remark}[Well-definedness versus typing]
+  This separation marks another divergence from the B-Book~\cite{abrial1996bbook}, which draws no sharp
+  line between the two concerns: several of its well-definedness conditions fold in constraints
+  that we classify as \emph{typing}. Here the two are kept apart. Typing (\Cref{sec:b-typing})
+  governs the well-formedness of terms, whereas well-definedness asserts only bare semantic
+  properties---finiteness, functionality, domain membership---and \emph{presupposes} typing rather
+  than re-deriving it. This is why every theorem carries the two hypotheses side by side---\eg\Cref{thm:b-denote-complete}, \Cref{cor:b-denote-total}---a typing judgment together with
+  \(\WD\). One could instead let \(\WD\) depend on a typing derivation and dispense with the
+  separate premise; we deliberately avoid this, as it would thread derivations through the
+  predicate and weigh down every statement, whereas the present form keeps \(\WD\) a lightweight,
+  purely semantic side condition.
+\end{remark}
+
+\begin{example}
+  The term \(1 \inB \ZboolB\) is actually well-defined in our setting, as it contains no partial
+  operator, yet it is \emph{not} well-typed, an integer being tested against a set of Booleans.
+  Well-definedness admits it; typing rejects it. Unlike the B-Book, we regard this as the cleaner
+  allocation of concerns: the defect is purely a matter of typing.
 \end{example}
