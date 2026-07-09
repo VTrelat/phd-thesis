@@ -52,10 +52,11 @@
   tex.sprint(string.format("\\gdef\\WIPBuildTime{%s}", os.date("%H:%M")))
 \end{luacode*}
 
-% Inline stamp text.
+% Inline stamp text. Braces form a real TeX group so the font/color
+% declarations don't leak into the rest of the document.
 \newcommand{\WIPStamp}{%
-  \sffamily\footnotesize\color{gray}%
-  \WIPBuildDate\ \ \WIPBuildTime\ \ \texttt{\WIPCommitHash}%
+  {\sffamily\footnotesize\color{gray}%
+  \WIPBuildDate\ \ \WIPBuildTime\ \ \texttt{\WIPCommitHash}}%
 }
 
 % Full page: page style empty, stamp pinned top-left, rest left blank.
