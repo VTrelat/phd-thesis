@@ -23,6 +23,10 @@ jobs:
         with:
           root_file: main.tex
           latexmk_use_lualatex: true
+          # wip-stamp.tex shells out to `git rev-parse` as a local-build
+          # fallback (it prefers the GITHUB_SHA env var here, which needs
+          # no shell-escape); enabled for robustness either way.
+          latexmk_shell_escape: true
 
       - name: Fetch release by tag
         id: fetch-release

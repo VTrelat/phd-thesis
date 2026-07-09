@@ -12,6 +12,7 @@
 \usepackage[theorems]{tcolorbox}
 \tcbuselibrary{listings, skins, breakable}
 \usepackage{footnote}  % \savenotes/\spewnotes — must come before hyperref
+\interfootnotelinepenalty=10000  % forbid footnotes from splitting across a page break
 \usepackage{environ}   % \RenewEnviron — used for proof-skipping mode
 \usepackage[backend=biber, style=numeric, sorting=nyt, giveninits=false, maxbibnames=99]{biblatex}
 \addbibresource{references.bib}

@@ -1,0 +1,72 @@
+%% wip-stamp.tex
+%% ----------------------------------------------------------------------
+%% WIP build stamp: prints "[date] [time] [commit hash]" top-left on a
+%% page, so every WIP copy of the thesis is traceable to the exact build
+%% and commit it came from.
+%%
+%% Mechanism: a Lua block (package `luacode`, already loaded in
+%% preamble.tex) queries the build environment directly.
+%%   - date/time: `os.date`, always available, no shell-escape needed.
+%%   - commit hash: prefers the CI-provided `GITHUB_SHA` env var (also no
+%%     shell-escape needed); falls back to `git rev-parse` via `io.popen`
+%%     for local builds, which DOES require shell-escape.
+%%
+%% Local build: compile with `lualatex -shell-escape` (already set in
+%% .latexmkrc). GitHub Actions: `latexmk_shell_escape: true` is set on
+%% the xu-cheng/latex-action step in .github/workflows/blank.yml, and
+%% GITHUB_SHA is exported into the build container regardless.
+%%
+%% To disable for good (e.g. the final defense build), remove the
+%% \input{wip-stamp.tex} + \WIPStampPage lines in main.tex, or compile
+%% with: latexmk -usepretex="\def\NoWIPStamp{}" main.tex
+%% ----------------------------------------------------------------------
+
+\begin{luacode*}
+  local function trim(s)
+    return (s or ""):gsub("^%s+", ""):gsub("%s+$", "")
+  end
+
+  local function short_hash(s, n)
+    s = trim(s)
+    if s == "" then return nil end
+    return s:sub(1, n or 7)
+  end
+
+  local function git_commit_hash()
+    -- CI: GitHub Actions always exports GITHUB_SHA into the build
+    -- container; reading an env var needs no shell-escape.
+    local sha = short_hash(os.getenv("GITHUB_SHA"), 7)
+    if sha then return sha end
+    -- Local build: ask git directly (requires -shell-escape).
+    local ok, handle = pcall(io.popen, "git rev-parse --short=7 HEAD 2>/dev/null")
+    if ok and handle then
+      local result = short_hash(handle:read("*a"))
+      handle:close()
+      if result then return result end
+    end
+    return "unknown"
+  end
+
+  tex.sprint(string.format("\\gdef\\WIPCommitHash{%s}", git_commit_hash()))
+  tex.sprint(string.format("\\gdef\\WIPBuildDate{%s}", os.date("%Y-%m-%d")))
+  tex.sprint(string.format("\\gdef\\WIPBuildTime{%s}", os.date("%H:%M")))
+\end{luacode*}
+
+% Inline stamp text.
+\newcommand{\WIPStamp}{%
+  \sffamily\footnotesize\color{gray}%
+  \WIPBuildDate\ \ \WIPBuildTime\ \ \texttt{\WIPCommitHash}%
+}
+
+% Full page: page style empty, stamp pinned top-left, rest left blank.
+% \ifdefined\NoWIPStamp lets a build opt out (see header comment) while
+% still leaving a genuinely blank page, matching the pre-stamp layout.
+\newcommand{\WIPStampPage}{%
+  \ifdefined\NoWIPStamp
+    \null\thispagestyle{empty}%
+  \else
+    \thispagestyle{empty}%
+    \noindent\WIPStamp\par
+    \vfill\null
+  \fi
+}

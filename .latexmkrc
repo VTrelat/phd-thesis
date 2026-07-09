@@ -5,6 +5,16 @@ ensure_path('TEXINPUTS', '.');
 push @extra_pdflatex_options, '-synctex=1', '-interaction=nonstopmode';
 push @extra_lualatex_options, '-synctex=1', '-interaction=nonstopmode';
 push @extra_xelatex_options, '-synctex=1', '-interaction=nonstopmode';
+
+# wip-stamp.tex shells out to `git` (via Lua io.popen) for the commit hash
+# shown on the blank page after the cover; that requires full (non-restricted)
+# shell escape. Pushing '-shell-escape' onto @extra_lualatex_options is NOT
+# enough: latexmk still starts LuaTeX in its default *restricted* mode
+# (banner: "restricted system commands enabled.", which whitelists only a
+# few programs like makeindex/bibtex, not git). The flag has to be baked
+# into the engine command string itself, since $pdf_mode=4 below always
+# invokes lualatex.
+$lualatex = 'lualatex -shell-escape %O %S';
 $clean_ext .= '.nav .snm .vrb .synctex.gz';
 
 # $file_line_error //= 1;

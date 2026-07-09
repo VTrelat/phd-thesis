@@ -196,10 +196,6 @@
 \newcommand{\var}[1]{\ensuremath{\textcolor{vargray}{\mathbf{#1}}}}
 \newcommand{\lvar}[1]{\var{#1}\mathrlap{\smash{^{!}}}\,}
 \newcommand{\sterm}[1]{\ensuremath{\sop{\mathsf{#1}}\ }}
-\newcommand{\fst}{\sterm{fst}}
-\newcommand{\snd}{\sterm{snd}}
-\newcommand{\pair}{\sterm{pair}}
-\newcommand{\some}{\sterm{some}}
 
 \newcommand{\spec}[1]{#1_{\mathsf{spec}}}
 
@@ -233,6 +229,7 @@
 \newcommand{\relS}{\mathbin{\,\sop{\leftrightarrow}}}
 % SMT term operators.
 \newcommand{\notS}{\mathop{\sop{\neg}}}
+\newcommand{\notZ}{\mathop{\zop{\neg}}}
 \newcommand{\impS}{\mathrel{\,\sop{\Rightarrow}}}
 \newcommand{\leS}{\mathrel{\,\sop{\le}}}
 \newcommand{\addS}{\mathbin{\,\sop{+}}}
@@ -258,8 +255,9 @@
 \newcommand{\funsZ}{\mathbin{\,\zop{\to}}}
 \newcommand{\noneZ}{\zop{\mathsf{none}}}
 \newcommand{\theZ}{\zop{\mathsf{the}}}
-\newcommand{\fstZ}{\zop{\pi_1}}
-\newcommand{\sndZ}{\zop{\pi_2}}
+\newcommand{\fstZ}{\zop{\pi_1}\ }
+\newcommand{\sndZ}{\zop{\pi_2}\ }
+\newcommand{\fcompZ}{\mathbin{\zop{\circ}}}% ZF function composition
 \newcommand{\IsFunc}{\ensuremath{\mathsf{IsFunc}}}
 % \newcommand{\inZ}{\mathrel{\zop{\in}}}
 \newcommand{\andZ}{\mathbin{\zop{\land}}}
@@ -293,6 +291,7 @@
 \newcommand{\subZ}{\mathbin{\zop{-}}}
 \newcommand{\mulZ}{\mathbin{\zop{*}}}
 \newcommand{\leqZ}{\mathrel{\zop{\le}}}
+\newcommand{\eqZ}{\mathrel{\zop{=}}}
 \newcommand{\negZ}{\mathop{\zop{\lnot}}}
 \newcommand{\minZ}{\mathop{\zop{\mathsf{min}}}}
 \newcommand{\maxZ}{\mathop{\zop{\mathsf{max}}}}
