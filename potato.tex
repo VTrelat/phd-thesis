@@ -1,0 +1,37 @@
+% ---------------------------------------------------------------------------
+% Potato shapes: random blob outlines for schematic illustrations.
+% Ported from the defence-slides preamble (\potato path macro), where it is
+% used to depict ZFC denotations as informal "blobs" (e.g.\ isomorphism
+% diagrams between B and SMT-LIB denotations).
+% ---------------------------------------------------------------------------
+
+% Low-level TikZ path macro: appends a closed, randomly-perturbed octagon
+% starting at the current point, meant to be rounded via `rounded corners`.
+% Exposes eight control-point nodes #1-1, ..., #1-8 for anchoring labels and
+% arrows (e.g.\ (#1-2), (#1-6)).
+%   #1 = node-name prefix (must be unique within the picture)
+%   #2 = mean x-radius
+%   #3 = mean y-radius
+%   #4 = irregularity (max radius jitter)
+\newcommand\potato[4]{
+  let \n1 = {(#2)+rnd*(#4)} in
+  +({\n1},{0})
+  \foreach \a in {1,...,7}{%
+    let \n1 = {(#2)+rnd*(#4)}, \n2 = {(#3)+rnd*(#4)} in
+    node (#1-\a) {} -- +({\n1*cos(45*\a)},{\n2*sin(45*\a)})
+  } node (#1-8) {} -- cycle
+}
+
+% High-level wrapper: draws one potato blob centered at a coordinate, with a
+% fixed random seed so the shape is reproducible across recompilations.
+%   #1 = TikZ draw/fill options, e.g.\ draw=dark-blue, thick, fill=beige
+%   #2 = node-name prefix (must be unique within the picture)
+%   #3 = center coordinate as a TikZ path token, e.g.\ (0,0) or (mycoord)
+%   #4 = mean x-radius
+%   #5 = mean y-radius
+%   #6 = irregularity
+%   #7 = random seed (any integer; fixes the shape)
+\newcommand{\potatoshape}[7]{%
+  \pgfmathsetseed{#7}%
+  \draw[rounded corners=2mm,#1] #3 \potato{#2}{#4}{#5}{#6};%
+}
