@@ -1,20 +1,6 @@
 \section{Syntactic categories}
 \label{sec:smt-syntax}
 
-As for the B language in \Cref{ch:b}, we formalize SMT-LIB's core logic fragment,
-again separated in three syntactic categories: SMT types and two representations of SMT terms.
-The concrete, first-order representation closely follows the surface syntax of
-SMT-LIB~2.7~\cite{smtlib2.7} and thereby provides a deep embedding of the target
-language; it is the representation emitted by BEer.
-The abstract representation also uses parametric higher-order abstract syntax
-(PHOAS), as motivated in \Cref{sec:phoas}, and serves as the internal syntax for
-semantic reasoning.
-
-The development deliberately mirrors that of the source language of \Cref{ch:b}, so that the two
-sides of the encoding are described by parallel constructions; the differences
-are precisely those dictated by the gap between the set-theoretic B language and
-the many-sorted first-order language of SMT-LIB.
-
 \subsection{SMT types}
 \label{subsec:smt-type-system}
 
@@ -74,8 +60,9 @@ We then define the syntactic category of SMT types as the following inductive ty
 Functions in SMT-LIB are first-class and total, so the function sort \(\tau \toS \sigma\) is the sort of total functions from \(\tau\) to \(\sigma\).
 This is a crucial point of divergence from the source language, and options will be used to
 model partiality.
-The unit sort \(\unitS\) is a singleton sort, whose sole inhabitant is written \(\aop{\unitvalS}\) and
-only appears in the abstract syntax since we never emit a bare unit literal in the concrete syntax.
+The unit sort \(\unitS\) is a singleton sort, whose sole inhabitant is written \(\aop{\unitvalS}\).
+It appears only in the abstract syntax, since the encoder never emits a bare unit literal in the
+concrete syntax.
 
 \subsection{Concrete terms}
 \label{subsec:smt-concrete-terms}
@@ -97,7 +84,7 @@ Concrete variables are names of type \leaninl{String}.
     | $\var{v}$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ // Atoms
     | $\regnotation{\appS{t}{s}}$ // Higher-order application
     | $\regnotation{\lamS \vec{\var{v}} : \vec\tau \cdot t}$ && $\regnotation{\forallS \vec{\var{v}} : \vec\tau \cdot t}$ && $\regnotation{\existsS \vec{\var{v}} : \vec\tau \cdot t}$ // Binders
-    | $t \regnotation{\eqS} s$ && $t \regnotation{\andS} s$ && $t \regnotation{\orS} s$  // Logic
+    | $t \regnotation{\eqS} s$ && $t \regnotation{\andS} s$ && $t \regnotation{\orS} s$  // Boolean rules
     | $\regnotation{\notS t}$ && $t \regnotation{\impS} s$ && $\regnotation{\iteS}\ t\ s\ r$
     | $\regnotation{\someS} t$ && $\regnotation{\theS} t$ && $\regnotation{\noneS}$ && $\regnotation{\asS}\ t\ \tau$ // Options
     | $\regnotation{\pairS{t}{s}}$ && $\regnotation{\fstS} t$ && $\regnotation{\sndS} t$ // Pairs
@@ -106,20 +93,15 @@ Concrete variables are names of type \leaninl{String}.
   \end{bnf}
 \end{definition}
 
-\begin{note}
-  The concrete syntax provides no constructor for the unit \emph{value}: although
-  the sort \(\unitS\) exists, the encoder never emits a bare unit literal. The unit
-  value therefore figures only in the abstract syntax (\Cref{def:smt-abstract-syntax},
-  written \(\aop{\unitvalS}\)), where it serves as the default inhabitant of \(\unitS\)
-  (\Cref{def:smt-default}).
-\end{note}
-
 \subsection{Abstract syntax}
 \label{subsec:smt-abstract-syntax}
 
 The abstract syntax is given by the inductive family
 {\small\leancodeptr{SMT.PHOAS.Term}{SMT/PHOAS/Def.html\#SMT.PHOAS.Term}}
 parameterized by a type \(\mathcal{V}\) of abstract variables.
+In the grammar below, \(\tau\) ranges over SMT types, \(\vec\tau\) over finite
+families of SMT types, and \(e\) over scopes of the displayed type; the arity of a
+binder is inferred from \(\vec\tau\).
 The non-binding constructors are structurally the same as in \Cref{def:smt-basic-syntax}.
 As in the source language, binding constructors represent the scope of bound
 variables by meta-level Lean functions; we reuse the polyadic encoding of
@@ -139,7 +121,7 @@ vector and a scope
     | $\var{v}$ && $\mathsf{int}\ n$ && $\mathsf{bool}\ b$ // Atoms
     | $\appSa{t}{s}$ // Application
     | $\aop{\lamS} \vec\tau \cdot e$ && $\aop{\forallS} \vec\tau \cdot e$ // Binders
-    | $t \abin{\eqS} s$ && $t \abin{\andS} s$ && $\aop{\notS} t$ && $\aop{\iteS}\ t\ s\ r$ // Logic
+    | $t \abin{\eqS} s$ && $t \abin{\andS} s$ && $\aop{\notS} t$ && $\aop{\iteS}\ t\ s\ r$ // Boolean rules
     | $\someSa t$ && $\theSa t$ && $\aop{\noneS}_{\tau}$ && $\regnotation{\aop{\unitvalS}}$ // Options and unit
     | $\pairSa{t}{s}$ && $\fstSa t$ && $\sndSa t$ // Pairs
     | $\distinctSa \vec t$ // Distinctness
@@ -171,7 +153,7 @@ corresponding concrete constructors.
     SMT/PHOAS/Def.html\#SMT.PHOAS.Term.imp,
     SMT/PHOAS/Def.html\#SMT.PHOAS.Term.exists]
   \label{def:smt-derived}
-  We additionally define the following derived connectives and quantifier:
+  We define the following derived connectives and quantifier:
   \begin{align*}
     t \abin{\orS} s                    & \triangleq \aop{\notS}((\aop{\notS} t) \abin{\andS} (\aop{\notS} s)) \tag{disjunction}      \\
     t \abin{\impS} s                   & \triangleq \aop{\notS}(t \abin{\andS} (\aop{\notS} s)) \tag{implication}                     \\
@@ -236,8 +218,10 @@ where \(\Delta\) is a valuation defined at least on the free variables of \(t\).
   \(\interpB{\cdot}\) or \(\interpS{\cdot}\) to explicitly indicate the underlying language, or on
   a term that will be properly contextualized by the surrounding text.
 \end{note}
-The only different case was sketched above: the annotation construct \(\asS\) is abstracted as
-follows:
+The sole case in which abstraction differs from the B-side construction of
+\Cref{subsec:b-syntax-change-repr} is the annotation construct \(\asS\). Since
+annotations are used here only to resolve the type of \(\noneS\), abstraction
+replaces the annotated concrete form with the primitive abstract constructor:
 \[
   \aterm{\asS\ t\ \tau}{\Delta} \triangleq
   \begin{cases}

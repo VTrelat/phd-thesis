@@ -26,8 +26,9 @@ We first interpret SMT types as ZFC sets, denoted \(\interpZ{\cdot}\).
       \interpZ{\optS\tau}           & = & \regnotation{\optZ}(\interpZ{\tau}),
     \end{array}
   \]
-  where \({\interpZ{\beta}}^{\interpZ{\alpha}}\) denotes the set of total functions (functional graphs) between
-  two sets, and \(\optZ\) the encoding of options in ZFC (see \Cref{def:zflean-sum}).
+  where \({\interpZ{\beta}}^{\interpZ{\alpha}}\) denotes the set of total
+  functions (functional graphs) from \(\interpZ{\alpha}\) to \(\interpZ{\beta}\),
+  and \(\optZ\) the encoding of options in ZFC (see \Cref{def:zflean-sum}).
 \end{definition}
 
 As on the source side, the set-theoretic interpretation is appropriate only if
@@ -47,7 +48,7 @@ source side.
       \mathsf{false} &\text{ if } \tau = \boolS,\\
       \aop{\unitvalS} &\text{ if } \tau = \unitS, \\
       \aop{\noneS}_{\alpha} &\text{ if } \tau = \optS\alpha,\\
-      \pairSa{\mathsf{default}(\tau)}{\mathsf{default}(\sigma)} &\text{ if } \tau = \tau \timesS \sigma,\\
+      \pairSa{\mathsf{default}(\alpha)}{\mathsf{default}(\beta)} &\text{ if } \tau = \alpha \timesS \beta,\\
       \aop{\lamS}\, (\_ : \alpha) \cdot \mathsf{default}(\beta) &\text{ if } \tau = \alpha \toS \beta.
     \end{cases}
   \]
@@ -107,7 +108,7 @@ The defining equations are detailed below, written \(\interpS{t} \triangleq
 \denval{X}[\tau]\); in each case the membership proof \(\pf{\tau}{X}\) is
 constructed alongside the value.
 
-\paragraph{Variables and literals.}
+\paragraph{Variables and constants.}
 Variables denote themselves: for any variable \(\var{v} : \SDom\),
 \(\interpS{\var{v}} \triangleq \var{v}\). For an integer \(n\), a Boolean \(b\), and the unit
 value,
@@ -146,31 +147,31 @@ where \(\fstZ,\, \sndZ\) are the set-theoretic projections of \Cref{def:zflean-p
   {\small\leancodeptr{ZFSet.π₂\_pair}{Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.π₂_pair}} (see \Cref{lst:pair-proj}).
 \end{proofconstruct}
 
-\paragraph{Arithmetic.}
+\paragraph{Arithmetic and comparison.}
 Given \(\interpS{t} = \denval{X}[\intS]\) and \(\interpS{s} = \denval{Y}[\intS]\)
 (otherwise the denotation is undefined), arithmetic lifts the corresponding ZFC
 operations:
 \[
-  \interpS{t \aop{\addS} s} \triangleq \denval{X \addZ Y}[\intS],\quad
-  \interpS{t \aop{\subS} s} \triangleq \denval{X \subZ Y}[\intS],\quad
-  \interpS{t \aop{\mulS} s} \triangleq \denval{X \mulZ Y}[\intS],
+  \interpS{t \mathbin{\aop{\addS}} s} \triangleq \denval{X \addZ Y}[\intS],\quad
+  \interpS{t \mathbin{\aop{\subS}} s} \triangleq \denval{X \subZ Y}[\intS],\quad
+  \interpS{t \mathbin{\aop{\mulS}} s} \triangleq \denval{X \mulZ Y}[\intS],
 \]
-and comparison yields a Boolean: \(\interpS{t \aop{\leS} s} \triangleq \denval{X \leqZ Y}[\boolS]\).
+
 \begin{proofconstruct}
   All membership proofs are instances of
   {\small\leancodeptr{overloadBinOp\_mem}{Extra/ZFC_Extra.html\#overloadBinOp_mem}},
   which provides closure of overloaded binary operations: \(\Zint\) is closed under
-  \(\addZ\), \(\subZ\), and \(\mulZ\), and \(\leqZ\) maps a pair of integers to
-  \(\Zbool\).
+  \(\addZ\), \(\subZ\), and \(\mulZ\).
 \end{proofconstruct}
 
 \paragraph{Boolean connectives.}
 Given \(\interpS{t} = \denval{X}[\tau]\) and \(\interpS{s} = \denval{Y}[\sigma]\),
 the primitive connectives lift their ZFC counterparts in the two-element Boolean algebra \(\Zbool\):
 \begin{align*}
-  \interpS{t \aop{\eqS} s}  & \triangleq \denval{X = Y}[\boolS] && \text{when } \tau = \sigma, \\
-  \interpS{t \aop{\andS} s} & \triangleq \denval{X \andZ Y}[\boolS] && \text{when } \tau = \sigma = \boolS, \\
-  \interpS{\aop{\notS} t}   & \triangleq \denval{\negZ X}[\boolS] && \text{when } \tau = \boolS.
+  \interpS{t \mathbin{\aop{\eqS}} s}  & \triangleq \denval{X = Y}[\boolS] && \text{when } \tau = \sigma, \\
+  \interpS{t \mathbin{\aop{\andS}} s} & \triangleq \denval{X \andZ Y}[\boolS] && \text{when } \tau = \sigma = \boolS, \\
+  \interpS{\aop{\notS} t}   & \triangleq \denval{\negZ X}[\boolS] && \text{when } \tau = \boolS,\\
+  \interpS{t \mathbin{\aop{\leS}} s} &\triangleq \denval{X \leqZ Y}[\boolS] && \text{when } \tau = \sigma = \intS.
 \end{align*}
 Disjunction, implication, and the existential quantifier are interpreted through
 their definitions as derived forms (\Cref{def:smt-derived}).
@@ -179,7 +180,8 @@ their definitions as derived forms (\Cref{def:smt-derived}).
   {\small\leancodeptr{overloadBinOp\_mem}{Extra/ZFC_Extra.html\#overloadBinOp_mem}} for
   binary operations and
   {\small\leancodeptr{overloadUnaryOp\_mem}{Extra/ZFC_Extra.html\#overloadUnaryOp_mem}}
-  for negation, each asserting that the respective ZFC operations are closed on \(\Zbool\).
+  for negation, each asserting that the respective ZFC operations are closed on \(\Zbool\),
+  and \(\leqZ\) maps a pair of integers to \(\Zbool\).
 \end{proofconstruct}
 
 \paragraph{Options and unit.}
@@ -262,9 +264,10 @@ match (\(\sigma = \xi\)), \(F\) is a functional graph from
 
 \paragraph{Binders.}
 Binder constructs rely on the PHOAS representation, exactly as in
-\Cref{subsec:b-denote}. For a binder of arity \(n\) with type vector
-\(\vec\tau\), write \(\mathcal{D} \coloneq \interpZ{\tau^{\times}}\) for the
-carrier of the argument tuple. Each \(z \in \mathcal{D}\) decomposes into
+\Cref{subsec:b-denote}. For a binder \(\aop{\lamS}\vec\tau \cdot e\) of arity
+\(n\), let \(e\) denote its PHOAS scope and write
+\(\mathcal{D} \coloneq \interpZ{\tau^{\times}}\) for the carrier of the argument
+tuple. Each \(z \in \mathcal{D}\) decomposes into
 components \(z_i \in \interpZ{\tau_i}\) and induces a family of domain values
 \(\vec z = (\denval{z_i}[\tau_i])_i\); the scoped denotation of the body is the
 function on \(\mathcal{D}\) obtained by interpreting the body at \(\vec z\).
@@ -282,7 +285,7 @@ evaluating the body at the canonical default tuple \(\vec d \coloneq (\denval{\m
   \interpS{e(\vec d)} = \denval{\Phi(\vec d)}[\gamma][\irrelprf].
 \]
 Evaluating at this fixed tuple makes the choice of \(\gamma\) homogeneous across all arguments
-(\ie, \(\gamma\) is the same for all \(z \in \mathcal{D}\)), and no longer dependent on the argument \(z\).
+(\ie \(\gamma\) is the same for all \(z \in \mathcal{D}\)), and no longer dependent on the argument \(z\).
 
 \begin{note}
   Recall that in this setting---contrary to the source language---functions are total, so the body
@@ -324,7 +327,7 @@ in contrast to the source language.
   For lambda abstraction, \(\pf{}{\lamS} : \Lambda \in {\interpZ{\gamma}}^{\mathcal{D}}\)
   is supplied by the fact that
   \(\Phi(z) \in \interpZ{\gamma}\) for every \(z \in \mathcal{D}\), and the fact that set-level
-  abstractions are total functions (theorem
+  abstractions are total functions (\Cref{thm:lambda}; in Lean, theorem
   {\small\leancodeptr{ZFSet.mem\_funs\_of\_lambda}{ZFLean/Functions.html\#ZFSet.mem_funs_of_lambda}}).
   For universal quantification, \(\pf{}{\forallS}\) follows from \(\Zbool\) being closed under
   the infimum (or big intersection), and the fact that \(\Phi(z) \in \Zbool\) for every
@@ -406,10 +409,10 @@ covers the term's free variables.
 \begin{proof}
   By induction on the typing derivation \(\stype{\Gamma}{t}{\tau}\). We proceed by a case analysis divided into four groups.
 
-  \paragraph{Variables and literals.}
-  For a variable, type-compatibility supplies a domain value \(\Delta(\var{v})\) of
-  type \(\tau\); abstraction maps \(\var{v}\) to it, variables are denoted by
-  themselves. Literals and the unit value are immediate, with the membership
+  \paragraph{Variables and constants.}
+  For variables, type-compatibility supplies a domain value \(\Delta(\var{v})\) of
+  type \(\tau\) and abstraction maps \(\var{v}\) to it.
+  Constants are immediate, with the membership
   proofs constructed in \Cref{subsec:smt-denote}.
 
   \paragraph{Compound non-partial constructors.}
@@ -431,7 +434,7 @@ covers the term's free variables.
   \paragraph{Binders.}
   We treat the three binder cases uniformly. Inversion of the binder typing rule
   supplies, for some arity \(n \geq 1\), a type vector \(\vec\tau\) and a scoped body
-  \(\varphi\) well-typed under \(\Gamma[\vec{\var{v}}:\vec\tau]\) for every family of variables
+  \(e\) well-typed under \(\Gamma[\vec{\var{v}}:\vec\tau]\) for every family of variables
   \(\vec{\var{v}}\) carrying the types \(\vec\tau\), with type \(\boolS\) for universal
   quantification and some \(\gamma\) for lambda abstraction.
   The argument proceeds in four steps.
@@ -453,18 +456,16 @@ covers the term's free variables.
     For lambda abstraction, the denotation clause is guarded by two
     conditions: that the body has a denotation for every typed argument
     tuple, and that the body's type is uniform across all typed tuples.
-    For universal quantification only the presence condition is needed,
+    For universal and existential quantification only denotation definedness is needed,
     since the body always has type \(\boolS\) and uniformity is trivial.
-    For existential quantification (a derived form), the analogous
-    presence condition is established on the negated body instead.
-    Step 2 discharges the presence condition in each case; type adequacy
+    Step 2 discharges this condition in each case; type adequacy
     (\Cref{thm:smt-denote-type-det}) discharges the uniformity condition for
     lambda by identifying the body type uniquely with \(\gamma\), regardless
     of the tuple chosen.
     
   \smallskip\noindent\emph{Step 4: assembling the witness.} Writing \(\Phi\) for
     the scoped body denotation---\ie informally, for any family of sets \(\vec z\),
-    \(\interpS{\varphi((\denval{z_i}[\tau_i][\irrelprf])_i)} = \denval{\Phi(z)}[\gamma][\irrelprf]\)
+    \(\interpS{e((\denval{z_i}[\tau_i][\irrelprf])_i)} = \denval{\Phi(z)}[\gamma][\irrelprf]\)
     where \(\gamma\) matches the type of the body---the
     witness is assembled by separation: the graph
     \(\{\, \pairZ{z}{y} \in \mathcal{D} \timesZ \interpZ{\gamma} \mid y =
@@ -488,9 +489,7 @@ several structural properties, including the determinism of the abstract type sy
 (\Cref{thm:smt-typing-det}), which underpins the adequacy result below.
 \Cref{sec:smt-semantics} assigned denotations in the shared ZFC universe, proved type
 adequacy (\Cref{thm:smt-denote-type-det}) and typing completeness
-(\Cref{thm:smt-denote-complete}), and recorded their corollaries
-({\small\leancodeptr{SMT.RenamingContext.denote\_isSome\_of\_typing}{SMT/Reasoning/Basic/DenotationTotality.html\#SMT.RenamingContext.denote_isSome_of_typing}} and
-{\small\leancodeptr{SMT.RenamingContext.denote\_type\_of\_typing}{SMT/Reasoning/Basic/DenotationTotality.html\#SMT.RenamingContext.denote_type_of_typing}}).
+(\Cref{thm:smt-denote-complete}).
 
 A key structural difference from the B chapter (\Cref{ch:b}) is that SMT function
 spaces are total: \(\interpZ{\sigma \toS \tau} = {\interpZ{\tau}}^{\interpZ{\sigma}}\)

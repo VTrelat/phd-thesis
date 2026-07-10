@@ -36,9 +36,12 @@ For a body \(t\), bound variables \(\vec{\var{v}}\), and SMT types \(\vec\tau\),
 \end{equation}
 where \(\mathsf{bv}(t)\) is the set of variables bound in \(t\): binders add the variables
 they introduce, \ie
-\(\mathsf{bv}(\lamS \vec{\var{v}} : \vec\tau \cdot t) \coloneq \vec{\var{v}} \cup \mathsf{bv}(t)\) and likewise for
-\(\forallS\) and \(\existsS\); other constructors are homomorphic---the union of
-its subterms' bound-variable sets, and \(\emptyset\) on atoms. We further keep the notation
+\[\mathsf{bv}(\lamS \vec{\var{v}} : \vec\tau \cdot t) \coloneq \vec{\var{v}} \cup \mathsf{bv}(t)\]
+and likewise for
+\(\forallS\) and \(\existsS\). For every other compound constructor
+\(c(t_1, \ldots, t_k)\), we set
+\[\mathsf{bv}(c(t_1, \ldots, t_k)) \coloneq \bigcup_{i=1}^{k}\mathsf{bv}(t_i)\] and
+\(\emptyset\) on atoms. We further keep the notation
 \(\tau^{\times} \coloneq \tau_1 \timesS \cdots \timesS \tau_n\) for the
 right-nested pair SMT type associated with \(\vec\tau\).
 
@@ -81,7 +84,7 @@ right-nested pair SMT type associated with \(\vec\tau\).
   where \(\Gamma[\vec{\var{v}}:\vec\tau]\) denotes the context extension of \(\Gamma\) with the bindings
   \(\var{v_i} : \tau_i\) for each \(\var{v_i}\) in \(\vec{\var{v}}\) and corresponding \(\tau_i\) in \(\vec\tau\), and
   \(\tau^{\times}\) is the right-nested pair SMT type associated with \(\vec\tau\).
-  \paragraph{Logic.}
+  \paragraph{Boolean rules.}
   \begin{mathpar}
     \typingrule{smt-concrete-typing}{eq}
       {\stype{\Gamma}{x}{\tau} \quad \stype{\Gamma}{y}{\tau}}
@@ -163,7 +166,7 @@ right-nested pair SMT type associated with \(\vec\tau\).
   is \emph{uncurried}: the binder is typed as a unary function whose domain is the
   right-nested product \(\tau^{\times}\) of its argument SMT types. This is a
   deliberate departure from SMT-LIB, whose own treatment of \(\lambda\)-abstraction
-  is the classical, curried discipline of higher-order logic: the multi-ary form
+  is the classical, curried discipline of higher-order logic: the \(n\)-ary form
   \(\mathtt{lambda}\ ((x_1 : \tau_1)\, \cdots\, (x_n : \tau_n))\ t\) abbreviates the nesting
   of unary abstractions
   \(\mathtt{lambda}\ (x_1 : \tau_1)\ \bigl(\cdots \bigl(\mathtt{lambda}\ (x_n : \tau_n)\ t\bigr) \cdots\bigr)\),
@@ -220,11 +223,11 @@ arguments below.
   By induction on the typing derivation.
 \end{proof}
 
-\paragraph{Strengthening.}
+\paragraph{Context strengthening.}
 Typing depends only on the bindings of the variables that actually occur free in
 a term; bindings for variables absent from the term may be discarded.
 
-\begin{theorem}[Strengthening][SMT.Typing.strengthening\_of\_fv\_subset][SMT/Typing.html\#SMT.Typing.strengthening_of_fv_subset]
+\begin{theorem}[Context strengthening][SMT.Typing.strengthening\_of\_fv\_subset][SMT/Typing.html\#SMT.Typing.strengthening_of_fv_subset]
   \label{thm:smt-strengthening}
   Let \(\Gamma, \Xi\) be typing contexts with
   \(\Gamma \subseteq \Xi\), let \(t\) be a concrete SMT term, and let
@@ -253,7 +256,11 @@ a term; bindings for variables absent from the term may be discarded.
   its remaining conjuncts concern only the bound variables and are unchanged.
 \end{proof}
 
-\begin{theorem}[Weakening][SMT.Typing.weakening][SMT/Typing.html\#SMT.Typing.weakening]
+\paragraph{Context weakening.}
+Enlarging a typing context preserves a typing derivation provided that the new
+bindings do not clash with variables introduced by binders in the term.
+
+\begin{theorem}[Context weakening][SMT.Typing.weakening][SMT/Typing.html\#SMT.Typing.weakening]
   \label{thm:smt-weakening}
   Let \(\Gamma, \Xi\) be typing contexts with
   \(\Gamma \subseteq \Xi\), let \(t\) be a concrete SMT term, and let
@@ -387,7 +394,7 @@ The main result is that concrete typing is preserved by abstraction, mirroring
 As on the source side, it requires the renaming to cover the free variables and to be
 SMT type-compatible with \(\Gamma\).
 
-\begin{theorem}[\(\,\sop{\vdash} \implies \saop{\vdash}\,\)][SMT.Typing.of\_abstract][SMT/Reasoning/Lemmas.html\#SMT.Typing.of_abstract]
+\begin{theorem}[\(\,\sop{\vdash} \implies \saop{\vdash}\,\)][SMT.PHOAS.Typing.of\_abstract][SMT/Reasoning/Lemmas.html\#SMT.PHOAS.Typing.of_abstract]
   \label{thm:smt-typing-of-abstract}
   Let \(\Gamma\) be a concrete typing context, \(t\) a concrete SMT term,
   \(\tau\) an SMT type, and \(\Delta\) a renaming such that
@@ -403,22 +410,27 @@ SMT type-compatible with \(\Gamma\).
   \]
 \end{theorem}
 \begin{proof}
-  By induction on the derivation \(\stype{\Gamma}{t}{\tau}\).
+  By induction on the term \(t\).
 
-  In the variable case \(t = \var{v}\), inversion gives
+  \emph{Variables.} If \(t = \var{v}\), inversion gives
   \(\Gamma(\var{v}) = \tau\); SMT type-compatibility yields a domain value
   \(\Delta(\var{v})\) of intrinsic SMT type \(\tau\), and by
   \Cref{def:smt-context-abstraction} the abstract context maps it to
   \(\aterm{\Gamma}{\Delta}(\var{v}) \triangleq \Gamma(\var{v}) = \tau\). Since
   \(\aterm{\var{v}}{\Delta} \triangleq \Delta(\var{v})\), the abstract variable rule
-  concludes. Constants carry no free variables and are immediate.
+  concludes. Integer and Boolean constants carry no free variables, so their
+  corresponding abstract rules apply immediately.
 
-  For compound non-binders, combining rule inversion with induction hypotheses
-  to each subterm (the renaming still covers their free variables), and the corresponding abstract
-  rule reconstructs the derivation.
+  \emph{Compound non-binders.} Rule inversion supplies a typing derivation for
+  each direct subterm. The renaming still covers every such subterm's free
+  variables, so the induction hypotheses yield the corresponding abstract typings.
+  Applying the matching abstract constructor then reconstructs the derivation.
 
-  For binders, both the context and the renaming are extended with fresh bindings
-  for the bound variables: a family \(\vec{\var{v}}\) of domain values carrying the
-  SMT types \(\vec\tau\) is introduced, the renaming is updated, and the induction hypothesis is
-  invoked on the body under the extended context.
+  \emph{Binders.} Rule inversion supplies the bound type vector and a typing
+  derivation for the body under the extended context. For an arbitrary family of
+  abstract variables carrying those types, extend \(\Delta\) with the corresponding
+  fresh bindings. The induction hypothesis then types the abstract body under the
+  extended abstract context, which is precisely the premise of the abstract binder
+  rule. This reconstructs the lambda or universal case; the existential case follows
+  from its derived-form definition.
 \end{proof}
