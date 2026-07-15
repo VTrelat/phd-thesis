@@ -1,4 +1,5 @@
 \begin{titlepage}
+\tikzexternalexportnextfalse
 \begin{tikzpicture}[remember picture, overlay]
 
   % ==========================================================================
@@ -12,21 +13,22 @@
   % (2) TITLE
   % ==========================================================================
   \node[
-    anchor=south west, inner sep=0pt,
+    anchor=north west, inner sep=0pt,
     text width=0.80\paperwidth, align=left,
-  ] at ([xshift=0.10\paperwidth, yshift=0.18\paperheight] current page.south west) {%
-    {\fontsize{31}{40}\playfaircoverfamily\bfseries\selectfont\spaceskip=0.3em\color{cover-cream}
-     Enhancing B Language Reasoners\\with SMT Techniques\par}%
+  ] at ([xshift=0.10\paperwidth, yshift=0.895\paperheight] current page.south west) {%
+    {\fontsize{33}{40}\playfaircoverfamily\bfseries\selectfont\spaceskip=0.3em\color{dark-blue}
+     Trustworthy Reasoning\\
+     for the B Method\par}%
   };
 
   % ==========================================================================
   % (3) AUTHOR
   % ==========================================================================
   \node[
-    anchor=south west, inner sep=0pt,
+    anchor=north west, inner sep=0pt,
     text width=0.80\paperwidth, align=left,
-  ] at ([xshift=0.10\paperwidth, yshift=0.10\paperheight] current page.south west) {%
-    {\fontsize{16}{20}\playfaircoverfamily\bfseries\spaceskip=0.3em\selectfont\color{cover-cream}
+  ] at ([xshift=0.10\paperwidth, yshift=0.94\paperheight] current page.south west) {%
+    {\fontsize{16}{20}\playfaircoverfamily\bfseries\spaceskip=0.3em\selectfont\color{dark-blue}
      \ThesisAuthor\par}%
   };
 

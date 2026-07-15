@@ -251,7 +251,42 @@ extendedchars=true
   left=4pt, right=4pt, top=2pt, bottom=2pt,
 }
 
-\usetikzlibrary{arrows, arrows.meta, shapes, positioning, calc, fit, shadings}
+\usetikzlibrary{arrows, arrows.meta, shapes, positioning, calc, fit, shadings, external}
+\ifdefined\tikzexternalchild
+  \pgfexternalreadmainauxfalse
+\fi
+\tikzexternalize[prefix=tikz/]
+% Remember which included chapter owns each picture without adding cache
+% plumbing to main.tex.
+\newcommand{\tikzexternalcurrentinclude}{}
+\let\thesisoriginalinclude\include
+\renewcommand{\include}[1]{%
+  \def\tikzexternalcurrentinclude{#1}%
+  \thesisoriginalinclude{#1}%
+}
+% latexmk compiles main.tex under the job name "thesis" and places auxiliary
+% files in build/. Figure subprocesses use a small, independent driver so they
+% never read half-written contents or bibliography files from the parent job.
+\newcommand{\tikzexternalmainsource}{%
+  \string\def\string\tikzexternalchild{}%
+  \string\def\string\tikzexternalrealjob{\tikzexternalrealjob}%
+  \string\def\string\tikzexternaldriverinclude{\tikzexternalcurrentinclude}%
+  \string\def\string\tikzexternalchapternumber{\number\value{chapter}}%
+  \string\input{tikz-cache-driver}%
+}
+\tikzset{
+  external/system call={
+    lualatex \tikzexternalcheckshellescape
+    -halt-on-error -interaction=batchmode
+    -output-directory=build -jobname "\image" "\tikzexternalmainsource"
+  },
+}
+% Give automatically named figures a stable family until the first numbered
+% chapter sets its own chapter-scoped family in \mkchapter.
+\tikzsetfigurename{frontmatter-figure-}
+% tcolorbox draws its frames with internal TikZ pictures. They are layout
+% machinery rather than manuscript figures and must not enter the figure cache.
+\tcbset{shield externalize}
 \tikzset{
   node distance=1.8cm,
   dot/.style={draw=none, fill=black, circle, inner sep=1pt},
@@ -336,6 +371,7 @@ extendedchars=true
 \renewcommand{\@makechapterhead}[1]{%
   \vspace*{-35mm}%
   \noindent
+  \tikzexternalexportnextfalse
   \begin{tikzpicture}%
     % Bounding box: the left circle bleeds past x=0 into the inner margin (intentional).
     % Top set to 30mm to accommodate the large number overflowing above the circles.
@@ -375,6 +411,7 @@ extendedchars=true
 \renewcommand{\@makeschapterhead}[1]{%
   \vspace*{10mm}%
   \noindent
+  \tikzexternalexportnextfalse
   \begin{tikzpicture}%
     % Title baseline sits at the TikZ origin (y=0); the circles float above it.
     \useasboundingbox

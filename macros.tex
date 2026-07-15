@@ -1,5 +1,7 @@
 \newcommand{\mkchapter}[1]{%
   \chapter{#1}%
+  % Keep automatic TikZ cache names stable across full and partial builds.
+  \tikzsetfigurename{chapter-\thechapter-figure-}%
   % Save chapter number for the List of Notations (\nomgroup in notations.tex).
   % \chapter increments the counter first, so \Alph{chapter} is already correct.
   \expandafter\xdef\csname nomchapterno@\Alph{chapter}\endcsname{\arabic{chapter}}%
@@ -172,9 +174,13 @@
 % retraction  η_α : ⟦α^S⟧ᶻ → ⟦α⟧ᶻ
 \newcommand{\retr}[1]{\eta_{#1}}
 % canonical isomorphism  ζ_α : ⟦α⟧ᶻ → ⟦α^S⟧ᶻ
-\newcommand{\canon}[1]{\zop{\zeta}_{#1}}
-% SMT type image of a B type
+\newcommand{\canon}[1]{\zeta_{#1}}
+% Encoding of a B type as an SMT type
 \newcommand{\toSMT}[1]{{#1}^{\scalebox{0.45}{\textsf{SMT}}}}
+% canonical image of a B-side set under ζ (set level): \cimg{𝒟} = 𝒟^!, optional type index \cimg[α]{𝒟}
+\NewDocumentCommand{\cimg}{o m}{\ensuremath{{#2}^{!}\IfNoValueTF{#1}{}{_{#1}}}}
+% encoding judgement arrow: t ↪ (t', σ)
+\newcommand{\encto}{\mathrel{\hookrightarrow}}
 \newcommand{\stype}[3]{\ensuremath{#1 \sop{\vdash} #2 : #3}}
 \newcommand{\satype}[3]{\ensuremath{#1 \saop{\vdash} #2 : #3}}
 \newcommand{\btype}[3]{\ensuremath{#1 \bop{\vdash} #2 : #3}}
@@ -278,11 +284,13 @@
   \right.}
 \newcommand{\graphcastZ}[2]{\ensuremath{\zop{\mathsf{graph}}_{(#1,#2)}}}
 \newcommand{\idZ}[1]{\mathbb{1}_{#1}}
-\newcommand{\semrel}{%
-  {\ensuremath{%
-        \,\mathrel{\raisebox{.5ex}{$\smallfrown$}{\mkern-18.85mu}=}\,%
-      }}%
-}
+% Bare Unicode U+2258 "corresponds to". Copies correctly as-is (it IS the
+% character), and — unlike the earlier hand-drawn TikZ version — is immune to
+% the ambient-graphic-state/arrow-tip corruption that TikZ nesting suffers
+% when \semrel sits in a node on a \draw[<->, ...] path (see git history if
+% reviving that approach). Cosmetic cost: the arc sits slightly detached from
+% the bar in some math fonts.
+\newcommand{\semrel}{\ensuremath{\mathbin{≘}}}
 \newcommand{\topZ}{\zop{\top}}
 \newcommand{\botZ}{\zop{\bot}}
 \newcommand{\pairZ}[2]{\ensuremath{\zop{\lparen #1, #2\rparen}}}
@@ -384,6 +392,34 @@ end
 % Underset with underbrace in math mode
 \NewDocumentCommand{\undernote}{m m}{%
   \ensuremath{\underset{#2}{\underbrace{#1}}}
+}
+
+\newcommand\lean{\raisebox{-.81ex}{\includegraphics[height=3.5ex]{assets/logolean.png}}}
+\newcommand\textcvc{%
+  \raisebox{-.5ex}{%
+    \mbox{%
+      \includegraphics[height=1.6\fontcharht\font`X]{assets/cvc5.png}%
+      \kern.2em\relax
+    }%
+  }%
+}
+\newcommand{\textlean}{%
+  \raisebox{-.5ex}{%
+    \mbox{%
+      \kern.2em\relax
+      \includegraphics[height=1.6\fontcharht\font`X]{assets/logolean.png}%
+      \kern.2em\relax
+    }%
+  }%
+}
+\newcommand{\textbeer}{%
+  \raisebox{-.009em}{%
+    \mbox{%
+      \kern.2em\relax
+      \includegraphics[height=1.3\fontcharht\font`X]{assets/beer.png}%
+      \kern.2em\relax
+    }%
+  }%
 }
 
 \input{chapters/background/zfc-axioms.tex}

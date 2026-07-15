@@ -2,6 +2,11 @@
 # win over any directory prepended to TEXINPUTS by ~/.latexmkrc.
 ensure_path('TEXINPUTS', '.');
 
+# TikZ's externalization library expects its cache directory to exist before
+# it launches the subprocess that renders a figure.
+use File::Path qw(make_path);
+make_path('build/tikz');
+
 push @extra_pdflatex_options, '-synctex=1', '-interaction=nonstopmode';
 push @extra_lualatex_options, '-synctex=1', '-interaction=nonstopmode';
 push @extra_xelatex_options, '-synctex=1', '-interaction=nonstopmode';
@@ -16,6 +21,11 @@ push @extra_xelatex_options, '-synctex=1', '-interaction=nonstopmode';
 # invokes lualatex.
 $lualatex = 'lualatex -shell-escape %O %S';
 $clean_ext .= '.nav .snm .vrb .synctex.gz';
+
+# Also remove auxiliary files written by \include (for example,
+# build/chapters/*.aux).  Otherwise a truncated chapter aux can survive -C
+# and poison the next full build.
+$cleanup_includes_generated = 1;
 
 # $file_line_error //= 1;
 # if ($file_line_error) {

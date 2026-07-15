@@ -1,0 +1,16 @@
+% Standalone context used only by TikZ externalization subprocesses.
+% The owning chapter and its number are injected by preamble.tex.
+\documentclass[10pt]{scrbook}
+\usepackage[Bjornstrup]{fncychap}
+
+\input{preamble.tex}
+\input{macros.tex}
+\input{edcomment.tex}
+
+\begin{document}
+\mainmatter
+\tikzset{external/optimize=false}
+\setcounter{chapter}{\numexpr\tikzexternalchapternumber-1\relax}
+\def\tikzexternalcurrentinclude{\tikzexternaldriverinclude}
+\input{\tikzexternaldriverinclude}
+\end{document}
