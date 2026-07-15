@@ -1,0 +1,85 @@
+\section{Introduction}
+\label{sec:beer-introduction}
+
+The preceding chapters have assembled, one by one, the ingredients of a verified translation: a set-theoretic universe (\Cref{ch:zflean}), a formal account of fragments of B and SMT-LIB with their respective semantics (\Cref{ch:b,ch:smt}), and a theory of representation changes between SMT types reconciling sets and types (\Cref{ch:loosening}).
+This chapter puts them together.
+It presents \beer{} (B Encoder), a tool written in Lean that translates Atelier~B proof obligations into SMT-LIB scripts, and---its actual subject---the mechanized proof that this translation is sound~\cite{trelat2025beer}.
+The implementation is deliberately kept in the background: it is the topic of a single section (\Cref{sec:beer-implementation}), and everything before it is stated in ordinary mathematical language.
+
+\subsection{What is proved}
+\label{sec:beer-goal}
+
+The correctness criterion for \beer{} is semantic equivalence: a B proof obligation and its SMT encoding must have the same truth value under corresponding valuations.
+This is the end-to-end guarantee established in this chapter.
+
+At the level of arbitrary terms, however, semantic equivalence cannot generally be stated as literal equality of denotations.
+The translation changes representations: a B set becomes an SMT characteristic predicate, while a relation known to be functional may be represented by an option-valued function, as developed in \Cref{ch:loosening}.
+Thus, a B term \(t\) of type \(\alpha\) and its SMT encoding \(t'\) of type \(\toSMT{\alpha}\) are denoted by elements of different carrier sets.
+Their denotations must instead \emph{correspond} through the change of representation.
+
+\begin{figure}[t]
+  \begin{center}
+    \begin{tikzpicture}
+      \node (t) {$t$};
+      \node (tsmt) [right=of t] {$\toSMT{t}$};
+      \node (dent) [below=of t] {$T$};
+      \node (dentsmt) [below=of tsmt] {$T'$};
+
+      \draw[funarr] (t) -- (tsmt) node[midway, above] {\Large\textbeer};
+      \draw[funarr] (t) -- (dent) node[midway, left] {$\interpB{\cdot}$};
+      \draw[relarr, draw=black] (tsmt) -- (dentsmt) node[midway, right] {$\interpS{\cdot}$};
+      \draw[relarr, draw=black] (dent) -- (dentsmt) node[midway, below] {$\semrel$};
+    \end{tikzpicture}
+  \end{center}
+  \caption{A simplified view of the semantic square of \beer. Solid arrows are hypotheses, dashed arrows are conclusions.}
+  \label{fig:beer-semantic-overview}
+\end{figure}
+
+The kernel of the correctness result is consequently an agreement statement.
+We first state it here informally, just to motivate the rest of the chapter.
+For every well-typed, well-defined B term \(t : \alpha\), the encoder produces an SMT term \(t' : \toSMT{\alpha}\) such that
+\begin{equation*}
+  \interpB{t} \semrel \interpS{t'},
+  \label{eq:beer-invariant}
+\end{equation*}
+where \(\semrel\) is the agreement relation identifying an SMT denotation with the B denotation it represents.\footnote{The corresponding Unicode character \(\semrel\) is named \emph{corresponds to} (U+2258), which is its intended reading.}
+
+Both denotations are sets in the ZFC universe of \Cref{ch:zflean} augmented with typing information (the semantic triples) as developed in \Cref{ch:b,ch:smt}: B terms and SMT terms denote in one and the same model, so agreement is a genuine set-theoretic relation---in fact, an identity up to a canonical change of representation---rather than transport between two unrelated semantics.
+This idea ruled out the possibility of a semantic interpretation of SMT-LIB in bare higher-order logic (HOL), even though it would have been a very natural choice.
+This design decision, made in \Cref{ch:b,ch:smt}, is what this chapter relies on.
+\Cref{sec:beer-semantic-bridge} constructs \(\semrel\); \Cref{sec:beer-encoding-rules} gives the encoding rules; \Cref{sec:beer-soundness} proves the main correctness statement; and \Cref{sec:beer-proof-obligations} wraps it into the end-to-end guarantee for proof obligations.
+The division between the executable encoder and this semantic argument is depicted in \Cref{fig:beer-architecture}, which also shows the overall architecture of \beer{}.
+
+\begin{center}
+\begin{minipage}{\textwidth}
+  \centering
+  \tikzsetnextfilename{beer-architecture}
+  \input{chapters/beer/figures/architecture}
+  \captionof{figure}{Architecture of \beer. The executable pipeline parses a POG file, encodes B as SMT, and writes an SMT-LIB file. The proof layer places both languages in PHOAS and compares their denotations in the common ZFC universe.}
+  \label{fig:beer-architecture}
+\end{minipage}
+\end{center}
+
+\subsection{A running example}
+\label{sec:beer-running-example}
+
+The following small example accompanies the whole chapter.
+We consider two abstract sets \(X, Y\) and two constants
+\[
+  \var{f} \inB X \tfunB Y,
+  \qquad
+  \var{g} \inB X \mathbin{\bop{\leftrightarrow}} Y,
+\]
+a total function and a relation, and state the invariant \(\var{f} \cupB \var{g} \subseteqB X \prodB Y\).
+The B method would generate one proof obligation for it, whose goal is the invariant itself under the two hypotheses above:
+\begin{equation*}
+  \bigl(\var{f} \inB X \tfunB Y\bigr) \andB
+  \bigl(\var{g} \inB X \mathbin{\bop{\leftrightarrow}} Y\bigr)
+  \impB
+  \var{f} \cupB \var{g} \subseteqB X \prodB Y.
+  \label{eq:beer-running-po}
+\end{equation*}
+The example is small but not innocent.
+After elaboration of the derived forms of \Cref{ch:b} (\(X \bop{\leftrightarrow} Y\) is \(\powB(X \prodB Y)\), and \(X \tfunB Y\) a comprehension over \(X \pfunB Y\)), the two operands of \(\cupB\) live at the same B type but admit two different natural SMT representations: \(\var{f}\) is a partial \emph{function} value, \(\var{g}\) a \emph{relation} value.
+Their union therefore exercises the multi-representation problem that motivated \Cref{ch:loosening}, and the inclusion goal---decoded as a bounded universal quantification---exercises the hardest case of the soundness proof.
+The proof obligation \cref{eq:beer-running-po} is encoded in \Cref{sec:beer-encoding-rules}, its soundness instance is identified in \Cref{sec:beer-soundness}, and the complete emitted script is shown in \Cref{sec:beer-proof-obligations}.

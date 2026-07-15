@@ -1,0 +1,239 @@
+\section{The B--SMT semantic bridge}
+\label{sec:beer-semantic-bridge}
+
+Every correctness statement of this chapter compares a B denotation with an SMT denotation.
+This section introduces, once and for all, the canonical constructions that make such comparisons possible: encoding of B types in SMT types, canonical isomorphisms and their associated retractions with the round-trip laws relating them, canonical images of a B-side sets, and the agreement relation \(\semrel\).
+All objects live in the ZFC universe of \Cref{ch:zflean}; in particular \(\regnotation{\interpZ{\alpha}}\) denotes the carrier set of a B or SMT type \(\alpha\) (\Cref{def:b-type-interp,def:smt-type-interp}).
+
+\subsection{Encoding B types into SMT types}
+\label{sec:beer-type-encoding}
+B types are mapped to their SMT counterparts homomorphically, the only non-structural clause being set types: a B set is represented by a \emph{characteristic predicate}, a total Boolean-valued function on the carrier of the element type.
+
+\begin{definition}[B-to-SMT type encoding][B.BType.toSMTType][Encoder/Basic.html\#B.BType.toSMTType]
+  \label{def:beer-type-encoding}
+  The encoding function \(\regnotation{\toSMT{\cdot}}\) from B types to SMT types is defined recursively by the mappings
+  \[
+    \begin{aligned}
+      \intB                 &\;\mapsto\; \intS, &
+      \boolB                &\;\mapsto\; \boolS, \\
+      \alpha \prodB \beta   &\;\mapsto\; \toSMT{\alpha} \timesS \toSMT{\beta}, &
+      \setB \alpha          &\;\mapsto\; \toSMT{\alpha} \toS \boolS.
+    \end{aligned}
+  \]
+\end{definition}
+
+Two remarks are in order.
+First, the encoding never produces \(\optS\) or a function type with a non-Boolean codomain, so a straightforward induction shows \(\mgf{(\toSMT{\alpha})} = \toSMT{\alpha}\): every encoded type is in the \emph{most general}, relational normal form of \Cref{ch:loosening}.
+The encoder may nonetheless manipulate strictly tighter representations of the same B value---this is the subject of the cast layer in \Cref{sec:beer-rules-cast}.
+Second, different SMT terms may of course denote the same characteristic predicate, but the semantic representation itself is not forgetful: on the carrier \(\interpZ{\toSMT{\alpha}}\), a value is uniquely determined by its B retraction, as the round-trip laws below will show.
+
+\subsection{The indexed family of canonical isomorphisms and associated retractions}
+\label{sec:beer-canonical-iso}
+
+The indexed construction is forced by an ambiguity that arises if one first tries to define \(\semrel\) on bare ZF values.
+Interpretations of distinct types need not be disjoint; for example,
+\[
+  U \;\coloneq\; \zop{1}
+  \;=\; \pairZ{\topZ}{\emptyset}
+  \in \interpZ{\intB} \;\cap\; \interpZ{\boolB \prodB (\setB\intB)}.
+\]
+Indeed, the chosen ZF encoding represents the integer \(1\) by the Kuratowski pair \(\pairZ{\topZ}{\emptyset}\); its first component is an element of \(\Zbool\), and its second an element of \(\powZ(\Zint)\).
+Thus, the same underlying set \(U\) denotes either the integer \(1\) or the pair consisting of Boolean true and the empty set of integers.
+This overlap does not make the model ill-defined: \(\BDom\) and \(\SDom\) are dependent sums (\Cref{def:b-dom,def:smt-dom}), so \(\denval{U}[\intB]\) and \(\denval{U}[\boolB \prodB (\setB\intB)]\) are distinct denotation values.
+The ambiguity nevertheless appears as soon as one tries to compare the underlying values: at type \(\intB\), the canonical image of \(U\) is \(U\) itself, whereas at type \(\boolB \prodB (\setB\intB)\), it is \(\pairZ{\topZ}{F_{\bot}}\), where \(F_{\bot}\) is the constant-false characteristic predicate on \(\Zint\).
+
+The typing information carried by denotations resolves this ambiguity, and is precisely where the index of the bridge comes from.
+What cannot be recovered is which correspondence is intended: the bare set \(U\) alone does not determine which of the two transports above should be used.
+We therefore recursively construct two functions \(\canon{\alpha}\) and \(\retr{\alpha}\), so that the index selects the intended transport even when another carrier \(\interpZ{\beta}\) overlaps \(\interpZ{\alpha}\); the round-trip laws will then establish \(\retr{\alpha} = \canon{\alpha}^{-1}\) on the corresponding carrier.
+The agreement relation \(\semrel\) will be built from exactly this indexed inverse.
+
+\paragraph{Canonical isomorphisms.}
+The B-to-SMT type encoding preserves carriers up to ZF isomorphism.
+The following theorem establishes existence; the definition immediately afterwards fixes a canonical witness, uniformly and recursively in the B type.
+
+\begin{theorem}[Isomorphism of type interpretations][BType\_iso\_SMTType][SMT/Reasoning/Defs.html\#BType_iso_SMTType]
+  \label{thm:beer-btype-iso}
+  For every B type \(\alpha\),
+  \(
+    \interpZ{\alpha} \mathbin{\zop{\cong}} \interpZ{\toSMT{\alpha}}.
+  \)
+\end{theorem}
+
+\begin{proof}
+  By induction on \(\alpha\).
+  For \(\intB\) and \(\boolB\), the B and SMT interpretations coincide, so the identity is an isomorphism.
+  Isomorphisms are preserved by products: if \(A \mathbin{\zop{\cong}} A'\) and \(B \mathbin{\zop{\cong}} B'\), then
+  \(A \timesZ B \mathbin{\zop{\cong}} A' \timesZ B'\).
+  Applying this fact to the two induction isomorphisms gives
+  \[
+    \begin{aligned}
+      \interpZ{\alpha \prodB \beta}
+      &\triangleq \interpZ{\alpha} \timesZ \interpZ{\beta} \\
+      &\mathbin{\zop{\cong}} \interpZ{\toSMT{\alpha}} \timesZ \interpZ{\toSMT{\beta}} \\
+      &= \interpZ{\toSMT{(\alpha \prodB \beta)}}.
+    \end{aligned}
+  \]
+  Finally, the powerset of a carrier is isomorphic to the space of its characteristic predicates.
+  Isomorphisms are likewise preserved by function spaces: if \(A \mathbin{\zop{\cong}} A'\) and \(B \mathbin{\zop{\cong}} B'\), then
+  \(B^A \mathbin{\zop{\cong}} (B')^{A'}\).
+  Applying this fact to the induction isomorphism on the domain and the identity isomorphism on \(\Zbool\), and composing with the characteristic-predicate isomorphism, gives
+  \[
+    \begin{aligned}
+      \interpZ{\setB\alpha}
+      &\triangleq \powZ(\interpZ{\alpha}) \\
+      &\mathbin{\zop{\cong}} {\Zbool}^{\interpZ{\alpha}} \\
+      &\mathbin{\zop{\cong}} {\Zbool}^{\interpZ{\toSMT{\alpha}}} \\
+      &= \interpZ{\toSMT{(\setB\alpha)}}.
+    \end{aligned}
+  \]
+\end{proof}
+
+\begin{definition}[Canonical isomorphism][BType.canonicalIsoSMTType][SMT/Reasoning/Defs.html\#BType.canonicalIsoSMTType]
+  \label{def:beer-canonical-iso}
+  For every B type \(\alpha\), we define a set-level function \(\regnotation{\canon{\alpha}} \in {\interpZ{\toSMT{\alpha}}}^{\interpZ{\alpha}}\) by induction on \(\alpha\):
+  \begin{align*}
+    \canon{\tau} &\;\triangleq\; \Id{\interpZ{\tau}} && \text{for \(\tau \in \{\,\intB, \boolB\,\}\)}, \\
+    \appZ\canon{\alpha \prodB \beta}\pairZ{a}{b} &\;\triangleq\; \pairZ{\appZ\canon{\alpha}(a)}{\appZ\canon{\beta}(b)} && \text{for any \(\pairZ{a}{b} \in \interpZ{\alpha \timesS \beta}\)}, \\
+    \appZ\canon{\setB \alpha}(\mathcal{D}) &\;\triangleq\;
+      \zop{\lambda} w \mapsto
+        \appZ\canon{\alpha}^{-1}(w) \mathbin{\zop{\in}} \mathcal{D} && \text{for any \(\mathcal{D} \in \interpZ{\setB \alpha}\)}.
+  \end{align*}
+\end{definition}
+
+The base cases are identities: B and SMT integers and Booleans share their ZFC encodings.
+The product case acts componentwise.
+The set case turns a subset \(\mathcal{D} \subseteq \interpZ{\alpha}\) into its characteristic predicate, transported along \(\canon{\alpha}\). In the definition above, \(\mathbin{\zop{\in}}\) abbreviates set membership cast in the ZFC universe: the predicate answers \(\topZ\) on \(w\) exactly when the \(\canon{\alpha}\)-preimage of \(w\) belongs to \(\mathcal{D}\).
+By construction, \((\canon{\alpha})_\alpha\) is a family of bijections and hence a witness of \Cref{thm:beer-btype-iso}.
+Its bijectivity proof proceeds by the same induction.
+The base and product cases are immediate; the set case is the single most intricate ZF argument of the development---injectivity reduces two equal characteristic predicates to equal subsets by extensionality and inverse application, and surjectivity exhibits, for a given predicate, the subset it characterizes---and we refer to the formalization ({\small\leancodeptr{canonicalIsoSMTType}{SMT/Reasoning/Defs.html\#BType.canonicalIsoSMTType}}) rather than reproduce its bookkeeping here.
+
+\paragraph{Retractions.}
+By canonicity, \(\canon{\alpha}\) already has an inverse, so introducing a separate family \(\retr{\alpha}\) may at first seem redundant.
+Writing \(\retr{\alpha} \triangleq (\canon{\alpha})^{-1}\) would determine the right function extensionally, but would treat decoding as a black-box consequence of bijectivity.
+The bridge must retain more than this extensional fact: it must say how the chosen SMT representation is decoded at each B type constructor.
+Products are decoded componentwise, while a characteristic predicate is decoded into the subset on which it is true.
+This type-directed decoding is the constructive content of the bridge: it exhibits the B representative of a target value uniformly by recursion on \(\alpha\).
+It gives the agreement relation its structural clauses, makes it compositional, and allows SMT valuations---and hence target models---to be transported back to B valuations.
+We therefore take these clauses as the definition of \(\retr{\alpha}\), and prove the two round-trip laws afterwards.
+Those laws show that this decoder is extensionally \((\canon{\alpha})^{-1}\); they do not replace its structural definition.
+When \(\retr{\alpha}\) is unfolded in the soundness proof, one is using these semantic decoding clauses, not exploiting a peculiarity of the Lean implementation.
+
+\begin{definition}[Retraction][retract][SMT/Reasoning/Defs.html\#retract]
+  \label{def:beer-retraction}
+  For every B type \(\alpha\), the \emph{retraction} \(\regnotation{\retr{\alpha}} : \interpZ{\toSMT{\alpha}} \to \interpZ{\alpha}\) is defined by induction on \(\alpha\):
+  \begin{align*}
+    \retr{\intB} &\;\triangleq\; \mathrm{id}, \qquad\qquad \retr{\boolB} \;\triangleq\; \mathrm{id}, \\
+    \retr{\alpha \prodB \beta}(u) &\;\triangleq\; \pairZ{\retr{\alpha}(\fstZ u)}{\retr{\beta}(\sndZ u)}, \\
+    \retr{\setB \alpha}(F) &\;\triangleq\; \bigl\{ x \in \interpZ{\alpha} \;\big|\; \appZ F\bigl(\appZ\canon{\alpha}(x)\bigr) = \topZ \bigr\}.
+  \end{align*}
+\end{definition}
+
+On a set type, the retraction recovers the B-level set from a characteristic predicate \(F\) by comprehension: it collects those \(x\) whose canonical image satisfies \(F\).
+Note the asymmetry with \Cref{def:beer-canonical-iso}: \(\retr{\setB\alpha}\) queries \(F\) at \(\canon{\alpha}\)-images and needs no inverse.
+
+\subsection{Round-trip laws}
+\label{sec:beer-round-trip}
+
+\begin{theorem}[Round trips][retract\_of\_canonical, canonicalIso\_composition\_retract][SMT/Reasoning/Defs.html\#retract\_of\_canonical, SMT/Reasoning/Defs.html\#canonicalIso\_composition\_retract]
+  \label{thm:beer-round-trip}
+  For every B type \(\alpha\),
+  \[
+    \retr{\alpha} \circ \canon{\alpha} = \mathrm{id}_{\interpZ{\alpha}}
+    \qquad\text{and}\qquad
+    \canon{\alpha} \circ \retr{\alpha} = \mathrm{id}_{\interpZ{\toSMT{\alpha}}}.
+  \]
+\end{theorem}
+
+\begin{corollary}
+  \label{cor:beer-retr-inverse}
+  \(\retr{\alpha}\) is the two-sided inverse of the bijection \(\canon{\alpha}\).
+  In particular \(\retr{\alpha}\) is surjective onto \(\interpZ{\alpha}\), and it reflects equality on \(\interpZ{\toSMT{\alpha}}\): if \(\retr{\alpha}(x) = \retr{\alpha}(y)\) then \(x = \canon{\alpha}(\retr{\alpha}(x)) = \canon{\alpha}(\retr{\alpha}(y)) = y\).
+\end{corollary}
+
+These are precisely the two facts the soundness proof consumes.
+The left identity rewrites \(\retr{\alpha}(\canon{\alpha}(X)) = X\) whenever an SMT denotation is, by construction, the canonical image of a B denotation---this happens at every variable, and at every constructed witness.
+The right identity converts a retracted value back into the SMT world; it is what makes \(\retr{\alpha}\) injective and hence lets an SMT-level equality be \emph{reflected} from a B-level one (\Cref{sec:beer-case-pointwise}).
+
+\subsection{The canonical image and the bridge lemma}
+\label{sec:beer-canonical-image}
+
+The isomorphism lifts from points to sets.
+
+\begin{definition}[Canonical image][BType.canonicalImage][SMT/Reasoning/Defs.html\#BType.canonicalImage]
+  \label{def:beer-canonical-image}
+  For a B type \(\alpha\) and a set \(\mathcal{D} \subseteq \interpZ{\alpha}\), the \emph{canonical image} of \(\mathcal{D}\) is
+  \[
+    \regnotation{\cimg[\alpha]{\mathcal{D}}} \;\triangleq\; \bigl\{ y \in \interpZ{\toSMT{\alpha}} \;\big|\; \retr{\alpha}(y) \in \mathcal{D} \bigr\}.
+  \]
+\end{definition}
+
+By the round-trip laws, \(\cimg[\alpha]{\mathcal{D}} = \Image{\canon{\alpha}}{\mathcal{D}}\), and membership is characterized by
+\(y \in \cimg[\alpha]{\mathcal{D}} \iff y \in \interpZ{\toSMT{\alpha}} \wedge \retr{\alpha}(y) \in \mathcal{D}\)
+({\small\leancodeptr{mem\_canonicalImage\_iff}{SMT/Reasoning/Defs.html\#mem\_canonicalImage\_iff}}); moreover \(\cimg[\alpha]{\mathcal{D}}\) is non-empty whenever \(\mathcal{D}\) is ({\small\leancodeptr{canonicalImage\_nonempty}{SMT/Reasoning/Defs.html\#canonicalImage\_nonempty}}).
+The superscript notation deliberately echoes the loosened variables \(\lvar{x}\) of \Cref{ch:loosening}: both decorate an object transported to a more general representation.
+In particular, \(\appZ\canon{\setB\alpha}(\mathcal{D})\) is exactly the characteristic predicate of \(\cimg[\alpha]{\mathcal{D}}\).
+
+Unfolding \Cref{def:beer-retraction} at a set type yields the elementary fact that does most of the work in \Cref{sec:beer-soundness}.
+
+\begin{lemma}[Bridge lemma][retract][SMT/Reasoning/Defs.html\#retract]
+  \label{lem:beer-bridge}
+  Let \(\beta\) be a B type and \(F \in \interpZ{\toSMT{(\setB\beta)}}\) a characteristic predicate with \(\retr{\setB \beta}(F) = X\).
+  Then for all \(x \in \interpZ{\beta}\),
+  \[
+    x \in X \iff \appZ F\bigl(\appZ\canon{\beta}(x)\bigr) = \topZ.
+  \]
+\end{lemma}
+
+\begin{proof}
+  Immediate from \Cref{def:beer-retraction}: \(X = \{ x \in \interpZ{\beta} \mid \appZ F(\appZ\canon{\beta}(x)) = \topZ \}\), and \(x \in \interpZ{\beta}\) holds by assumption.
+\end{proof}
+
+Despite its one-line proof, the lemma deserves its name: it is the sole interface between B-level membership and SMT-level function application, and it is invoked---often several times per case---in every case of the soundness proof that involves a set.
+
+\subsection{The agreement relation}
+\label{sec:beer-agreement}
+
+Recall from \Cref{def:b-dom,def:smt-dom} that B and SMT denotations are triples \(\denval{X}[\alpha]\) packaging a ZF value, a type, and a proof of type-correctness.
+The invariant of the whole chapter is the following relation between such triples.
+
+\begin{definition}[Agreement][RDom][SMT/Reasoning/Defs.html\#RDom]
+  \label{def:beer-agreement}
+  A B denotation \(\denval{X}[\alpha]\) and an SMT denotation \(\denval{X'}[\alpha']\) \emph{agree}, written
+  \(\denval{X}[\alpha] \mathrel{\regnotation{\semrel}} \denval{X'}[\alpha']\), if and only if
+  \[
+    \alpha' = \toSMT{\alpha}
+    \qquad\text{and}\qquad
+    \retr{\alpha}(X') = X.
+  \]
+\end{definition}
+
+An SMT value agrees with a B value precisely when it \emph{retracts onto} it.
+Note the orientation: agreement is stated as \(\retr{\alpha}(X') = X\), rather than as \(X' = \appZ\canon{\alpha}(X)\).
+For typed denotations the two formulations are equivalent by \Cref{cor:beer-retr-inverse}; the retraction formulation is chosen because it composes smoothly through the induction and asks nothing about how \(X'\) was constructed.
+On base types, \(\retr{\alpha}\) is the identity and agreement degenerates to equality of values; this is why Boolean-valued correctness statements below read as plain equalities.
+
+Agreement extends pointwise to valuations.
+For a B renaming context \(\Delta\) and an SMT renaming context \(\Theta\) (partial maps from variables to denotations, \Cref{def:b-context-abstraction}), \(\Delta\) and \(\Theta\) agree ({\small\leancodeptr{RValuation}{SMT/Reasoning/Defs.html\#RValuation}}) if for every variable \(v\), either both are undefined at \(v\), or both are defined and \(\Delta(v) \semrel \Theta(v)\).
+
+\subsection{Valuations through the bridge}
+\label{sec:beer-valuation-functor}
+
+Finally, the bridge extends from types and values to whole valuations, functorially.
+
+\begin{definition}[Image valuation][B.RenamingContext.toSMT][SMT/Reasoning/Defs.html\#B.RenamingContext.toSMT]
+  \label{def:beer-valuation-image}
+  For a B renaming context \(\Delta\), the SMT renaming context \(\toSMT{\Delta}\) is defined variable-by-variable:
+  if \(\Delta(v) = \denval{V}[\tau]\) then \(\toSMT{\Delta}(v) \triangleq \denval{\appZ\canon{\tau}(V)}[\toSMT{\tau}]\), and \(\toSMT{\Delta}(v)\) is undefined when \(\Delta(v)\) is.
+\end{definition}
+
+\begin{lemma}[Agreement of image valuations][RValuation\_toSMT][SMT/Reasoning/Defs.html\#RValuation\_toSMT]
+  \label{lem:beer-rvaluation-toSMT}
+  For every B renaming context \(\Delta\), the valuations \(\Delta\) and \(\toSMT{\Delta}\) agree pointwise.
+\end{lemma}
+
+\begin{proof}
+  At each defined \(v\) with \(\Delta(v) = \denval{V}[\tau]\), the type component is \(\toSMT{\tau}\) by construction and \(\retr{\tau}(\appZ\canon{\tau}(V)) = V\) by \Cref{thm:beer-round-trip}.
+\end{proof}
+
+This single construction is what allows the soundness theorem of \Cref{sec:beer-soundness} to be stated against \emph{one} B valuation: the SMT side is not an independent parameter but the image of the B side through the bridge.
+In the mechanization, the induction actually threads a chain of three SMT contexts, extended as fresh helper variables are declared; that machinery is invisible at this level of abstraction and is described in \Cref{sec:beer-implementation}.
