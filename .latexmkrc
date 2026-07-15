@@ -2,6 +2,10 @@
 # win over any directory prepended to TEXINPUTS by ~/.latexmkrc.
 ensure_path('TEXINPUTS', '.');
 
+# Keep the auxiliary-file layout self-contained: GitHub Actions does not read
+# the user-level latexmkrc that normally selects this directory locally.
+$aux_dir = 'build';
+
 # TikZ's externalization library expects its cache directory to exist before
 # it launches the subprocess that renders a figure.
 use File::Path qw(make_path);
