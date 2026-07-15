@@ -1,0 +1,349 @@
+\section{Soundness of the Encoding}
+\label{sec:beer-soundness}
+
+This section states and proves the central theorem of the thesis: encoded terms denote, and their denotations agree with those of their sources through the bridge of \Cref{sec:beer-semantic-bridge}.
+The proof is one structural induction whose every case follows the same choreography---compute the denotation of the emitted term, then rewrite the retraction past the emitted operation---so we present the invariant and the shared lemmas once (\Cref{sec:beer-invariant,sec:beer-proof-spine}), prove one representative case in full (union, \Cref{sec:beer-case-pointwise}), and give for each remaining family the emitted denotation and the argument that closes it.
+
+\subsection{The invariant and the theorem}
+\label{sec:beer-invariant}
+
+Correctness of a term encoding is agreement in the sense of \Cref{def:beer-agreement}, together with typing preservation.
+The following statement is the monad-free projection of the mechanized theorem; the state-related clauses it omits are enumerated at the end of this subsection.
+
+\begin{theorem}[Soundness of term encoding][encodeTerm\_spec][SMT/Reasoning/EncodeTermCorrect.html\#encodeTerm\_spec]
+  \label{thm:beer-encodeTerm-spec}
+  Let \(t\) be a B term with \(\btype{\Gamma_{\mathsf{B}}}{t}{\alpha}\) and \(\WD(t)\), and let \(\Delta\) be a B valuation, well formed for \(\Gamma_{\mathsf{B}}\) (\Cref{def:b-ren-wf}) and defined on the free variables of \(t\), such that
+  \(\interpB{\aterm{t}{\Delta}} = \denval{X}[\alpha]\).
+  If \(t \encto (t', \sigma)\), then
+  \begin{enumerate}
+    \item \(\sigma = \toSMT{\alpha}\), and \(\stype{\Gamma}{t'}{\toSMT{\alpha}}\) where \(\Gamma\) is the SMT typing context accumulated by the encoder;
+    \item \(t'\) denotes under the image valuation: there is a valuation \(\Delta'\) extending \(\toSMT{\Delta}\) to the helper variables introduced by the encoder, and a value \(X'\), with
+    \(\interpS{\aterm{t'}{\Delta'}} = \denval{X'}[\toSMT{\alpha}]\);
+    \item the denotations agree: \(\denval{X}[\alpha] \semrel \denval{X'}[\toSMT{\alpha}]\), \ie \(\retr{\alpha}(X') = X\).
+  \end{enumerate}
+\end{theorem}
+
+\begin{center}
+\begin{minipage}{\textwidth}
+  \centering
+  \begin{tikzpicture}[
+      every node/.style={text=dark-blue},
+      node distance=2.5cm and 5.2cm,
+    ]
+    \node[font=\large] (t) {$t$};
+    \node[font=\large, right=of t] (tp) {$t'$};
+
+    \node[below=of t] (X) {$\denval{X}[\orange{\alpha}]$};
+    \node[below=of tp] (Xp)
+      {$\denval{X'}[\orange{\toSMT{\alpha}}]$};
+
+    \draw[funarr, draw=blue]
+      (t) -- node[midway, above] {\beer{}\enspace\textbeer} (tp);
+    \draw[funarr, draw=blue]
+      (t) -- node[midway, left]
+      {$\interpB{\aterm{\cdot}{\Delta}}$} (X);
+    \draw[funarr, draw=blue]
+      (tp) -- node[midway, right]
+      {$\interpS{\aterm{\cdot}{\Delta'}}$} (Xp);
+
+    \draw[-, draw=pink, dash pattern=on 4pt off 2pt,
+          line width=1.2pt, shorten <=3pt, shorten >=3pt]
+      (X) -- node[midway, below=2pt, fill=white, inner sep=2pt,
+                  text=pink, font=\footnotesize\itshape]
+                  {corresponds to} (Xp);
+  \end{tikzpicture}
+  \captionof{figure}{The term-level semantic square. Under the hypotheses of \Cref{thm:beer-encodeTerm-spec}, if \(t \encto (t',\sigma)\), then \(\sigma=\toSMT{\alpha}\), and \(\Delta'\) extends \(\toSMT{\Delta}\) with the helper variables introduced by the encoding. The lower edge records the agreement conclusion; it is a relation rather than an equality.}
+  \label{fig:beer-semantic-square}
+\end{minipage}
+\end{center}
+
+The canonical isomorphisms of \Cref{thm:beer-btype-iso} provide the bridge at the level of types; \Cref{thm:beer-encodeTerm-spec} lifts it to terms, as summarized in \Cref{fig:beer-semantic-square}.
+
+Three hypotheses carry mathematical content and survive the abstraction: well-typedness, which drives the induction and pins every intermediate type; well-definedness \(\WD(t)\), consumed exactly where B is partial (application, and the totality of quantified bodies); and agreement of the valuations, supplied once and for all by the bridge (\Cref{lem:beer-rvaluation-toSMT}), since the SMT valuation is not chosen freely but is the image \(\toSMT{\Delta}\) of the B valuation.
+The mechanized statement threads, in addition: monotonicity of the used-name supply, the chain \(\Delta, \Delta_0, \Delta'\) of successively extended SMT valuations, the invariant that no variable outside the used-name set is bound, disjointness of bound names, and a totality clause strengthening item~2 to \emph{every} admissible B valuation of \(t\)---a strengthening that the binder cases need when they instantiate their induction hypotheses pointwise under a quantifier.
+All of these are bookkeeping for one fact, \emph{the bridge extends to valuations and survives fresh declarations}, and they are discharged by the weakest-precondition machinery of \Cref{sec:beer-implementation}.
+Finally, the statement takes two hypotheses specific to the universal-quantifier case, packaging the existence and stability of the quantified denotation; they are examined with that case in \Cref{sec:beer-case-forall}.
+
+\subsection{The proof spine}
+\label{sec:beer-proof-spine}
+
+The induction leans on a small set of lemmas, proved once and cited per case; \cref{tab:beer-spine} lists them with the case families that consume them.
+The round-trip laws and the bridge lemma come from \Cref{sec:beer-semantic-bridge}; loosening correctness is \Cref{thm:loosening-correctness}; totality and type-determinacy of the two denotation functions are \Cref{thm:b-denote-complete,thm:b-denote-type-det,thm:smt-denote-complete,thm:smt-denote-type-det}.
+The substitution lemma is the standard binder fact, stated here once: for SMT terms, the denotation of a substituted body equals the denotation of the body under the correspondingly extended valuation,
+\[
+  \interpS{\aterm{e[\vec{\var{v}} \leftarrow \vec{s}\,]}{\Delta}} = \interpS{\aterm{e}{\Delta[\vec{\var{v}} \mapsto \interpS{\aterm{\vec{s}}{\Delta}}]}},
+\]
+under the freshness side conditions guaranteed by the encoder's name discipline ({\small\leancodeptr{abstract\_substList\_denote}{SMT/Reasoning/Basic/AbstractSubstDenote.html\#abstract\_substList\_denote}}).
+Its companion is the destructor computation: the \(i\)-th \(\fstS\)/\(\sndS\) projection chain of \Cref{sec:beer-rules-comprehension} denotes the \(i\)-th component of a tuple, and \(\canon{}\) commutes with pairing and projections.
+
+\begin{table}
+  \centering
+  \begin{tabular}{lll}
+    \toprule
+    Lemma & Statement & Consumed by \\
+    \midrule
+    round-trip L & \(\retr{\alpha} \circ \canon{\alpha} = \mathrm{id}\) \hfill (\Cref{thm:beer-round-trip}) & variables, application, and ubiquitously \\
+    round-trip R & \(\canon{\alpha} \circ \retr{\alpha} = \mathrm{id}\) \hfill (\Cref{thm:beer-round-trip}) & \(\inB\), \(\eqB\), set formers, comprehension, \(\lambdaB\), \(\forallB\) \\
+    bridge & \(x \in X \iff \appZ F(\appZ\canon{\beta}(x)) = \topZ\) \hfill (\Cref{lem:beer-bridge}) & every set-valued case \\
+    loosening corr. & \(\lvar{x}\) denotes the semantic cast image \hfill (\Cref{thm:loosening-correctness}) & cast layer, \(\forallB\) \\
+    substitution & displayed above & comprehension, \(\lambdaB\), \(\forallB\) \\
+    totality \& determinacy & \Cref{thm:b-denote-complete,thm:smt-denote-complete} & every case \\
+    \bottomrule
+  \end{tabular}
+  \caption{The shared lemmas of the soundness induction.}
+  \label{tab:beer-spine}
+\end{table}
+
+Two global remarks spare much repetition below.
+First, whenever the target type is \(\boolB\) or \(\intB\), the retraction is the identity and agreement collapses to equality of ZF values; such cases close by computation.
+Second, every SMT value the proof ever feeds into a characteristic predicate is of the form \(\appZ\canon{\beta}(x)\)---either because it was constructed so, or after rewriting with round-trip~R---which is precisely the shape the bridge lemma consumes.
+
+\subsection{Homomorphic cases}
+\label{sec:beer-case-homomorphic}
+
+For variables, literals, arithmetic, the logical connectives, and maplets, the emitted term is the image of the source term constructor by constructor, and the proof is correspondingly direct.
+
+The variable case is the semantic crux, small as it is.
+The emitted term is \(\var{v}\) itself, and the image valuation was \emph{defined} (\Cref{def:beer-valuation-image}) to map it to \(\appZ\canon{\alpha}(V)\) where \(\denval{V}[\alpha] = \Delta(\var{v})\); agreement is therefore exactly round-trip~L, \(\retr{\alpha}(\appZ\canon{\alpha}(V)) = V\).
+This is the only place in the whole induction where \(\retr{}\circ\canon{} = \mathrm{id}\) is invoked for a value not constructed by the proof itself: all information flow between the two worlds is concentrated at the variables.
+
+Integer and Boolean literals denote the \emph{same} ZF object on both sides (\Cref{def:b-denote,def:smt-denote} share the encodings \(\zop{n}\), \(\zop{b}\)), and \(\retr{}\) is the identity at base types, so agreement is definitional.
+The same holds for \(\addB, \subB, \mulB, \leB, \andB, \notB\): the B and SMT semantics interpret these by the \emph{same} ZF operations, the induction hypotheses give equality (not mere agreement) of the operand denotations, and the case closes by reflexivity.
+The base fragment is thus a transport, not a simulation---there is nothing to verify beyond the bookkeeping.
+For a maplet \(x \mapletB y\), both sides denote ZF pairs; \(\retr{}\) acts componentwise (\Cref{def:beer-retraction}), and pair injectivity reduces agreement to the two induction hypotheses.
+
+\subsection{Base-type sets}
+\label{sec:beer-case-base-sets}
+
+\(\ZintB\) and \(\ZboolB\) are the first cases where the retraction does actual work.
+The emitted constant-true lambda denotes the constant ZF function \(F = \lamZ w \in \interpZ{\intS}.\ \topZ\), and unfolding \Cref{def:beer-retraction},
+\[
+  \retr{\setB\intB}(F)
+  = \bigl\{ z \in \Zint \;\big|\; \appZ F(\appZ\canon{\intB}(z)) = \topZ \bigr\}
+  = \bigl\{ z \in \Zint \;\big|\; \topZ = \topZ \bigr\}
+  = \Zint = \interpB{\ZintB},
+\]
+since \(\canon{\intB}\) is the identity and \(F\) answers \(\topZ\) everywhere.
+The Boolean case is identical.
+The fresh binder in the emitted \(\lamS\) exists only to close the term; it never influences the denotation.
+
+\subsection{Pointwise set operations}
+\label{sec:beer-case-pointwise}
+
+Union, intersection, membership, and equality share one pattern: at a common characteristic-predicate representation, each is a pointwise Boolean operation, and the bridge lemma converts its pointwise behavior into the desired set-theoretic identity.
+Union is proved in full as the model case; the proofs below are instances of the same scheme.
+Throughout this subsection, \(A, B\) are well-typed B terms of type \(\setB\alpha\), their encodings \(S, T\) have type \(\gamma \toS \boolS\) with \(\gamma = \toSMT{\alpha}\), and the induction hypotheses provide denotations \(F, G \in \interpZ{\gamma \toS \boolS}\) of \(S, T\) with
+\[
+  \retr{\setB\alpha}(F) = \interpB{A}
+  \qquad\text{and}\qquad
+  \retr{\setB\alpha}(G) = \interpB{B}.
+\]
+
+\begin{theorem}[Union case][encodeTerm\_spec.union\_case][SMT/Reasoning/Basic/EncodeTermCorrectUnion.html\#encodeTerm\_spec.union\_case]
+  \label{thm:beer-union-case}
+  Under the hypotheses above, the term \(R = \lamS \var{z} : \gamma \cdot \appS{S}{\var{z}} \orS \appS{T}{\var{z}}\) emitted by \cref{eq:beer-union-direct} denotes a value \(R'\) of type \(\gamma \toS \boolS\) with
+  \[
+    \retr{\setB \alpha}(R') = \retr{\setB \alpha}(F) \cup \retr{\setB \alpha}(G),
+  \]
+  hence \(\retr{\setB\alpha}(R') = \interpB{A} \cup \interpB{B} = \interpB{A \cupB B}\).
+\end{theorem}
+
+\begin{proof}
+  Since \(F\) and \(G\) are total Boolean-valued functions on \(\interpZ{\gamma}\), the lambda body denotes a Boolean at every point of \(\interpZ{\gamma}\), so \(R\) denotes a total function \(R' \in \interpZ{\gamma \toS \boolS}\), characterized pointwise by: for all \(w \in \interpZ{\gamma}\),
+  \begin{equation}
+    \appZ R'(w) = \topZ \iff \appZ F(w) = \topZ \;\text{ or }\; \appZ G(w) = \topZ,
+    \label{eq:beer-union-pointwise}
+  \end{equation}
+  by the two-valued case analysis on \(\bigl(\appZ F(w), \appZ G(w)\bigr) \in \Zbool \times \Zbool\).
+
+  We show \(\retr{\setB \alpha}(R') = \retr{\setB \alpha}(F) \cup \retr{\setB \alpha}(G)\) by extensionality.
+  Fix \(x \in \interpZ{\alpha}\) and let \(c = \appZ\canon{\alpha}(x) \in \interpZ{\gamma}\); note that membership of \(x\) in any of the three retractions presupposes \(x \in \interpZ{\alpha}\), so this is no loss of generality.
+  By the bridge lemma (\Cref{lem:beer-bridge}) applied to \(R'\), then \cref{eq:beer-union-pointwise}, then the bridge lemma applied to \(F\) and to \(G\):
+  \[
+    x \in \retr{\setB\alpha}(R')
+    \iff \appZ R'(c) = \topZ
+    \iff \appZ F(c) = \topZ \text{ or } \appZ G(c) = \topZ
+    \iff x \in \retr{\setB\alpha}(F) \cup \retr{\setB\alpha}(G).
+  \]
+\end{proof}
+
+\begin{note}
+  In the formalization, SMT disjunction is the derived connective \(\notS(\notS a \andS \notS b)\), so establishing \cref{eq:beer-union-pointwise} requires unfolding the negation and conjunction denotation lemmas before the four-way case split on \(\Zbool \times \Zbool\)---the bulk of the Lean proof.
+  Mathematically it is the observation that disjunction on \(\Zbool\) is disjunction.
+  Intersection avoids even this: \(\andS\) is primitive, and the same case split closes directly.
+\end{note}
+
+Intersection follows by replacing \(\orS\) with \(\andS\) and \(\cup\) with \(\cap\) throughout ({\small\leancodeptr{encodeTerm\_spec.inter\_case}{SMT/Reasoning/Basic/EncodeTermCorrectInter.html\#encodeTerm\_spec.inter\_case}}).
+
+For membership \(x \inB S\), the emitted term is the application \(\appS{S}{x'}\), and the B side denotes \(\topZ\) or \(\botZ\) according to whether \(X \in \interpB{S}\), where \(X = \interpB{\aterm{x}{\Delta}}\).
+Since the retraction is the identity at \(\boolB\), the claim is
+\(\appZ F(X') = \topZ \iff X \in \retr{\setB\alpha}(F)\), where \(X'\) denotes \(x'\) and \(\retr{\alpha}(X') = X\) by the induction hypothesis.
+Round-trip~R rewrites \(X' = \appZ\canon{\alpha}(\retr{\alpha}(X')) = \appZ\canon{\alpha}(X)\), and the bridge lemma closes the forward direction; the backward direction follows because \(\Zbool\) is two-valued: a value that is not \(\topZ\) is \(\botZ\) ({\small\leancodeptr{encodeTerm\_spec.mem\_case}{SMT/Reasoning/Basic/EncodeTermCorrectMem.html\#encodeTerm\_spec.mem\_case}}).
+This is the archetype of a pattern that recurs in every remaining case: induction hypotheses speak of \(\retr{}\)-images, the bridge speaks of \(\canon{}\)-images, and round-trip~R mediates.
+
+For equality \(x \eqB y\) at type \(\alpha\), both sides denote conditionals: the claim reduces to
+\[
+  X = Y \iff X' = Y',
+\]
+where \(\retr{\alpha}(X') = X\) and \(\retr{\alpha}(Y') = Y\).
+Right to left is congruence of \(\retr{\alpha}\).
+Left to right is the interesting direction: it is injectivity of the retraction (\Cref{cor:beer-retr-inverse}), \(X' = \appZ\canon{\alpha}(X) = \appZ\canon{\alpha}(Y) = Y'\).
+Equality is thus \emph{reflected}, not merely preserved, across the bridge---for set-typed \(\alpha\), this states that equality of characteristic predicates coincides with equality of the underlying B sets ({\small\leancodeptr{encodeTerm\_spec.eq\_case}{SMT/Reasoning/Basic/EncodeTermCorrectEq.html\#encodeTerm\_spec.eq\_case}}).
+
+\begin{note}
+  The theorems of this subsection cover the homogeneous branches of the cast combinators---the ones taken when both operands arrive at the same SMT type, as is always the case when no variable is flagged, since then every encoding has its canonical type (\Cref{thm:beer-encodeTerm-spec}, item~1).
+  The heterogeneous branches (\eg the graph-path union \cref{eq:beer-union-graph} of the running example) are verified for typing, totality, and state hygiene; their denotational correctness reduces to the same pointwise argument \emph{modulo} loosening correctness (\Cref{thm:loosening-correctness}), which pins the loosened operand \(\lvar{S}\) to the semantic cast image of \(S\), a value with the same retraction.
+  The precise mechanization status of these branches is reported in \Cref{sec:beer-limitations}.
+\end{note}
+
+\subsection{Application}
+\label{sec:beer-case-application}
+
+The application case is the one place where well-definedness supplies the mathematics rather than the hygiene.
+Let \(t = \appB f\ x\) with \(f\) of B type \(\setB(\gamma \prodB \alpha)\) and \(x : \gamma\).
+Since \(\interpB{\aterm{t}{\Delta}}\) is defined, the guards of the applicative clause of \Cref{def:b-denote} hold: \(F = \interpB{\aterm{f}{\Delta}}\) is a partial function, \(X = \interpB{\aterm{x}{\Delta}} \in \Dom(F)\), and the B value is \(T = \appZ F(X)\)---these are exactly the conjuncts of \(\WD(\appB f\ x)\) (\Cref{def:b-welldefined}).
+
+The emitted term is \(\theS(\appS{\var{f}^{!!}}{x'})\) with \(\var{f}^{!!}\) the fresh function witness of \cref{eq:beer-castapp-spec}.
+Freshness makes \(\var{f}^{!!}\) a free constant of the emitted term, so the proof may choose its value in the extended valuation \(\Delta'\): it interprets \(\var{f}^{!!}\) as a function returning \(\someZ \appZ\canon{\alpha}(T)\) at the relevant point.
+Then \(\appS{\var{f}^{!!}}{x'}\) denotes \(\someZ \appZ\canon{\alpha}(T)\), from which the semantics of \(\theS\) extracts the payload \(\appZ\canon{\alpha}(T)\), and
+\[
+  \retr{\alpha}\bigl(\interpS{\aterm{t'}{\Delta'}}\bigr) = \retr{\alpha}\bigl(\appZ\canon{\alpha}(T)\bigr) = T
+\]
+by round-trip~L ({\small\leancodeptr{encodeTerm\_spec.app\_case}{SMT/Reasoning/Basic/EncodeTermCorrectApp.html\#encodeTerm\_spec.app\_case}}).
+Note where partiality went: had \(x \notin \Dom(f)\) been possible, \(\appS{\var{f}^{!!}}{x'}\) could denote \(\noneZ\), whose \(\theS\)-image is an unconstrained default value---soundness would fail.
+Well-definedness is consumed here and nowhere else in this case.
+That the \emph{asserted} specification \cref{eq:beer-castapp-spec} is satisfiable by the chosen witness---so that the extended valuation is admissible for the surrounding script---is part of the assertion-adequacy layer of \Cref{sec:beer-proof-obligations}.
+
+\subsection{Set formers}
+\label{sec:beer-case-set-formers}
+
+The three set formers emit quantified predicates, and their proofs share a second pattern, complementary to the pointwise one: an SMT universal denotes \(\topZ\) exactly when its body does at \emph{every} point of the carrier (\Cref{def:smt-denote}), so each direction of the set-theoretic identity chooses its instantiation points.
+In the forward direction the proof instantiates at canonical images \(\appZ\canon{}(z)\); in the backward direction it faces an arbitrary carrier point \(w\), rewrites it as \(w = \appZ\canon{}(\retr{}(w))\) by round-trip~R, and reduces to the forward situation.
+This is why both round-trip laws appear in every case of this family.
+
+\paragraph{Powerset.}
+For \(\powB(S)\) with \(\retr{\setB\beta}(F) = \mathcal{X}\), the emitted predicate (\Cref{sec:beer-rules-sets}) denotes a characteristic function \(\Phi\), and the claim is \(\retr{\setB(\setB\beta)}(\Phi) = \pow(\mathcal{X}) = \interpB{\powB(S)}\).
+By the bridge lemma, \(\mathcal{Y} \in \retr{}(\Phi)\) unfolds to: for every \(w \in \interpZ{\toSMT{\beta}}\), \(\appZ\canon{\setB\beta}(\mathcal{Y})\) answering \(\topZ\) at \(w\) implies \(\appZ F(w) = \topZ\).
+For the forward inclusion, given \(z \in \mathcal{Y}\), instantiate \(w = \appZ\canon{\beta}(z)\): the antecedent holds since \(\retr{\beta}(w) = z \in \mathcal{Y}\) (round-trip~L), so \(\appZ F(w) = \topZ\), and the bridge on \(F\) gives \(z \in \mathcal{X}\); hence \(\mathcal{Y} \subseteq \mathcal{X}\).
+For the backward inclusion, an arbitrary \(w\) with a true antecedent satisfies \(\retr{\beta}(w) \in \mathcal{Y} \subseteq \mathcal{X}\), and the bridge together with round-trip~R (\(w = \appZ\canon{\beta}(\retr{\beta}(w))\)) yields \(\appZ F(w) = \topZ\)
+({\small\leancodeptr{encodeTerm\_spec.pow\_case}{SMT/Reasoning/Basic/EncodeTermCorrectSet.html\#encodeTerm\_spec.pow\_case}}).
+
+\paragraph{Cartesian product.}
+For \(A \prodB B\), membership of \(z\) in the retraction of the emitted predicate unfolds, through the bridge, to the existence of witnesses \(u, v\) with \(\appZ F(u) = \topZ\), \(\appZ G(v) = \topZ\), and the SMT equation identifying \(\appZ\canon{}(z)\) with the pair \(\pairZ{u}{v}\).
+Forward: a true SMT equation yields the ZF identity \(\appZ\canon{\alpha\prodB\beta}(z) = \pairZ{u}{v}\); applying \(\retr{}\), which acts componentwise, gives \(z = \pairZ{\retr{}(u)}{\retr{}(v)}\) with components in \(\interpB{A}\) and \(\interpB{B}\) by the bridge.
+Backward: for \(z = \pairZ{a}{b} \in \interpB{A} \timesZ \interpB{B}\), choose \(u = \appZ\canon{}(a)\), \(v = \appZ\canon{}(b)\); the bridge validates both applications, and \(\canon{}\) commutes with pairing, validating the equation
+({\small\leancodeptr{encodeTerm\_spec.cprod\_case}{SMT/Reasoning/Basic/EncodeTermCorrectSet.html\#encodeTerm\_spec.cprod\_case}}).
+
+\paragraph{Partial functions.}
+For \(A \pfunB B\), the two conjuncts of the emitted predicate (\Cref{sec:beer-rules-sets}) correspond to the two defining properties of \(\interpB{A \pfunB B} = \{ g \in \pow(\mathcal{X} \timesZ \mathcal{Y}) \mid g \text{ functional} \}\).
+The first is the powerset argument specialized to a product domain.
+The second is the equality-reflection argument of \Cref{sec:beer-case-pointwise} run under two universal quantifiers: given \(\pairZ{a}{b_1}, \pairZ{a}{b_2} \in g\), instantiating the emitted functionality clause at the canonical images yields the SMT equality of the images of \(b_1, b_2\), and injectivity of the retraction reflects it to \(b_1 = b_2\); conversely, functionality of \(g\) transfers to the SMT side by round-trip~R.
+({\small\leancodeptr{encodeTerm\_spec.pfun\_case}{SMT/Reasoning/Basic/EncodeTermCorrectPFun.html\#encodeTerm\_spec.pfun\_case}}).
+
+In all three cases, the substantial formal effort lies in totality side conditions---an SMT universal only denotes if its body denotes a Boolean at \emph{every} carrier point---discharged by the totality metatheorem of \Cref{ch:smt} (\Cref{thm:smt-denote-complete}); none of it surfaces in the mathematical argument.
+
+\subsection{Comprehension and the lambda graph}
+\label{sec:beer-case-comprehension}
+
+For a comprehension \(\bcomp{\vec{\var{v}} \inB D}{P}\), the B denotation is the separation \(\mathcal{D}.\mathsf{sep}\,\mathfrak{P}\), where \(\mathcal{D} = \interpB{\aterm{D}{\Delta}}\) and \(\mathfrak{P}(x)\) is the denotation of \(P\) at the tuple \(x\).
+The emitted guarded predicate (\Cref{sec:beer-rules-comprehension}) denotes a total characteristic function \(L\): at a point \(w\), the guard \(\appZ F(w)\) is evaluated first, and only if it is \(\topZ\)---which by the bridge and round-trip~R means \(w = \appZ\canon{}(x)\) for some \(x \in \mathcal{D}\)---is the substituted body consulted.
+There, the substitution lemma and the destructor computation (\Cref{sec:beer-proof-spine}) rewrite the body's denotation at \(w\) into \(\mathfrak{P}(x)\), which is defined because B's well-definedness guarantees \(P\) denotes on all of \(\mathcal{D}\).
+When the guard is \(\botZ\), the \(\iteS\) short-circuits to \(\mathsf{false}\), and the body---possibly meaningless outside \(\mathcal{D}\)---is never evaluated.
+The bridge then computes
+\(x \in \retr{}(L) \iff x \in \mathcal{D} \wedge \mathfrak{P}(x) = \topZ \iff x \in \interpB{\bcomp{\vec{\var{v}} \inB D}{P}}\)
+({\small\leancodeptr{encodeTerm\_spec.collect\_case}{SMT/Reasoning/Basic/EncodeTermCorrectCollect.html\#encodeTerm\_spec.collect\_case}}).
+
+The lambda case differs in one instructive respect.
+Its emitted graph predicate contains no \(\iteS\): the body \(\sndS\var{u} \eqS P'[\ldots]\) is a conjunction of total, well-typed SMT terms, so the emitted term denotes with no reference to \(\mathcal{D}\) at all---the graph encoding never \emph{applies} the function, it only compares values, and this is precisely why partiality costs nothing here.
+The retraction of the graph is computed pointwise on pairs \(\pairZ{x}{y}\): the first conjunct is \(x \in \mathcal{D}\) by the bridge; for the second, the substitution lemma identifies the denotation of \(P'\) with \(\appZ\canon{}(\mathfrak{P}(x))\), and the two round-trip laws convert \(\appZ\canon{}(y) = \appZ\canon{}(\mathfrak{P}(x))\) into \(y = \mathfrak{P}(x)\) and back.
+The result is the graph \(\{\pairZ{x}{y} \mid x \in \mathcal{D} \wedge y = \mathfrak{P}(x)\} = \interpB{\lambdaB \vec{\var{v}} \inB D \cdot P}\); the degenerate branch \(\mathcal{D} = \emptyset\), which B denotes by \(\emptyset\) directly, follows since the guard conjunct is then identically \(\botZ\)
+({\small\leancodeptr{encodeTerm\_spec.lambda\_case}{SMT/Reasoning/Basic/EncodeTermCorrectLambda.html\#encodeTerm\_spec.lambda\_case}}).
+
+\subsection{The universal quantifier}
+\label{sec:beer-case-forall}
+
+The universal quantifier is the largest case: it combines every difficulty seen so far---binders and substitution, membership casts, loosened helpers---and adds the scoping problem of \Cref{sec:beer-rules-quantifier}.
+
+\paragraph{The denotational goal.}
+Recall from \Cref{sec:b-semantics} that B denotes \(\forallB \vec{\var{v}} \inB D \cdot P\) by an explicitly guarded infimum: \(\topZ\) if \(\mathcal{D} = \emptyset\), and otherwise \(\bigandZ_{e \in \mathcal{D}} \mathfrak{P}(e)\), the guard being necessary because the quantified intersection of an empty family is \(\emptyset\), not \(\topZ\).
+The SMT universal needs no such guard: it ranges over the full carrier \(\interpZ{\vec{\tau}}\), which is inhabited (\Cref{thm:smt-type-nonempty}).
+The two sides are reconciled by the membership guard inside the emitted formula \cref{eq:beer-forall-shape}: when \(\mathcal{D} = \emptyset\), the guard \((\vec{\var{z}} \inB D)'\) is identically \(\botZ\)---by the bridge and round-trip~R, exactly as in the comprehension case---so every implication instance is vacuously \(\topZ\) and the infimum over the value set \(\{\topZ\}\) is \(\topZ\), matching the B guard.
+When \(\mathcal{D} \neq \emptyset\), either \(\mathfrak{P}\) is \(\topZ\) on all of \(\mathcal{D}\) and both sides compute \(\topZ\), or some counterexample \(x_0 \in \mathcal{D}\) has \(\mathfrak{P}(x_0) = \botZ\); instantiating the SMT universal at \(\appZ\canon{}(x_0)\)---with the helpers at their specification-determined values, see below---makes the guard \(\topZ\) and the body \(\botZ\), so \(\botZ\) enters the value set and the infimum is \(\botZ\).
+Since the retraction is the identity at \(\boolB\), this pointwise reconciliation is the whole of agreement.
+
+\paragraph{Guarded universals and polarity.}
+It remains to justify that quantifying the helpers universally under their specifications preserves the meaning of the body.
+Write \(G(\vec{z})\) for the encoded domain-membership guard and \(\Phi(\vec{z},h)\) for the specification of one helper.
+The exactness theorem \Cref{thm:loosening-correctness} gives the property needed here: whenever \(G(\vec{z})\) holds and the source expressions involved in the cast are defined, there exists a unique \(h_{\vec{z}}\) satisfying \(\Phi(\vec{z},h_{\vec{z}})\), and it denotes the intended semantic cast image.
+No helper witness need be demanded when \(G(\vec{z})\) is false, because the source bounded quantifier does not inspect its body there.
+
+It follows that
+\[
+  \forall h.\; \Phi(\vec{z},h) \Rightarrow \bigl(G(\vec{z}) \Rightarrow P(\vec{z},h)\bigr)
+  \quad\Longleftrightarrow\quad
+  G(\vec{z}) \Rightarrow P(\vec{z},h_{\vec{z}}),
+\]
+where the right-hand side uses \(h_{\vec{z}}\) only in the case \(G(\vec{z})\) holds.
+Indeed, when the guard is false both sides are true; when it is true, existence supplies the intended helper and uniqueness makes it the only specification-satisfying assignment.
+The nested helper quantifiers of \cref{eq:beer-forall-shape} are eliminated by iterating this argument.
+
+An existential presentation is possible only with the guard placed outside the demand for a witness, as in
+\(G(\vec{z}) \Rightarrow \exists h.\,\Phi(\vec{z},h) \land P(\vec{z},h)\).
+The emitted universal-implication form expresses the same guarded semantics directly and remains meaningful even at assignments where the helper-producing source term is not defined.
+
+\paragraph{Mechanization status.}
+This case is where the formal development is most heavily engineered, and honesty requires stating its shape.
+The empty/non-empty infimum computation above, including the transport of a counterexample through the membership cast, is mechanized in standalone lemmas ({\small\leancodeptr{retract\_forallVal\_eq\_sInter\_sep}{SMT/Reasoning/Basic/AllCaseHelpers.html\#retract\_forallVal\_eq\_sInter\_sep}} and its variants), with the adequacy of the loosened membership guard supplied \(\Delta\)-universally by {\small\leancodeptr{castMembership\_branch2\_spec}{SMT/Reasoning/Basic/CastMembershipSpec.html\#castMembership\_branch2\_spec}}.
+Their assembly into the induction is packaged as the two hypotheses of \Cref{thm:beer-encodeTerm-spec} mentioned in \Cref{sec:beer-invariant}---one providing existence of the quantified denotation together with its agreement, one its stability under the alternative valuations that enclosing binders require.
+Moreover, when a bound variable is flagged, its binder type deviates from the canonical image and the induction hypothesis for \(P\) is not applicable; the mechanization then falls back on structural (non-denotational) specifications of the body.
+Three scoping facts about the freshness of helper declarations are axiomatized rather than proved by structural induction.
+The complete audit of these residual assumptions is given in \Cref{sec:beer-tcb,sec:beer-limitations}.
+
+\subsection{Case and lemma dependencies}
+\label{sec:beer-case-map}
+
+\Cref{fig:beer-lemma-map} summarizes which shared lemma carries which case family; totality and type-determinacy (\Cref{tab:beer-spine}) enter every case and are omitted from the figure.
+
+\begin{figure}
+  \centering
+  \begin{tikzpicture}[
+    lem/.style={draw, rounded corners=2pt, inner sep=4pt, font=\small},
+    fam/.style={inner sep=3pt, font=\small},
+    e/.style={-, gray},
+  ]
+    % lemmas (left column)
+    \node[lem] (rtl)    at (0, 0)    {round-trip L \(\retr{}\circ\canon{}=\mathrm{id}\)};
+    \node[lem] (rtr)    at (0, -1.2) {round-trip R \(\canon{}\circ\retr{}=\mathrm{id}\)};
+    \node[lem] (bridge) at (0, -2.4) {bridge lemma};
+    \node[lem] (loos)   at (0, -3.6) {loosening correctness};
+    \node[lem] (subst)  at (0, -4.8) {substitution under binders};
+    % case families (right column)
+    \node[fam] (homo)    at (8.6, 0.6)  {homomorphic (\(\var{v}\), literals, arith., logic, \(\mapletB\))};
+    \node[fam] (basesets)at (8.6, -0.3) {base sets \(\ZintB\), \(\ZboolB\)};
+    \node[fam] (cupcap)  at (8.6, -1.2) {\(\cupB\), \(\capB\)};
+    \node[fam] (memeq)   at (8.6, -2.1) {\(\inB\), \(\eqB\)};
+    \node[fam] (app)     at (8.6, -3.0) {\(\appB\)};
+    \node[fam] (formers) at (8.6, -3.9) {\(\powB\), \(\prodB\), \(\pfunB\)};
+    \node[fam] (binders) at (8.6, -4.8) {\(\bcomp{\cdot}{\cdot}\), \(\lambdaB\)};
+    \node[fam] (all)     at (8.6, -5.7) {\(\forallB\)};
+    % edges
+    \draw[e] (rtl.east) -- (homo.west);
+    \draw[e] (rtl.east) -- (app.west);
+    \draw[e] (rtr.east) -- (memeq.west);
+    \draw[e] (rtr.east) -- (formers.west);
+    \draw[e] (rtr.east) -- (binders.west);
+    \draw[e] (rtr.east) -- (all.west);
+    \draw[e] (bridge.east) -- (basesets.west);
+    \draw[e] (bridge.east) -- (cupcap.west);
+    \draw[e] (bridge.east) -- (memeq.west);
+    \draw[e] (bridge.east) -- (formers.west);
+    \draw[e] (bridge.east) -- (binders.west);
+    \draw[e] (bridge.east) -- (all.west);
+    \draw[e] (loos.east) -- (all.west);
+    \draw[e] (subst.east) -- (binders.west);
+    \draw[e] (subst.east) -- (all.west);
+  \end{tikzpicture}
+  \caption{Shared lemmas (left) and the case families that consume them (right).
+  Round-trip~L also enters every other case through the variables occurring in subterms; the edges shown are the ones where the lemma does the decisive step.}
+  \label{fig:beer-lemma-map}
+\end{figure}

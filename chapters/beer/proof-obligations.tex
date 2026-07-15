@@ -1,0 +1,95 @@
+\section{Encoding Proof Obligations}
+\label{sec:beer-proof-obligations}
+
+Term soundness is the kernel; this section wraps it into the end-to-end guarantee.
+A decoded proof obligation (\Cref{ch:b}) consists of a typing context, a list of definitions and hypotheses, and one or more goals.
+The encoder {\small\leancodeptr{encode}{Encoder/Encoder.html\#encode}} processes a whole B environment as the composition
+\[
+  \mathsf{encodeTypeContext} \mathbin{;} \mathsf{encodeDefs} \mathbin{;} \mathsf{encodeDistinctFinite} \mathbin{;} \mathsf{encodeProofObligations} \mathbin{;} \mathsf{finalBulkDeclare},
+\]
+each stage emitting declarations or assertions into the growing script.
+
+\subsection{From terms to environments}
+\label{sec:beer-po-environments}
+
+The typing context is emitted first: each variable \(\var{v}\) of B type \(\alpha\) yields \((\mathsf{declare\text{-}const}\ \var{v}\ \toSMT{\alpha})\), except that flagged variables (\Cref{sec:beer-rules-cast}) are declared at their tightened functional type.
+Named definitions become \(\mathsf{define\text{-}fun}\)s over their encoded bodies, and the environment's distinctness and finiteness constraints are encoded and asserted.
+Global \emph{hypotheses}, however, are deliberately not asserted at this stage: in the Atelier~B format, a clause that is a hypothesis for one proof obligation (an invariant, an assertion) is the \emph{goal} of another, so asserting them globally would beg the very questions the obligations pose.
+Each proof obligation instead carries the list of definition blocks it may use, and only those are asserted, locally.
+A final pass declares the residual variables that were typed during encoding but not yet declared---bound variables of constraints whose helper specifications were emitted globally.
+
+\subsection{Goals and refutation}
+\label{sec:beer-po-refutation}
+
+Each proof obligation is encoded inside its own \((\mathsf{push}\ 1) \dots (\mathsf{pop}\ 1)\) block containing its local declarations, its asserted definitions and hypotheses, and then, per goal, a nested block asserting the \emph{negated} encoded goal followed by \(\mathsf{check\text{-}sat}\).
+The scoping is not cosmetic.
+Atelier~B synthesizes fresh identifiers per obligation and freely reuses a name at \emph{different types} across obligations; the local blocks realize the corresponding scoping discipline on the SMT side, so that each \(\mathsf{check\text{-}sat}\) sees exactly the declarations and assertions of its own obligation, and the typing invariants of \Cref{thm:beer-encodeTerm-spec} hold per block.
+One script thus carries one \(\mathsf{check\text{-}sat}\) per goal, and each answer is interpreted independently: \textsf{unsat} discharges that goal, \textsf{sat} exhibits a countermodel and therefore invalidates it, while \textsf{unknown} or a timeout leaves it open.
+
+On the running example, the emitted script is, abridged to its structure:
+\begin{smtlisting}
+(set-logic HO_ALL)
+(declare-datatype Pair (par (T1 T2) ((pair (fst T1) (snd T2)))))
+(declare-datatype Option (par (T) ((some (the T)) (none))))
+(declare-const X (-> Int Bool))
+(declare-const Y (-> Int Bool))
+(push 1)
+  (declare-const f (-> Int (Option Int)))
+  (declare-const g (-> (Pair Int Int) Bool))
+  (assert ...)  ; f : X --> Y, elided
+  (assert ...)  ; g : X <-> Y, elided
+  (push 1)
+    (assert (not
+      (forall ((z (Pair Int Int)))
+      (forall ((f! (-> (Pair Int Int) Bool)))
+        (=> (forall ((u Int) (v Int))
+              (= (f! (pair u v)) (= (f u) (some v))))
+        (=> ((lambda ((p (Pair Int Int))) (or (f! p) (g p))) z)
+            (exists ((a Int) (b Int))
+              (and (X a) (and (Y b) (= z (pair a b)))))))))))
+    (check-sat)
+  (pop 1)
+(pop 1)
+\end{smtlisting}
+Every ingredient of the chapter is visible: the flagged \(\var{f}\) declared functionally and \(\var{g}\) relationally, the goal encoded as a guarded universal \cref{eq:beer-forall-shape} with the helper \(\lvar{f}\) universally bound under its graph specification, the union \cref{eq:beer-union-graph} applied to the bound variable, and the Cartesian product predicate of \Cref{sec:beer-rules-sets} as the conclusion.
+
+\subsection{Semantic adequacy of proof-obligation encoding}
+\label{sec:beer-po-soundness}
+
+Validity of a proof obligation is measured against the B semantics.
+
+\begin{definition}[Validity]
+  \label{def:beer-po-validity}
+  A proof obligation with typing context \(\Gamma_{\mathsf{B}}\), hypotheses \(H_1, \dots, H_n\), and goal \(G\) is \emph{valid} if for every valuation \(\Delta\) well formed for \(\Gamma_{\mathsf{B}}\) and defined on the free variables of the obligation,
+  \[
+    \Bigl(\textstyle\bigwedge_{i} \interpB{\aterm{H_i}{\Delta}} = \denval{\topZ}[\boolB]\Bigr)
+    \implies
+    \interpB{\aterm{G}{\Delta}} = \denval{\topZ}[\boolB].
+  \]
+  Hypotheses and goals are assumed well-defined, consistently with Atelier~B's separate emission of well-definedness obligations (\Cref{sec:b-wd}).
+\end{definition}
+
+\begin{theorem}[Semantic adequacy of proof-obligation encoding]
+  \label{thm:beer-end-to-end}
+  The refutation script emitted for a proof obligation is satisfiable with respect to the SMT semantics of \Cref{ch:smt} if and only if the proof obligation is invalid with respect to the B semantics.
+  Equivalently, the emitted script is unsatisfiable if and only if the proof obligation is valid.
+\end{theorem}
+
+\begin{proof}[Proof sketch]
+  For the forward implication, let an SMT valuation satisfy the emitted script.
+  Transport the interpretations of the source variables back through the semantic bridge, and use the exactness specifications of the cast helpers to recover the corresponding B valuation.
+  Semantic equivalence of term encoding then turns every true encoded hypothesis into a true B hypothesis and the asserted encoded negation of the goal into a false B goal.
+  The obligation is therefore invalid.
+
+  Conversely, invalidity yields a B valuation \(\Delta\) under which every hypothesis denotes \(\topZ\) and the goal denotes \(\botZ\).
+  Transport \(\Delta\) through the bridge and interpret each helper by the semantic value determined by its specification: loosened variables receive the cast image of their source (\Cref{thm:loosening-correctness}), and function witnesses receive the functional collapse of the corresponding graph.
+  Under the resulting SMT valuation, every encoded hypothesis denotes \(\topZ\), every helper specification is satisfied, and the encoded negation of the goal denotes \(\notZ\botZ = \topZ\).
+  Hence all assertions in the obligation's block are satisfied and the emitted script is satisfiable.
+\end{proof}
+
+The theorem statement deserves the same honesty as the rest of the chapter.
+The mechanized artifact is \Cref{thm:beer-encodeTerm-spec}, which carries, in its totality clause and helper-witness constructions, the term-level ingredients the equivalence consumes; its assembly at the level of scripts---iterating over assertions and interpreting \(\mathsf{push}/\mathsf{pop}\)---is a paper argument and is not, at the time of writing, a Lean theorem.
+Moreover, satisfiability and unsatisfiability in \Cref{thm:beer-end-to-end} refer to our ZF semantics of SMT scripts, so interpreting the solver's answer assumes the solver correct for that semantics.
+Both points are recorded in the trusted-base audit of \Cref{sec:beer-tcb}.
+
+On the running example, the goal of \cref{eq:beer-running-po} is indeed valid---\(\interpB{\var{f}} \subseteq X \timesZ Y\) and \(\interpB{\var{g}} \subseteq X \timesZ Y\) follow from the two hypotheses, and the union of two subsets of \(X \timesZ Y\) is one---and \textsf{cvc5} answers \textsf{unsat} on the emitted script, closing the proof obligation.
