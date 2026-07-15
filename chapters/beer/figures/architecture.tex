@@ -1,0 +1,73 @@
+\begin{tikzpicture}[
+    every node/.style={font=\small},
+    node distance=14mm and 23mm,
+    box/.style={
+      draw=dark-blue,
+      text=dark-blue,
+      very thick,
+      rounded corners=1mm,
+      minimum width=19mm,
+      minimum height=7mm,
+      align=center,
+    },
+    concrete/.style={box, draw=dark-blue, text=dark-blue},
+    phoas/.style={box, draw=orange, text=orange},
+    semantic/.style={box, draw=pink, text=pink},
+    note/.style={draw=none, inner sep=1.5pt},
+    arr/.style={-{Stealth[length=2mm]}, very thick,},
+    arr'/.style={-{Stealth[length=2mm]}, very thick, shorten >= 3pt, shorten <= 3pt},
+    group/.style={
+      draw=dark-blue!50,
+      dashed,
+      thick,
+      rounded corners=1mm,
+      inner sep=2mm,
+    },
+  ]
+  \node[concrete] (b) {B};
+  \node[concrete, right=of b] (smt) {SMT};
+
+  \node[phoas, below=of b] (bphoas) {B PHOAS};
+  \node[phoas, below=of smt] (smtphoas) {SMT PHOAS};
+  \path (bphoas) -- coordinate[midway] (proofmid) (smtphoas);
+  \node[semantic, below=12mm of proofmid] (zfc) {ZFC};
+
+  \draw[arr', dark-blue] (b) -- node[midway, above]
+    {\Large\textbeer} (smt);
+  \draw[arr', orange] (b) -- node[midway, left, text=orange]
+    {$\aterm{\cdot}{\Delta}$} (bphoas);
+  \draw[arr', orange] (smt) -- node[midway, right, text=orange]
+    {$\aterm{\cdot}{\Delta'}$} (smtphoas);
+  \draw[arr', pink] (bphoas) -- node[midway, below left, text=pink]
+    {$\interpB{\cdot}$} (zfc);
+  \draw[arr', pink] (smtphoas) -- node[midway, below right, text=pink]
+    {$\interpS{\cdot}$} (zfc);
+
+  \node[group, fit=(b)(smt)] (program) {};
+  \node[note, text=dark-blue, font=\small,
+    below=0pt of program.south] (programlabel) {program};
+
+  \node[group, fit=(bphoas)(smtphoas)(zfc)] (proofs) {};
+  \node[note, text=dark-blue, font=\small,
+    above=0pt of proofs.north] (proofslabel) {proofs};
+
+  \node[
+    draw=pink,
+    very thick,
+    rounded corners=2mm,
+    fit=(program)(programlabel)(proofs)(proofslabel),
+    inner sep=2mm,
+  ] (leanframe) {};
+  \node[note, text=pink, font=\Large,
+    above=0pt of leanframe.north] {\textlean};
+
+  \node[box, left=8mm of leanframe] (pog) {POG file};
+  \node[box, right=8mm of leanframe] (smtfile) {SMT file};
+
+  \draw[very thick, draw=dark-blue, shorten <= 3pt] (pog.east) -- (leanframe.west);
+  \draw[arr, draw=dark-blue, shorten >= 3pt] (leanframe.west) --
+    node[midway, left, xshift=-2mm, text=dark-blue] {parse} (b.west);
+  \draw[very thick, draw=dark-blue, shorten <= 3pt] (smt.east) --
+    node[midway, right, xshift=2mm, text=dark-blue] {write} (leanframe.east);
+  \draw[arr, draw=dark-blue, shorten >= 3pt] (leanframe.east) -- (smtfile.west);
+\end{tikzpicture}
