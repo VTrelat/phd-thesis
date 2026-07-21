@@ -103,6 +103,8 @@
 
 \newcommand\beer{\textsc{BEer}\xspace}
 \newcommand\barrel{\textsc{BARReL}\xspace}
+\newcommand\tlaplus{TLA\textsuperscript{+}\xspace}
+\newcommand\zflean{\textsc{ZFLean}\xspace}
 \newcommand{\irrelprf}{\ensuremath{\cdot\mkern-3.3mu\cdot\mkern-3.3mu\cdot}}
 \newcommand{\catop}[2]{\ensuremath{#1^{\scriptscriptstyle{\mathsf{#2}}}}}
 
@@ -177,9 +179,9 @@
 \newcommand{\canon}[1]{\zeta_{#1}}
 % Encoding of a B type as an SMT type
 \newcommand{\toSMT}[1]{{#1}^{\scalebox{0.45}{\textsf{SMT}}}}
-% canonical image of a B-side set under ζ (set level): \cimg{𝒟} = 𝒟^!, optional type index \cimg[α]{𝒟}
-\NewDocumentCommand{\cimg}{o m}{\ensuremath{{#2}^{!}\IfNoValueTF{#1}{}{_{#1}}}}
-% encoding judgement arrow: t ↪ (t', σ)
+% canonical image of a B-side set under ζ (set level): \cimg[α]{𝒟} = ζ_α[𝒟]
+\NewDocumentCommand{\cimg}{o m}{\ensuremath{\IfNoValueTF{#1}{\zeta[#2]}{\canon{#1}[#2]}}}
+% encoding judgment arrow: t ↪ (t', σ)
 \newcommand{\encto}{\mathrel{\hookrightarrow}}
 \newcommand{\stype}[3]{\ensuremath{#1 \sop{\vdash} #2 : #3}}
 \newcommand{\satype}[3]{\ensuremath{#1 \saop{\vdash} #2 : #3}}

@@ -290,8 +290,11 @@ extendedchars=true
 \tikzset{
   node distance=1.8cm,
   dot/.style={draw=none, fill=black, circle, inner sep=1pt},
-  relarr/.style={->, draw=gray, dash pattern=on 3pt off 1pt, >=stealth, shorten >=3pt, shorten <=3pt, line width=1pt},
-  funarr/.style={->, >=stealth, shorten >=3pt, shorten <=3pt, line width=1pt},
+  % arrows.meta Stealth tips are drawn as solid separate paths, so dashed lines
+  % cannot truncate the arrowhead (legacy >=stealth heads inherited the dash
+  % pattern and could render half a head on short dashed arrows).
+  relarr/.style={-{Stealth[length=6pt, width=5pt]}, draw=gray, dash pattern=on 3pt off 1pt, shorten >=3pt, shorten <=3pt, line width=1pt},
+  funarr/.style={-{Stealth[length=6pt, width=5pt]}, shorten >=3pt, shorten <=3pt, line width=1pt},
 }
 
 % --- Links ---
