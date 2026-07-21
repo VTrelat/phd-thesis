@@ -290,10 +290,11 @@
 }
 
 % ---------------------------------------------------------------------------
-% GRAYENV — specification rule: beige body, cover-cream top flag
-% Optional arg: rule name displayed in the flag (e.g. \begin{grayenv}[refl]).
+% ENCRULE — encoding rule: beige body, cover-cream top flag
+% Optional arg: rule name displayed in the flag; mandatory arg: label.
+% Example: \begin{encrule}[atoms]{rule:beer-atoms}.
 % ---------------------------------------------------------------------------
-\NewTColorBox{grayenv}{ O{} }{%
+\NewTColorBox{encrule}{ O{} m }{%
   enhanced,
   breakable,
   arc=3pt,
@@ -303,8 +304,10 @@
   colbacktitle=cover-cream,
   coltitle=white,
   fonttitle=\small\scshape,
+  nameref={#1},
+  phantomlabel={#2},
   title={%
-    \textcolor{white!55!cover-cream}{\footnotesize SPECIFICATION}%
+    \textcolor{white!55!cover-cream}{\footnotesize ENCODING}%
     \if\relax\detokenize{#1}\relax\else
       \enspace\textcolor{white!28!cover-cream}{·}\enspace%
       \textcolor{white!90!cover-cream}{#1}%
@@ -314,7 +317,17 @@
   toptitle=3pt,
   bottomtitle=3pt,
   left=8pt, right=8pt, top=4pt, bottom=4pt,
-  before upper={\setlength{\parskip}{4pt}},
+  before upper={%
+    \setlength{\parskip}{4pt}%
+    \setlength{\abovedisplayskip}{3pt plus 1pt minus 1pt}%
+    \setlength{\belowdisplayskip}{3pt plus 1pt minus 1pt}%
+    \setlength{\abovedisplayshortskip}{1pt plus 1pt}%
+    \setlength{\belowdisplayshortskip}{2pt plus 1pt minus 1pt}%
+  },
+}
+
+\NewDocumentCommand{\encruleref}{m}{%
+  \hyperref[#1]{\textsc{\nameref*{#1}}}%
 }
 
 % ---------------------------------------------------------------------------
