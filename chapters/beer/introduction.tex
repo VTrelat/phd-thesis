@@ -22,16 +22,16 @@ Their denotations must instead \emph{correspond} through the change of represent
 \begin{figure}[t]
   \begin{center}
     \tikzsetnextfilename{beer-semantic-overview}
-    \begin{tikzpicture}
+    \begin{tikzpicture}[node distance=2.5cm]
       \node (t) {$t : \alpha$};
       \node (tsmt) [right=of t] {$t' : \beta$};
       \node (dent) [below=of t] {$\denval{T}[\alpha]$};
       \node (dentsmt) [below=of tsmt] {$\denval{T'}[\beta]$};
 
-      \draw[funarr] (t) -- (tsmt) node[midway, above] {\Large\textbeer};
-      \draw[funarr] (t) -- (dent) node[midway, left] {$\interpB{\cdot}$};
-      \draw[relarr, draw=black] (tsmt) -- (dentsmt) node[midway, right] {$\interpS{\cdot}$};
-      \draw[relarr, draw=black] (dent) -- (dentsmt) node[midway, below] {$\semrel$};
+      \draw[funarr, draw=blue] (t) -- (tsmt) node[midway, above] {\Large\textbeer};
+      \draw[funarr, draw=blue] (t) -- (dent) node[midway, left] {$\interpB{\cdot}$};
+      \draw[relarr, draw=blue] (tsmt) -- (dentsmt) node[midway, right] {$\interpS{\cdot}$};
+      \draw[relarr, draw=blue] (dent) -- (dentsmt) node[midway, below] {$\semrel$};
     \end{tikzpicture}
   \end{center}
   \caption{A simplified view of the semantic square proved for \beer. Solid arrows are hypotheses, dashed arrows are conclusions.}
@@ -98,4 +98,4 @@ Concretely, the selected SMT context contains
 If a source valuation assigns relations \(F\) and \(G\) to \(\var{f}\) and \(\var{g}\), respectively, the true total-function hypothesis makes the canonical graph of \(F\) functional.
 The corresponding SMT valuation may therefore assign to \(\var{f}\) its functional collapse and to \(\var{g}\) its canonical characteristic predicate.
 Turning the former back into a graph recovers the canonical graph of \(F\), so both assignments correspond to their source values despite inhabiting different SMT types.
-The proof obligation \eqref{eq:beer-running-po} is followed through the encoding rules of \Cref{sec:beer-encoding-rules}, the soundness argument of \Cref{sec:beer-soundness}, and the complete emitted script of \Cref{sec:beer-proof-obligations}.
+The proof obligation \eqref{eq:beer-running-po} is worked through concretely in \Cref{sec:beer-rules-running-example}, revisited in the soundness argument of \Cref{sec:beer-soundness}, and shown as a complete emitted script in \Cref{sec:beer-proof-obligations}.

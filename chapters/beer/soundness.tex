@@ -1,349 +1,927 @@
 \section{Soundness of the Encoding}
 \label{sec:beer-soundness}
 
-This section states and proves the central theorem of the thesis: encoded terms denote, and their denotations agree with those of their sources through the bridge of \Cref{sec:beer-semantic-bridge}.
-The proof is one structural induction whose every case follows the same choreography---compute the denotation of the emitted term, then rewrite the retraction past the emitted operation---so we present the invariant and the shared lemmas once (\Cref{sec:beer-invariant,sec:beer-proof-spine}), prove one representative case in full (union, \Cref{sec:beer-case-pointwise}), and give for each remaining family the emitted denotation and the argument that closes it.
+This section states and proves the central term theorem: an encoded term denotes in the representation actually selected by the encoder, and its denotation agrees with the source in the sense of \Cref{def:beer-agreement}.
+The proof is carried out by a paired structural induction.
+Its ordinary component establishes denotational agreement; its declaration-aware component records enough information about generated helper specifications to replay the argument when a parent construct moves those helpers beneath a binder.
+We first state the common invariant, then isolate the shared proof spine and prove the constructor families in groups.
 
 \subsection{The invariant and the theorem}
 \label{sec:beer-invariant}
 
-Correctness of a term encoding is agreement in the sense of \Cref{def:beer-agreement}, together with typing preservation.
-The following statement is the monad-free projection of the mechanized theorem; the state-related clauses it omits are enumerated at the end of this subsection.
+Let \(\Gamma\) be a B typing context and write
+\(\Lambda_0\coloneq\toSMT{\Gamma}\) for the initial SMT representation context selected from it.
+For a term \(t\), the valuation premise is local: a B valuation \(\Delta\), well formed for \(\Gamma\) in the sense of \Cref{def:b-ren-wf}, and an SMT valuation \(\Theta\) must agree only on \(\mathsf{fv}(t)\), while \(\Theta\) must respect \(\Lambda_0\) there (\Cref{def:beer-valuation-compatibility}).
+By \Cref{def:beer-agreement}, agreement with a represented set already supplies a representative for every one of its members at that set representation's bound-value type.
+A universal quantifier may, however, select a different representation for its bound names.
+If a B domain \(\mathcal D\) contains values of type \(\tau\), the selected binder type is \(\rho\), and \(\mathbb c:\castpath{\rho}{\toSMT{\tau}}\), the required \emph{binder compatibility}, illustrated in \Cref{fig:beer-binder-compatibility}, says that every source value inspected by the binder also has a representative at \(\rho\):
+\begin{figure}[t]
+  \centering
+  \tikzsetnextfilename{beer-binder-compatibility}
+  \begin{tikzpicture}[
+      node distance=4.15cm,
+      carrier/.style={
+        draw=dark-blue,
+        thick,
+        rounded corners=3mm,
+      },
+      domain face/.style={
+        draw=dark-blue,
+        thick,
+        rounded corners=3mm,
+        fill=pink!22,
+      },
+      every node/.style={text=dark-blue},
+      dot/.style={
+        circle,
+        fill=dark-blue,
+        inner sep=1.3pt,
+        outer sep=0pt,
+      },
+    ]
+    \coordinate (tau);
+    \coordinate[right=of tau] (rho);
+    \coordinate[right=of rho] (tau-smt);
 
-\begin{theorem}[Soundness of term encoding][encodeTerm\_spec][SMT/Reasoning/EncodeTermCorrect.html\#encodeTerm\_spec]
+    \potatoshape{carrier, fill=blue!18}
+      {tau-carrier}{(tau)}{7.8mm}{16mm}{.9mm}{41}
+    \potatoshape{carrier, fill=orange!18}
+      {rho-carrier}{(rho)}{6.5mm}{15mm}{.9mm}{2718}
+    \potatoshape{carrier, fill=orange!18}
+      {tau-smt-carrier}{(tau-smt)}{7.2mm}{17mm}{.9mm}{314}
+
+    \coordinate[above=1.5mm of tau, xshift=0.5mm] (domain-center);
+    \coordinate[left=.3mm of domain-center] (x-position);
+    \coordinate[above=1.5mm of rho] (w-position);
+    \coordinate[above=1.5mm of tau-smt] (cast-w-position);
+
+    \potatoshape{domain face}
+      {domain}{(domain-center)}{3.5mm}{8.5mm}{6mm}{171}
+
+    \node[dot, draw=dark-blue] (x) at (x-position) {};
+    \node[dot, draw=dark-blue] (w) at (w-position) {};
+    \node[dot, draw=dark-blue] (cast-w) at (cast-w-position) {};
+
+    \node[above=1mm of x, font=\small] {\(x\)};
+    \node[font=\small, yshift=-1mm] at (domain-7) {\(\mathcal D\)};
+    \node[above=1mm of w, font=\small] {\(w\)};
+
+    \node[font=\small, yshift=2mm] at (tau-carrier-3) {\(\interpZ{\tau}\)};
+    \node[font=\small, yshift=2mm] at (rho-carrier-3) {\(\interpZ{\rho}\)};
+    \node[font=\small, yshift=2mm] at (tau-smt-carrier-3) {\(\interpZ{\toSMT{\tau}}\)};
+
+    % The canonical map and retraction pass around the middle carrier.
+    \draw[funarr, draw=blue]
+      (x) to[in=-120, out=-60, looseness=.78]
+      node[midway, below=2pt, text=blue] {\(\canon{\tau}\)} (cast-w);
+    \draw[funarr, draw=pink]
+      (cast-w) to[in=-80, out=-100, looseness=.92]
+      node[midway, below=2pt, text=pink] {\(\retr{\tau}\)} (x);
+
+    \draw[relarr, {Stealth[length=6pt, width=5pt]}-{Stealth[length=6pt, width=5pt]}, draw=pink]
+      (x) -- node[pos=.56, below=2pt, text=pink] {\(\semrel\)} (w);
+    \draw[funarr, draw=blue]
+      (w) -- node[midway, above=2pt, text=blue] {\(\zop{\mathbb c}\)}
+      (cast-w);
+  \end{tikzpicture}
+  \caption{Binder compatibility. For every \(x\in\mathcal D\), a representative
+    \(w\in\interpZ{\rho}\) casts to the canonical image
+    \(\appZ\canon{\tau}(x)\), which retracts to \(x\).}
+  \label{fig:beer-binder-compatibility}
+\end{figure}
+\[
+  \forall x\in\mathcal D,\quad
+  \exists w\in\interpZ{\rho},\qquad
+  \denval{x}[\tau]\;\semrel\;\denval{w}[\rho],
+\]
+whose decoding equation uses \(\mathbb c\) and whose support component recurses when a bound value contains a set.
+When \(\rho\) is the bound-value type already carried by the represented domain, its support supplies these witnesses; at the canonical representation one may take \(w=\appZ\canon{\tau}(x)\).
+
+\begin{theorem}[Representation-aware soundness of term encoding][encodeTerm\_rep\_spec][SMT/Reasoning/EncodeTermRepresented.html\#encodeTerm_rep_spec]
   \label{thm:beer-encodeTerm-spec}
-  Let \(t\) be a B term with \(\btype{\Gamma_{\mathsf{B}}}{t}{\alpha}\) and \(\WD(t)\), and let \(\Delta\) be a B valuation, well formed for \(\Gamma_{\mathsf{B}}\) (\Cref{def:b-ren-wf}) and defined on the free variables of \(t\), such that
-  \(\interpB{\aterm{t}{\Delta}} = \denval{X}[\alpha]\).
-  If \(t \encto (t', \sigma)\), then
+  Let \(t\) be a well-typed, well-defined B term, \ie
+  \(\btype{\Gamma}{t}{\alpha}\), and \(\WD(t)\).
+  Assume that the binder-compatibility condition above holds for every bounded universal occurring in \(t\).
+
+  Let \(\Delta\) be a B valuation well formed for \(\Gamma\) (\Cref{def:b-ren-wf}), and let \(\Theta_0\) be an SMT valuation that agrees with \(\Delta\) on \(\mathsf{fv}(t)\) and respects \(\Lambda_0\) there (\Cref{def:beer-valuation-compatibility}).
+  Suppose that an encoder run initialized with \(\Lambda_0\) satisfies
+  \[
+    \interpB{\aterm{t}{\Delta}}=\denval{T}[\alpha]
+    \qquad\text{and}\qquad
+    t \encto (t',\sigma).
+  \]
+  Write \(\Lambda'\) for the output type context of this run.
+  It extends \(\Lambda_0\) with the declarations of the fresh helper variables generated while encoding \(t\).
+  Then:
   \begin{enumerate}
-    \item \(\sigma = \toSMT{\alpha}\), and \(\stype{\Gamma}{t'}{\toSMT{\alpha}}\) where \(\Gamma\) is the SMT typing context accumulated by the encoder;
-    \item \(t'\) denotes under the image valuation: there is a valuation \(\Delta'\) extending \(\toSMT{\Delta}\) to the helper variables introduced by the encoder, and a value \(X'\), with
-    \(\interpS{\aterm{t'}{\Delta'}} = \denval{X'}[\toSMT{\alpha}]\);
-    \item the denotations agree: \(\denval{X}[\alpha] \semrel \denval{X'}[\toSMT{\alpha}]\), \ie \(\retr{\alpha}(X') = X\).
+    \item \emph{Type correctness modulo loosening.}
+      The result type satisfies
+      \(\sigma\in[\lgf{(\toSMT{\alpha})},\mgf{(\toSMT{\alpha})}]\), a cast path \(\mathbb c:\castpath{\sigma}{\toSMT{\alpha}}\) exists, and \(\stype{\Lambda'}{t'}{\sigma}\).
+    \item \emph{Semantic agreement.}
+      There is an SMT valuation \(\Theta'\) extending \(\Theta_0\) to the generated helper variables and a denotation \(\denval{T'}[\sigma]\) such that
+    \[
+      \interpS{\aterm{t'}{\Theta'}}=\denval{T'}[\sigma]
+      \qquad\text{and}\qquad
+      \denval{T}[\alpha]\;\semrel\;\denval{T'}[\sigma].
+    \]
+    \item \emph{Valuation stability.}
+      For every other well-formed B valuation \(\Delta_a\) and SMT valuation \(\Theta_a\) satisfying the same free-variable agreement and context conditions, if \(t\) denotes \(\denval{T_a}[\alpha]\) under \(\Delta_a\), then \(\Theta_a\) extends to a valuation under which the same emitted term \(t'\) denotes some \(\denval{T_a'}[\sigma]\) with
+      \(\denval{T_a}[\alpha]\semrel\denval{T_a'}[\sigma]\).
   \end{enumerate}
 \end{theorem}
 
-\begin{center}
-\begin{minipage}{\textwidth}
+\begin{figure}[t]
   \centering
+  \tikzsetnextfilename{beer-semantic-square}
   \begin{tikzpicture}[
       every node/.style={text=dark-blue},
-      node distance=2.5cm and 5.2cm,
+      node distance=2.5cm,
     ]
-    \node[font=\large] (t) {$t$};
-    \node[font=\large, right=of t] (tp) {$t'$};
-
-    \node[below=of t] (X) {$\denval{X}[\orange{\alpha}]$};
-    \node[below=of tp] (Xp)
-      {$\denval{X'}[\orange{\toSMT{\alpha}}]$};
+    \node[font=\large] (t) {$t : \alpha$};
+    \node[font=\large, right=of t] (tp) {$t' : \sigma$};
+    \node[below=of t] (X) {$\denval{T}[\orange{\alpha}]$};
+    \node[below=of tp] (Y) {$\denval{T'}[\orange{\sigma}]$};
 
     \draw[funarr, draw=blue]
       (t) -- node[midway, above] {\beer{}\enspace\textbeer} (tp);
     \draw[funarr, draw=blue]
-      (t) -- node[midway, left]
-      {$\interpB{\aterm{\cdot}{\Delta}}$} (X);
-    \draw[funarr, draw=blue]
-      (tp) -- node[midway, right]
-      {$\interpS{\aterm{\cdot}{\Delta'}}$} (Xp);
-
-    \draw[-, draw=pink, dash pattern=on 4pt off 2pt,
+      (t) -- node[midway, left] {$\interpB{\aterm{\cdot}{\Delta}}$} (X);
+    \draw[funarr, dash pattern=on 4pt off 2pt, draw=blue]
+      (tp) -- node[midway, right] {$\interpS{\aterm{\cdot}{\Theta'}}$} (Y);
+    \draw[{Stealth[length=6pt, width=5pt]}-{Stealth[length=6pt, width=5pt]}, draw=pink, dash pattern=on 4pt off 2pt,
           line width=1.2pt, shorten <=3pt, shorten >=3pt]
       (X) -- node[midway, below=2pt, fill=white, inner sep=2pt,
-                  text=pink, font=\footnotesize\itshape]
-                  {corresponds to} (Xp);
+                  text=pink]
+                  {\semrel} (Y);
   \end{tikzpicture}
-  \captionof{figure}{The term-level semantic square. Under the hypotheses of \Cref{thm:beer-encodeTerm-spec}, if \(t \encto (t',\sigma)\), then \(\sigma=\toSMT{\alpha}\), and \(\Delta'\) extends \(\toSMT{\Delta}\) with the helper variables introduced by the encoding. The lower edge records the agreement conclusion; it is a relation rather than an equality.}
+  \captionof{figure}{The representation-aware semantic square. The lower edge comprises equality after the semantic cast and canonical retraction, together with support for the represented value.}
   \label{fig:beer-semantic-square}
-\end{minipage}
-\end{center}
+\end{figure}
 
-The canonical isomorphisms of \Cref{thm:beer-btype-iso} provide the bridge at the level of types; \Cref{thm:beer-encodeTerm-spec} lifts it to terms, as summarized in \Cref{fig:beer-semantic-square}.
+The proof component of the target triple \(\denval{T'}[\sigma]\) is constructed from target typing and denotation: \(\stype{\Lambda'}{t'}{\sigma}\), together with the fact that \(t'\) is denoted by \(T'\), yields \(T'\in\interpZ{\sigma}\) by type determinacy.
+It is therefore part of the conclusion, not an additional semantic premise.
 
-Three hypotheses carry mathematical content and survive the abstraction: well-typedness, which drives the induction and pins every intermediate type; well-definedness \(\WD(t)\), consumed exactly where B is partial (application, and the totality of quantified bodies); and agreement of the valuations, supplied once and for all by the bridge (\Cref{lem:beer-rvaluation-toSMT}), since the SMT valuation is not chosen freely but is the image \(\toSMT{\Delta}\) of the B valuation.
-The mechanized statement threads, in addition: monotonicity of the used-name supply, the chain \(\Delta, \Delta_0, \Delta'\) of successively extended SMT valuations, the invariant that no variable outside the used-name set is bound, disjointness of bound names, and a totality clause strengthening item~2 to \emph{every} admissible B valuation of \(t\)---a strengthening that the binder cases need when they instantiate their induction hypotheses pointwise under a quantifier.
-All of these are bookkeeping for one fact, \emph{the bridge extends to valuations and survives fresh declarations}, and they are discharged by the weakest-precondition machinery of \Cref{sec:beer-implementation}.
-Finally, the statement takes two hypotheses specific to the universal-quantifier case, packaging the existence and stability of the quantified denotation; they are examined with that case in \Cref{sec:beer-case-forall}.
+Valuation stability is the totality strengthening needed beneath binders: the same emitted term remains correct for every admissible pair of source and target valuations, not only for the initial pair \((\Delta,\Theta_0)\).
+By \Cref{lem:beer-rvaluation-toSMT}, the canonical image valuation of \Cref{def:beer-valuation-image} is one admissible choice for \(\Theta_0\).
+Complete proof obligation encoding may instead assign an option-valued function representation to a source relation known to be functional; in that case, \Cref{sec:beer-po-soundness} constructs the corresponding target value by collapsing its graph into a functional representation, and the resulting valuations satisfy the same agreement premise.
+\Cref{fig:beer-semantic-square} summarizes this relation independently of how the target valuation is constructed.
+
+For formulas, the general relation specializes to literal equality.
+
+\begin{corollary}[Boolean soundness][encodeTerm\_rep\_bool\_spec][SMT/Reasoning/EncodeTermRepresented.html\#encodeTerm_rep_bool_spec]
+  \label{cor:beer-encodeTerm-bool-spec}
+  Under the hypotheses of \Cref{thm:beer-encodeTerm-spec}, if \(t\) has B type \(\boolB\), then \(\sigma=\boolS\) and
+  \[
+    \interpB{\aterm{t}{\Delta}}=\denval{b}[\boolB]
+    \quad\Longleftrightarrow\quad
+    \interpS{\aterm{t'}{\Theta'}}=\denval{b}[\boolS]
+    \qquad (b\in\Zbool).
+  \]
+\end{corollary}
+
+\begin{proof}
+  At Boolean type the interval is the singleton \([\boolS,\boolS]\), so \(\sigma=\boolS\).
+  The cast is therefore reflexive and \(\retr{\boolB}\) is the identity, so agreement is equality of the two ZF Boolean values.
+\end{proof}
+
+Every hypothesis and goal in a proof obligation is a formula, and therefore has B type \(\boolB\).
+The corollary thus applies directly to each of them and shows that its truth value is both preserved and reflected by the encoding.
+Together with the corresponding valuation constructions, this is the term-level result used in \Cref{sec:beer-po-soundness} to relate countermodels of a complete obligation to models of its SMT refutation script.
 
 \subsection{The proof spine}
 \label{sec:beer-proof-spine}
 
-The induction leans on a small set of lemmas, proved once and cited per case; \cref{tab:beer-spine} lists them with the case families that consume them.
-The round-trip laws and the bridge lemma come from \Cref{sec:beer-semantic-bridge}; loosening correctness is \Cref{thm:loosening-correctness}; totality and type-determinacy of the two denotation functions are \Cref{thm:b-denote-complete,thm:b-denote-type-det,thm:smt-denote-complete,thm:smt-denote-type-det}.
-The substitution lemma is the standard binder fact, stated here once: for SMT terms, the denotation of a substituted body equals the denotation of the body under the correspondingly extended valuation,
-\[
-  \interpS{\aterm{e[\vec{\var{v}} \leftarrow \vec{s}\,]}{\Delta}} = \interpS{\aterm{e}{\Delta[\vec{\var{v}} \mapsto \interpS{\aterm{\vec{s}}{\Delta}}]}},
-\]
-under the freshness side conditions guaranteed by the encoder's name discipline ({\small\leancodeptr{abstract\_substList\_denote}{SMT/Reasoning/Basic/AbstractSubstDenote.html\#abstract\_substList\_denote}}).
-Its companion is the destructor computation: the \(i\)-th \(\fstS\)/\(\sndS\) projection chain of \Cref{sec:beer-rules-comprehension} denotes the \(i\)-th component of a tuple, and \(\canon{}\) commutes with pairing and projections.
-
-\begin{table}
-  \centering
-  \begin{tabular}{lll}
+\begin{table}[t]
+  \small
+  \renewcommand{\arraystretch}{1.2}
+  \begin{tabular}{@{}p{.20\textwidth}p{.48\textwidth}p{.22\textwidth}@{}}
     \toprule
-    Lemma & Statement & Consumed by \\
+    Lemma & Semantic role & Principal cases \\
     \midrule
-    round-trip L & \(\retr{\alpha} \circ \canon{\alpha} = \mathrm{id}\) \hfill (\Cref{thm:beer-round-trip}) & variables, application, and ubiquitously \\
-    round-trip R & \(\canon{\alpha} \circ \retr{\alpha} = \mathrm{id}\) \hfill (\Cref{thm:beer-round-trip}) & \(\inB\), \(\eqB\), set formers, comprehension, \(\lambdaB\), \(\forallB\) \\
-    bridge & \(x \in X \iff \appZ F(\appZ\canon{\beta}(x)) = \topZ\) \hfill (\Cref{lem:beer-bridge}) & every set-valued case \\
-    loosening corr. & \(\lvar{x}\) denotes the semantic cast image \hfill (\Cref{thm:loosening-correctness}) & cast layer, \(\forallB\) \\
-    substitution & displayed above & comprehension, \(\lambdaB\), \(\forallB\) \\
-    totality \& determinacy & \Cref{thm:b-denote-complete,thm:smt-denote-complete} & every case \\
+    \raggedright interval casts and round trips &
+      \raggedright transport to \(\toSMT{\alpha}\) and retract without changing the represented B value &
+      \raggedright all constructors \tabularnewline
+    \raggedright represented membership &
+      \raggedright \(F(w)=\topZ\) iff the represented element belongs to the represented set (\Cref{lem:beer-represented-membership}) &
+      \raggedright \(\inB\), \(\bop{\{\cdot\mid\cdot\}}\), \(\bop{\forall}\), \(\bop{\lambda}\) \tabularnewline
+    \raggedright represented equality &
+      \raggedright equality after a cast iff the target values represent equal B values (\Cref{lem:beer-represented-equality}) &
+      \raggedright \(\eqB\), \(\prodB\), \(\pfunB\) \tabularnewline
+    \raggedright pointwise agreement &
+      \raggedright the predicate construction and option-application laws described below &
+      \raggedright \(\capB\), \(\cupB\), \(\inB\), \(\appB\), \(\lambdaB\) \tabularnewline
+    \raggedright support &
+      \raggedright provide representatives for source members, recursively through nested values &
+      \raggedright \(\bop{\{\cdot\mid\cdot\}}\), \(\forallB\), \(\lambdaB\), projections \tabularnewline
+    \raggedright binder compatibility &
+      \raggedright transport representatives to an independently selected binder type &
+      \raggedright \(\forallB\) \tabularnewline
+    \raggedright loosening exactness &
+      \raggedright each helper denotes its specified semantic-cast image &
+      \raggedright all cast branches \tabularnewline
+    \raggedright scoped helper contract &
+      \raggedright every typed satisfying helper assignment gives the same represented result &
+      \raggedright \(\capB\), \(\bop{\{\cdot\mid\cdot\}}\), \(\lambdaB\), \(\forallB\) \tabularnewline
     \bottomrule
   \end{tabular}
-  \caption{The shared lemmas of the soundness induction.}
+  \caption{The shared semantic facts of the representation-aware induction.}
   \label{tab:beer-spine}
 \end{table}
 
-Two global remarks spare much repetition below.
-First, whenever the target type is \(\boolB\) or \(\intB\), the retraction is the identity and agreement collapses to equality of ZF values; such cases close by computation.
-Second, every SMT value the proof ever feeds into a characteristic predicate is of the form \(\appZ\canon{\beta}(x)\)---either because it was constructed so, or after rewriting with round-trip~R---which is precisely the shape the bridge lemma consumes.
+The induction uses the same few semantic facts in every constructor; \Cref{tab:beer-spine} records their roles.
+Besides the lemmas established in \Cref{sec:beer-semantic-bridge}, it uses exactness of semantic loosening (\Cref{thm:loosening-correctness}), the standard substitution lemma under binders, and totality and type determinacy of the B and SMT denotations (\Cref{thm:b-denote-complete,thm:b-denote-type-det,thm:smt-denote-complete,thm:smt-denote-type-det}).
+
+It is useful to read each induction branch as establishing three synchronized invariants.
+First, the encoding rule fixes the shape of the selected interval member \(\sigma\), constructs its cast to \(\toSMT{\alpha}\), and derives \(\stype{\Lambda'}{t'}{\sigma}\).
+Second, totality supplies a target value \(T'\) under the extended valuation, while type determinacy places \(T'\) in \(\interpZ{\sigma}\).
+Third, a constructor-specific semantic equation proves that \(T'\) decodes to the source value \(T\), and a support argument provides representatives for every nested value that a later constructor may inspect.
+The valuation-stability clause repeats these three steps for an arbitrary admissible pair \((\Delta_a,\Theta_a)\); the emitted term and selected type stay fixed, and only the denotations and the values assigned to generated helpers vary.
+It is therefore not a second semantic calculation: the constructor equation is proved once with the admissible valuations kept arbitrary.
+Helper-generating branches use the scoped helper contract; the others reuse \(\Theta_a\).
+
+Set-valued cases discharge the third invariant by a two-sided pointwise
+argument, after applying the semantic casts selected by the representation.
+Let \(S\in\interpZ{\setB\alpha}\), let
+\(F\in\interpZ{\sigma\toS\boolS}\), and suppose that \(\sigma\) is a
+supported representation of \(\alpha\).
+To establish
+\[
+  \denval{S}[\setB\alpha]\;\semrel\;
+  \denval{F}[\sigma\toS\boolS],
+\]
+the pointwise construction used in the proof has exactly two obligations:
+\[
+  \begin{aligned}
+    F(w)=\topZ
+    &\Longrightarrow
+      \exists x\in S,\,
+      \denval{x}[\alpha]\;\semrel\;\denval{w}[\sigma]
+      &&\text{for every \(w\in\interpZ{\sigma}\)},\\
+    x\in S
+    &\Longrightarrow
+      \exists w\in\interpZ{\sigma},\,
+      \denval{x}[\alpha]\;\semrel\;\denval{w}[\sigma]
+      \ \land\ F(w)=\topZ
+      &&\text{for every \(x\in\interpZ{\alpha}\)}.
+  \end{aligned}
+\]
+The first excludes a target point accepted without a corresponding source
+member; the second supplies a true supported representative for each source
+member.
+Once the agreement has been established,
+\Cref{lem:beer-represented-membership} gives the pointwise equivalence
+\[
+  \denval{x}[\alpha]\semrel\denval{w}[\sigma]
+  \quad\Longrightarrow\quad
+  \bigl(F(w)=\topZ\iff x\in S\bigr).
+\]
+
+Now let \(R\in\interpZ{\setB(\alpha\prodB\beta)}\) and let
+\(F\in\interpZ{\sigma\toS\optS\tau}\), where \(\sigma\) and \(\tau\)
+are supported representations of \(\alpha\) and \(\beta\), respectively.
+Suppose
+\[
+  \denval{R}[\setB(\alpha\prodB\beta)]
+  \;\semrel\;
+  \denval{F}[\sigma\toS\optS\tau].
+\]
+For related arguments and results, the option-valued function application law is
+\[
+  \denval{x}[\alpha]\;\semrel\;\denval{a}[\sigma]
+  \;\land\;
+  \denval{y}[\beta]\;\semrel\;\denval{b}[\tau]
+  \quad\Longrightarrow\quad
+  \bigl(F(a)=\someZ b\iff\pairZ{x}{y}\in R\bigr).
+\]
+Its proof casts \(F\) to the corresponding characteristic predicate and
+applies the membership bridge at the represented pair.
+This is the pointwise fact used by the intersection and application
+cases below.
+
+The other recurring comparison concerns target equality after two represented values have been reconciled to a common type.
+The following formal result, illustrated in
+\Cref{fig:beer-represented-equality}, is used by the equality case and by the
+equality tests inside the product and partial-function encodings.
+
+\begin{figure}[t]
+  \centering
+  \tikzsetnextfilename{beer-represented-equality}
+  \begin{tikzpicture}[
+      every node/.style={align=center, text=dark-blue},
+      carrier/.style={
+        draw=dark-blue,
+        thick,
+        rounded corners=3mm,
+      },
+      agreement/.style={
+        {Stealth[length=6pt, width=5pt]}-{Stealth[length=6pt, width=5pt]},
+        draw=pink,
+        line width=1.1pt,
+        shorten >=5pt,
+        shorten <=5pt,
+      },
+      dot/.style={
+        circle,
+        fill=dark-blue,
+        inner sep=1.3pt,
+        outer sep=0pt,
+      },
+      comparison/.style={
+        fill=white,
+        font=\small,
+        inner sep=2pt,
+      },
+    ]
+    \coordinate (alpha-Y);
+    \coordinate[above=30mm of alpha-Y] (alpha-X);
+    \coordinate[right=46mm of alpha-Y] (tau-B);
+    \coordinate[above=30mm of tau-B] (sigma-A);
+
+    \potatoshape{carrier, fill=blue!18}
+      {alpha-Y-carrier}{(alpha-Y)}{13mm}{6.5mm}{4mm}{41}
+    \potatoshape{carrier, fill=blue!18}
+      {alpha-X-carrier}{(alpha-X)}{13mm}{6.5mm}{4mm}{171}
+    \potatoshape{carrier, fill=orange!18}
+      {tau-carrier}{(tau-B)}{13mm}{6.5mm}{4mm}{2718}
+    \potatoshape{carrier, fill=orange!18}
+      {sigma-carrier}{(sigma-A)}{13mm}{6.5mm}{4mm}{314}
+
+    \node[
+      font=\small,
+      left=1mm of alpha-Y-carrier-5,
+    ] {\(\interpZ{\alpha}\)};
+    \node[
+      font=\small,
+      left=1mm of alpha-X-carrier-5,
+    ] {\(\interpZ{\alpha}\)};
+    \node[
+      font=\small,
+      right=1mm of tau-carrier-1,
+    ] {\(\interpZ{\tau}\)};
+    \node[
+      font=\small,
+      right=1mm of sigma-carrier-1,
+    ] {\(\interpZ{\sigma}\)};
+
+    \node[dot] (Y) at (alpha-Y) {};
+    \node[dot] (X) at (alpha-X) {};
+    \node[dot] (B) at (tau-B) {};
+    \node[dot] (A) at (sigma-A) {};
+    \node[left=1mm of Y] {\(Y\)};
+    \node[left=1mm of X] {\(X\)};
+    \node[right=1mm of B] {\(B\)};
+    \node[right=1mm of A] {\(A\)};
+
+    \draw[agreement]
+      (Y) -- node[comparison, below=2pt, text=pink] {\(\semrel\)} (B);
+    \draw[agreement]
+      (X) -- node[comparison, above=2pt, text=pink] {\(\semrel\)} (A);
+
+    \draw[
+      draw=pink,
+      dash pattern=on 4pt off 2pt,
+      line width=1.1pt,
+      shorten <=5pt,
+      shorten >=5pt,
+    ]
+      (X) -- node[comparison, left=2pt, text=pink] {\(X=Y\)} (Y);
+    \draw[
+      funarr,
+      draw=blue,
+      dash pattern=on 4pt off 2pt,
+      shorten <=5pt,
+      shorten >=5pt,
+    ]
+      (A) --
+      node[comparison, right=2pt]
+        {\(\appZ\zop{\mathbb c}(A)=B\)}
+      (B);
+
+    \node[
+      font=\Large,
+      fill=white,
+      inner sep=3pt,
+    ] at ($(X)!0.5!(B)$) {\(\Longleftrightarrow\)};
+  \end{tikzpicture}
+  \caption{Equality of represented values.
+    The points \(X,Y\in\interpZ{\alpha}\),
+    \(A\in\interpZ{\sigma}\), and \(B\in\interpZ{\tau}\) satisfy the two
+    horizontal agreement hypotheses.
+    Casting \(A\) along \(\mathbb c:\castpath{\sigma}{\tau}\) lands on \(B\)
+    exactly when \(X\) and \(Y\) coincide.}
+  \label{fig:beer-represented-equality}
+\end{figure}
+
+\begin{lemma}[Equality of represented values][RDomCastSupported.cast\_eq\_iff][SMT/Reasoning/Representation.html\#RDomCastSupported.cast_eq_iff]
+  \label{lem:beer-represented-equality}
+  Suppose
+  \[
+    \denval{X}[\alpha]\semrel\denval{A}[\sigma],
+    \qquad
+    \denval{Y}[\alpha]\semrel\denval{B}[\tau],
+  \]
+  and let \(\mathbb c:\castpath{\sigma}{\tau}\).
+  Then
+  \[
+    \appZ\zop{\mathbb c}(A)=B
+    \quad\Longleftrightarrow\quad
+    X=Y.
+  \]
+\end{lemma}
+
+\begin{proof}
+  We proceed by structural induction on \(\alpha\), keeping both supported
+  representations and the cast path general.
+  Write
+  \(
+    \widehat A\coloneq\appZ\zop{\mathbb c}(A)
+  \).
+
+  \emph{Atomic types.}
+  If \(\alpha\) is \(\intB\) or \(\boolB\), its representation interval is a
+  singleton.
+  Thus both target values use the canonical representation, the cast is
+  semantically the identity, and the two agreement equations give
+  \[
+    \widehat A=B
+    \quad\Longleftrightarrow\quad
+    \appZ\retr{\alpha}(\widehat A)
+      =\appZ\retr{\alpha}(B)
+    \quad\Longleftrightarrow\quad
+    X=Y.
+  \]
+
+  \emph{Products.}
+  Suppose \(\alpha=\alpha_1\prodB\alpha_2\).
+  Supported representations then force
+  \(A=\pairZ{A_1}{A_2}\), \(B=\pairZ{B_1}{B_2}\), and a componentwise cast
+  \(\mathbb c=(\mathbb c_1,\mathbb c_2)\).
+  Writing \(X=\pairZ{X_1}{X_2}\) and
+  \(Y=\pairZ{Y_1}{Y_2}\), injectivity of pairing and the two induction
+  hypotheses yield
+  \[
+    \begin{aligned}
+      \widehat A=B
+      &\iff
+        \appZ\zop{\mathbb c_1}(A_1)=B_1
+        \ \land\
+        \appZ\zop{\mathbb c_2}(A_2)=B_2\\
+      &\iff X_1=Y_1\ \land\ X_2=Y_2\\
+      &\iff X=Y.
+    \end{aligned}
+  \]
+
+  \emph{Characteristic predicates.}
+  Consider \(\alpha=\setB\beta\).
+  Suppose first that \(A\) and \(B\) are characteristic predicates, and let
+  \(\mathbb{p}\) be the induced cast between their argument representations.
+  If \(\widehat A=B\) and \(x\in X\), support supplies an \(a\) representing
+  \(x\) with \(A(a)=\topZ\).
+  The cast point \(b=\appZ\zop{\mathbb{p}}(a)\) still represents \(x\) by the induction
+  hypothesis, and the definition of the predicate cast gives
+  \(\widehat A(b)=\topZ\).
+  Hence, \(B(b)=\topZ\), and
+  \Cref{lem:beer-represented-membership} yields \(x\in Y\).
+  The converse inclusion uses a supported representative supplied by \(B\)
+  and the preimage property of the cast; therefore
+  \(\widehat A=B\) implies \(X=Y\).
+
+  Conversely, assume \(X=Y\).
+  Whenever either predicate is true at a target argument \(b\), the cast
+  preimage and support conditions provide a source value \(x_b\) represented
+  at that point.
+  Applying \Cref{lem:beer-represented-membership} on both sides gives
+  \[
+    \widehat A(b)=\topZ
+    \quad\Longleftrightarrow\quad
+    x_b\in X
+    \quad\Longleftrightarrow\quad
+    x_b\in Y
+    \quad\Longleftrightarrow\quad
+    B(b)=\topZ.
+  \]
+  Since both results are ZF Booleans, equality of their true cases is
+  pointwise equality; function extensionality concludes
+  \(\widehat A=B\).
+
+  \emph{Option-valued functions.}
+  The remaining supported set representation occurs when
+  \(\beta=\beta_1\prodB\beta_2\).
+  If \(A\) is option-valued and \(B\) is a characteristic predicate, the cast
+  replaces \(A\) by its predicate graph.
+  At a represented pair \(\pairZ{a}{b}\), its defining equation is
+  \[
+    \mathsf{graph}_{\mathbb c}(A)
+      \bigl(\pairZ{\appZ\zop{\mathbb c_1}(a)}
+                    {\appZ\zop{\mathbb c_2}(b)}\bigr)=\topZ
+    \quad\Longleftrightarrow\quad
+    A(a)=\someZ b.
+  \]
+  The product induction hypothesis identifies the represented pair on both
+  sides, so the characteristic predicate case proves graph equality exactly
+  when \(X=Y\).
+
+  Finally, suppose that both \(A\) and \(B\) are option-valued.
+  Let \(\mathsf G(F)\) denote the characteristic predicate graph of \(F\).
+  Graph representation commutes with the endpoint casts, and the preceding case therefore
+  gives
+  \[
+    \mathsf G(\widehat A)=\mathsf G(B)
+    \quad\Longleftrightarrow\quad
+    X=Y.
+  \]
+  The forward implication from \(\widehat A=B\) follows by congruence.
+  Conversely, equality of the two graphs implies
+  \(\widehat A=B\) because the option-graph translation is injective on
+  well-typed option-valued functions.
+  Hence \(\widehat A=B\) if and only if \(X=Y\), completing the induction.
+\end{proof}
+
+The interval invariant fixes the atomic shapes: the intervals associated with \(\intB\) and \(\boolB\) are singletons.
+The encoding rules preserve the remaining constructor shapes: a product is represented by a product of the component representations, while a set is represented by a characteristic predicate or, when its functional structure is retained, by an option-valued function whose endpoint types recursively represent the corresponding B types.
+Each encoder case therefore has exactly the semantic shapes its implementation inspects.
 
 \subsection{Homomorphic cases}
 \label{sec:beer-case-homomorphic}
 
-For variables, literals, arithmetic, the logical connectives, and maplets, the emitted term is the image of the source term constructor by constructor, and the proof is correspondingly direct.
+For a variable \(v\), the emitted term is the same variable.
+Its target denotation is \(\Theta_0(v)\), and the valuation hypothesis already states
+\[
+  \interpB{\aterm{v}{\Delta}}
+  \;=\;\Delta(v)
+  \;\semrel\;
+  \Theta_0(v)
+  \;=\;\interpS{\aterm{v}{\Theta_0}};
+\]
+no canonicalization of the assignment is required.
+This is the base case from which arbitrary selected representations enter the induction.
 
-The variable case is the semantic crux, small as it is.
-The emitted term is \(\var{v}\) itself, and the image valuation was \emph{defined} (\Cref{def:beer-valuation-image}) to map it to \(\appZ\canon{\alpha}(V)\) where \(\denval{V}[\alpha] = \Delta(\var{v})\); agreement is therefore exactly round-trip~L, \(\retr{\alpha}(\appZ\canon{\alpha}(V)) = V\).
-This is the only place in the whole induction where \(\retr{}\circ\canon{} = \mathrm{id}\) is invoked for a value not constructed by the proof itself: all information flow between the two worlds is concentrated at the variables.
+Integer and Boolean literals use the same ZF encodings in both languages, and their singleton intervals force the target types to \(\intS\) and \(\boolS\).
+Thus their denotations agree by reflexivity.
+For a B arithmetic, order, or logical operator \(\bop{\odot}\) whose encoding
+uses the corresponding SMT operator \(\sop{\odot}\), write \(X_i\) and
+\(X_i'\) for the related source and target operand values, respectively.
+The atomic representations are identities, hence
+\[
+  \interpS{\aterm{\sop{\odot}(t_1',\ldots,t_n')}{\Theta'}}
+  \;=\;\odot^{\mathsf Z}(X_1',\ldots,X_n')
+  \;=\;\odot^{\mathsf Z}(X_1,\ldots,X_n)
+  \;=\;\interpB{\aterm{\bop{\odot}(t_1,\ldots,t_n)}{\Delta}}.
+\]
+This covers integer addition, subtraction and multiplication, integer order, Boolean conjunction and negation, and the atomic instances of equality.
+For a maplet, the target is a pair of the two recursively produced denotations; interval membership and support are componentwise, and the product semantic cast commutes with pairing.
+Consequently,
+\[
+  \denval{\pairZ{X}{Y}}[\alpha\prodB\beta]
+  \;\semrel\;
+  \denval{\pairZ{X'}{Y'}}[\sigma\timesS\tau].
+\]
 
-Integer and Boolean literals denote the \emph{same} ZF object on both sides (\Cref{def:b-denote,def:smt-denote} share the encodings \(\zop{n}\), \(\zop{b}\)), and \(\retr{}\) is the identity at base types, so agreement is definitional.
-The same holds for \(\addB, \subB, \mulB, \leB, \andB, \notB\): the B and SMT semantics interpret these by the \emph{same} ZF operations, the induction hypotheses give equality (not mere agreement) of the operand denotations, and the case closes by reflexivity.
-The base fragment is thus a transport, not a simulation---there is nothing to verify beyond the bookkeeping.
-For a maplet \(x \mapletB y\), both sides denote ZF pairs; \(\retr{}\) acts componentwise (\Cref{def:beer-retraction}), and pair injectivity reduces agreement to the two induction hypotheses.
-
-\subsection{Base-type sets}
-\label{sec:beer-case-base-sets}
-
-\(\ZintB\) and \(\ZboolB\) are the first cases where the retraction does actual work.
-The emitted constant-true lambda denotes the constant ZF function \(F = \lamZ w \in \interpZ{\intS}.\ \topZ\), and unfolding \Cref{def:beer-retraction},
+The base sets \(\ZintB\) and \(\ZboolB\) produce constant-true predicates.
+For example, if \(F=\lamZ w \mapsto \topZ \in {\Zbool}^{\Zint}\), then
 \[
   \retr{\setB\intB}(F)
-  = \bigl\{ z \in \Zint \;\big|\; \appZ F(\appZ\canon{\intB}(z)) = \topZ \bigr\}
-  = \bigl\{ z \in \Zint \;\big|\; \topZ = \topZ \bigr\}
-  = \Zint = \interpB{\ZintB},
+  =\{z\in\Zint\mid F(z)=\topZ\}
+  =\Zint,
 \]
-since \(\canon{\intB}\) is the identity and \(F\) answers \(\topZ\) everywhere.
+and every integer is its own support witness.
 The Boolean case is identical.
-The fresh binder in the emitted \(\lamS\) exists only to close the term; it never influences the denotation.
 
 \subsection{Pointwise set operations}
 \label{sec:beer-case-pointwise}
 
-Union, intersection, membership, and equality share one pattern: at a common characteristic-predicate representation, each is a pointwise Boolean operation, and the bridge lemma converts its pointwise behavior into the desired set-theoretic identity.
-Union is proved in full as the model case; the proofs below are instances of the same scheme.
-Throughout this subsection, \(A, B\) are well-typed B terms of type \(\setB\alpha\), their encodings \(S, T\) have type \(\gamma \toS \boolS\) with \(\gamma = \toSMT{\alpha}\), and the induction hypotheses provide denotations \(F, G \in \interpZ{\gamma \toS \boolS}\) of \(S, T\) with
+Union is the representative non-homomorphic case because its operands may occupy different points of the same representation interval.
+Let its two operands have the common B type \(\setB\alpha\), with source
+denotations \(\mathcal A,\mathcal B\).
+The induction hypotheses provide target denotations
+\(F\in\interpZ{\rho_A}\) and \(G\in\interpZ{\rho_B}\) satisfying
 \[
-  \retr{\setB\alpha}(F) = \interpB{A}
-  \qquad\text{and}\qquad
-  \retr{\setB\alpha}(G) = \interpB{B}.
+  \denval{\mathcal A}[\setB\alpha]\;\semrel\;\denval{F}[\rho_A],
+  \qquad
+  \denval{\mathcal B}[\setB\alpha]\;\semrel\;\denval{G}[\rho_B].
 \]
-
-\begin{theorem}[Union case][encodeTerm\_spec.union\_case][SMT/Reasoning/Basic/EncodeTermCorrectUnion.html\#encodeTerm\_spec.union\_case]
-  \label{thm:beer-union-case}
-  Under the hypotheses above, the term \(R = \lamS \var{z} : \gamma \cdot \appS{S}{\var{z}} \orS \appS{T}{\var{z}}\) emitted by \cref{eq:beer-union-direct} denotes a value \(R'\) of type \(\gamma \toS \boolS\) with
-  \[
-    \retr{\setB \alpha}(R') = \retr{\setB \alpha}(F) \cup \retr{\setB \alpha}(G),
-  \]
-  hence \(\retr{\setB\alpha}(R') = \interpB{A} \cup \interpB{B} = \interpB{A \cupB B}\).
-\end{theorem}
-
-\begin{proof}
-  Since \(F\) and \(G\) are total Boolean-valued functions on \(\interpZ{\gamma}\), the lambda body denotes a Boolean at every point of \(\interpZ{\gamma}\), so \(R\) denotes a total function \(R' \in \interpZ{\gamma \toS \boolS}\), characterized pointwise by: for all \(w \in \interpZ{\gamma}\),
-  \begin{equation}
-    \appZ R'(w) = \topZ \iff \appZ F(w) = \topZ \;\text{ or }\; \appZ G(w) = \topZ,
-    \label{eq:beer-union-pointwise}
-  \end{equation}
-  by the two-valued case analysis on \(\bigl(\appZ F(w), \appZ G(w)\bigr) \in \Zbool \times \Zbool\).
-
-  We show \(\retr{\setB \alpha}(R') = \retr{\setB \alpha}(F) \cup \retr{\setB \alpha}(G)\) by extensionality.
-  Fix \(x \in \interpZ{\alpha}\) and let \(c = \appZ\canon{\alpha}(x) \in \interpZ{\gamma}\); note that membership of \(x\) in any of the three retractions presupposes \(x \in \interpZ{\alpha}\), so this is no loss of generality.
-  By the bridge lemma (\Cref{lem:beer-bridge}) applied to \(R'\), then \cref{eq:beer-union-pointwise}, then the bridge lemma applied to \(F\) and to \(G\):
-  \[
-    x \in \retr{\setB\alpha}(R')
-    \iff \appZ R'(c) = \topZ
-    \iff \appZ F(c) = \topZ \text{ or } \appZ G(c) = \topZ
-    \iff x \in \retr{\setB\alpha}(F) \cup \retr{\setB\alpha}(G).
-  \]
-\end{proof}
-
-\begin{note}
-  In the formalization, SMT disjunction is the derived connective \(\notS(\notS a \andS \notS b)\), so establishing \cref{eq:beer-union-pointwise} requires unfolding the negation and conjunction denotation lemmas before the four-way case split on \(\Zbool \times \Zbool\)---the bulk of the Lean proof.
-  Mathematically it is the observation that disjunction on \(\Zbool\) is disjunction.
-  Intersection avoids even this: \(\andS\) is primitive, and the same case split closes directly.
-\end{note}
-
-Intersection follows by replacing \(\orS\) with \(\andS\) and \(\cup\) with \(\cap\) throughout ({\small\leancodeptr{encodeTerm\_spec.inter\_case}{SMT/Reasoning/Basic/EncodeTermCorrectInter.html\#encodeTerm\_spec.inter\_case}}).
-
-For membership \(x \inB S\), the emitted term is the application \(\appS{S}{x'}\), and the B side denotes \(\topZ\) or \(\botZ\) according to whether \(X \in \interpB{S}\), where \(X = \interpB{\aterm{x}{\Delta}}\).
-Since the retraction is the identity at \(\boolB\), the claim is
-\(\appZ F(X') = \topZ \iff X \in \retr{\setB\alpha}(F)\), where \(X'\) denotes \(x'\) and \(\retr{\alpha}(X') = X\) by the induction hypothesis.
-Round-trip~R rewrites \(X' = \appZ\canon{\alpha}(\retr{\alpha}(X')) = \appZ\canon{\alpha}(X)\), and the bridge lemma closes the forward direction; the backward direction follows because \(\Zbool\) is two-valued: a value that is not \(\topZ\) is \(\botZ\) ({\small\leancodeptr{encodeTerm\_spec.mem\_case}{SMT/Reasoning/Basic/EncodeTermCorrectMem.html\#encodeTerm\_spec.mem\_case}}).
-This is the archetype of a pattern that recurs in every remaining case: induction hypotheses speak of \(\retr{}\)-images, the bridge speaks of \(\canon{}\)-images, and round-trip~R mediates.
-
-For equality \(x \eqB y\) at type \(\alpha\), both sides denote conditionals: the claim reduces to
+The \encruleref{rule:beer-union} rule selects an element representation
 \[
-  X = Y \iff X' = Y',
+  \kappa\in
+  [\lgf{(\toSMT{\alpha})},\mgf{(\toSMT{\alpha})}]
 \]
-where \(\retr{\alpha}(X') = X\) and \(\retr{\alpha}(Y') = Y\).
-Right to left is congruence of \(\retr{\alpha}\).
-Left to right is the interesting direction: it is injectivity of the retraction (\Cref{cor:beer-retr-inverse}), \(X' = \appZ\canon{\alpha}(X) = \appZ\canon{\alpha}(Y) = Y'\).
-Equality is thus \emph{reflected}, not merely preserved, across the bridge---for set-typed \(\alpha\), this states that equality of characteristic predicates coincides with equality of the underlying B sets ({\small\leancodeptr{encodeTerm\_spec.eq\_case}{SMT/Reasoning/Basic/EncodeTermCorrectEq.html\#encodeTerm\_spec.eq\_case}}).
+and reconciles both operands to the common characteristic-predicate type
+\(\kappa\toS\boolS\).
+Write \(\bar F,\bar G\) for the denotations of the reconciled terms.
+The exactness conclusion of \Cref{thm:loosening-correctness} gives the explicit
+relations
+\[
+  \denval{\mathcal A}[\setB\alpha]
+    \;\semrel\;\denval{\bar F}[\kappa\toS\boolS],
+  \qquad
+  \denval{\mathcal B}[\setB\alpha]
+    \;\semrel\;\denval{\bar G}[\kappa\toS\boolS].
+\]
+The emitted predicate \(U\) is such that for every \(w\in\interpZ{\kappa}\),
+\[
+  U(w)=\bar F(w)\mathbin{\zop{\lor}}\bar G(w).
+\]
+For every
+\(\denval{x}[\alpha]\;\semrel\;\denval{w}[\kappa]\),
+\Cref{lem:beer-represented-membership} gives
+\[
+  \begin{aligned}
+    U(w)=\topZ
+    &\iff \bar F(w)=\topZ\ \lor\ \bar G(w)=\topZ\\
+    &\iff x\in\mathcal A\ \lor\ x\in\mathcal B\\
+    &\iff x\in\mathcal A\cup\mathcal B.
+  \end{aligned}
+\]
+Conversely, a member of the union belongs to one operand, whose support supplies a representative on which the corresponding predicate, and hence \(U\), is true.
+The two-sided pointwise argument therefore yields
+\[
+  \denval{\mathcal A\cup\mathcal B}[\setB\alpha]
+  \;\semrel\;
+  \denval{U}[\kappa\toS\boolS].
+\]
+If an operand is option-valued, reconciliation first replaces it by its option graph.
+The inverse graph equations mentioned in \Cref{sec:beer-agreement} show that this changes only the representation, not the B relation, so the same calculation applies.
 
-\begin{note}
-  The theorems of this subsection cover the homogeneous branches of the cast combinators---the ones taken when both operands arrive at the same SMT type, as is always the case when no variable is flagged, since then every encoding has its canonical type (\Cref{thm:beer-encodeTerm-spec}, item~1).
-  The heterogeneous branches (\eg the graph-path union \cref{eq:beer-union-graph} of the running example) are verified for typing, totality, and state hygiene; their denotational correctness reduces to the same pointwise argument \emph{modulo} loosening correctness (\Cref{thm:loosening-correctness}), which pins the loosened operand \(\lvar{S}\) to the semantic cast image of \(S\), a value with the same retraction.
-  The precise mechanization status of these branches is reported in \Cref{sec:beer-limitations}.
-\end{note}
+The relational branch of intersection is the dual calculation:
+\[
+  I(w)=\topZ
+  \iff \bar F(w)=\topZ\land\bar G(w)=\topZ
+  \iff x\in\mathcal A\cap\mathcal B.
+\]
+A source member now belongs to both operands; either support witness can be transported to the common representation by loosening exactness, and the membership bridge makes both conjuncts true there.
+
+For the functional branch, specialize the common B type to
+\(\setB(\alpha\prodB\beta)\) and suppose that both source relations
+\(\mathcal A,\mathcal B\) are functional.
+The \encruleref{rule:beer-intersection} rule reconciles their target
+representations to a common option-valued function type
+\(\kappa\toS\optS\lambda\), where \(\kappa\) and \(\lambda\) are supported
+representations of \(\alpha\) and \(\beta\), respectively.
+Writing \(\bar F,\bar G\) for the resulting denotations, loosening exactness
+gives
+\[
+  \begin{aligned}
+    \denval{\mathcal A}[\setB(\alpha\prodB\beta)]
+      &\;\semrel\;\denval{\bar F}[\kappa\toS\optS\lambda],\\
+    \denval{\mathcal B}[\setB(\alpha\prodB\beta)]
+      &\;\semrel\;\denval{\bar G}[\kappa\toS\optS\lambda].
+  \end{aligned}
+\]
+The rule then emits
+\[
+  H(a) =
+  \begin{cases}
+    \bar F(a), & \text{if } \bar F(a)=\bar G(a),\\
+    \noneZ, & \text{otherwise}.
+  \end{cases}
+\]
+For every \(x,y,a,b\) such that
+\[
+  \denval{x}[\alpha]\;\semrel\;\denval{a}[\kappa],
+  \qquad
+  \denval{y}[\beta]\;\semrel\;\denval{b}[\lambda],
+\]
+the option-valued function criterion gives
+\[
+  \begin{aligned}
+    H(a)=\someZ b
+    &\iff
+    \bar F(a)=\someZ b \land \bar G(a)=\someZ b\\
+    &\iff
+    (x,y)\in\mathcal A\land(x,y)\in\mathcal B\\
+    &\iff
+    (x,y)\in\mathcal A\cap\mathcal B.
+  \end{aligned}
+\]
+The forward implication decodes an emitted option value into a maplet belonging to both source relations.
+For the reverse implication, support supplies representatives \(a,b\) of any
+maplet \((x,y)\) in the source intersection; both reconciled functions return
+the same result representative \(b\), so \(H\) returns it as well.
+The option-valued function version of the pointwise argument proves agreement with the source intersection.
+
+If the two selected option-valued function types already coincide, reconciliation is
+reflexive and introduces no loosening helper.
+If either selected type is strictly tighter than the common endpoint,
+exactness of loosening transfers its denotation to that endpoint, and the
+generated specification enforces the transfer under every satisfying helper
+valuation.
+Consequently, the equivalence for \(H(a)=\someZ b\) above proves ordinary
+agreement; because it holds for every valuation satisfying the helper
+specification, it also proves the declaration-aware clause.
+
+For membership, recursive encoding and the cast function arrange an element and a set at compatible representations.
+If the set is a predicate, \Cref{lem:beer-represented-membership} immediately equates the emitted application with B membership.
+If it is option-valued, membership is the equation \(F(x)=\someZ y\); the option-graph equivalence turns this into membership of \((x,y)\) in the represented B relation.
+Both branches return \(\boolS\), so \Cref{cor:beer-encodeTerm-bool-spec} identifies the resulting truth value.
+
+For equality, the encoder first casts one operand to the other's type or both to a common type.
+\Cref{lem:beer-represented-equality} states precisely that equality after the selected cast holds if and only if the represented B values are equal.
+The emitted Boolean therefore has exactly the source equality's truth value.
 
 \subsection{Application}
 \label{sec:beer-case-application}
 
-The application case is the one place where well-definedness supplies the mathematics rather than the hygiene.
-Let \(t = \appB f\ x\) with \(f\) of B type \(\setB(\gamma \prodB \alpha)\) and \(x : \gamma\).
-Since \(\interpB{\aterm{t}{\Delta}}\) is defined, the guards of the applicative clause of \Cref{def:b-denote} hold: \(F = \interpB{\aterm{f}{\Delta}}\) is a partial function, \(X = \interpB{\aterm{x}{\Delta}} \in \Dom(F)\), and the B value is \(T = \appZ F(X)\)---these are exactly the conjuncts of \(\WD(\appB f\ x)\) (\Cref{def:b-welldefined}).
+Let \(t \coloneq \appB f\ x\).
+Well-definedness gives the semantic facts needed by this case: the B denotation \(F\) of \(f\) is functional, the denotation \(X\) of \(x\) lies in its domain, and the source result is the unique \(Y\) with \((X,Y)\in F\).
 
-The emitted term is \(\theS(\appS{\var{f}^{!!}}{x'})\) with \(\var{f}^{!!}\) the fresh function witness of \cref{eq:beer-castapp-spec}.
-Freshness makes \(\var{f}^{!!}\) a free constant of the emitted term, so the proof may choose its value in the extended valuation \(\Delta'\): it interprets \(\var{f}^{!!}\) as a function returning \(\someZ \appZ\canon{\alpha}(T)\) at the relevant point.
-Then \(\appS{\var{f}^{!!}}{x'}\) denotes \(\someZ \appZ\canon{\alpha}(T)\), from which the semantics of \(\theS\) extracts the payload \(\appZ\canon{\alpha}(T)\), and
+The \encruleref{rule:beer-application} rule reconciles the argument and the function domain, then applies the resulting function-valued view \(f^{\mathrm{fun}}\).
+If the target representation of \(f\) is already option-valued, \Cref{thm:loosening-correctness} preserves its option graph.
+If it is a graph predicate \(f^{\mathrm{rel}}\), the generated
+graph-equivalence specification requires every satisfying
+\(f^{\mathrm{fun}}\) to have the same graph as \(f^{\mathrm{rel}}\).
+Since \(F\) is functional, the inverse graph equations of
+\Cref{sec:beer-agreement} show that this changes only its representation.
+
+Write \(\beta\) for the source result type and \(\rho\) for its selected target representation, and let \(X'\) be the reconciled target argument.
+The pointwise option criterion now gives
 \[
-  \retr{\alpha}\bigl(\interpS{\aterm{t'}{\Delta'}}\bigr) = \retr{\alpha}\bigl(\appZ\canon{\alpha}(T)\bigr) = T
+  f^{\mathrm{fun}}(X')=\someZ Y'
+  \quad\Longleftrightarrow\quad
+  (X,Y)\in F
 \]
-by round-trip~L ({\small\leancodeptr{encodeTerm\_spec.app\_case}{SMT/Reasoning/Basic/EncodeTermCorrectApp.html\#encodeTerm\_spec.app\_case}}).
-Note where partiality went: had \(x \notin \Dom(f)\) been possible, \(\appS{\var{f}^{!!}}{x'}\) could denote \(\noneZ\), whose \(\theS\)-image is an unconstrained default value---soundness would fail.
-Well-definedness is consumed here and nowhere else in this case.
-That the \emph{asserted} specification \cref{eq:beer-castapp-spec} is satisfiable by the chosen witness---so that the extended valuation is admissible for the surrounding script---is part of the assertion-adequacy layer of \Cref{sec:beer-proof-obligations}.
+for some \(Y'\) representing \(Y\).
+Existence follows from \(X\in\Dom(F)\), while source functionality makes the decoded \(Y\) unique.
+Thus the option cannot be \(\noneZ\), and
+\[
+  \mathsf{the}\bigl(f^{\mathrm{fun}}(X')\bigr)=Y'
+  \qquad\text{with}\qquad
+  \denval{Y}[\beta]\;\semrel\;\denval{Y'}[\rho].
+\]
+The same equations hold for every satisfying assignment to the generated graph helper, which proves the declaration-aware clause as well.
 
 \subsection{Set formers}
 \label{sec:beer-case-set-formers}
 
-The three set formers emit quantified predicates, and their proofs share a second pattern, complementary to the pointwise one: an SMT universal denotes \(\topZ\) exactly when its body does at \emph{every} point of the carrier (\Cref{def:smt-denote}), so each direction of the set-theoretic identity chooses its instantiation points.
-In the forward direction the proof instantiates at canonical images \(\appZ\canon{}(z)\); in the backward direction it faces an arbitrary carrier point \(w\), rewrites it as \(w = \appZ\canon{}(\retr{}(w))\) by round-trip~R, and reduces to the forward situation.
-This is why both round-trip laws appear in every case of this family.
+Powerset, Cartesian product, and partial-function space emit characteristic predicates.
+Their proofs retain the same set-theoretic core as in the canonical case; the difference is that instantiation points now come from the support carried by agreement rather than being assumed to be canonical images.
 
-\paragraph{Powerset.}
-For \(\powB(S)\) with \(\retr{\setB\beta}(F) = \mathcal{X}\), the emitted predicate (\Cref{sec:beer-rules-sets}) denotes a characteristic function \(\Phi\), and the claim is \(\retr{\setB(\setB\beta)}(\Phi) = \pow(\mathcal{X}) = \interpB{\powB(S)}\).
-By the bridge lemma, \(\mathcal{Y} \in \retr{}(\Phi)\) unfolds to: for every \(w \in \interpZ{\toSMT{\beta}}\), \(\appZ\canon{\setB\beta}(\mathcal{Y})\) answering \(\topZ\) at \(w\) implies \(\appZ F(w) = \topZ\).
-For the forward inclusion, given \(z \in \mathcal{Y}\), instantiate \(w = \appZ\canon{\beta}(z)\): the antecedent holds since \(\retr{\beta}(w) = z \in \mathcal{Y}\) (round-trip~L), so \(\appZ F(w) = \topZ\), and the bridge on \(F\) gives \(z \in \mathcal{X}\); hence \(\mathcal{Y} \subseteq \mathcal{X}\).
-For the backward inclusion, an arbitrary \(w\) with a true antecedent satisfies \(\retr{\beta}(w) \in \mathcal{Y} \subseteq \mathcal{X}\), and the bridge together with round-trip~R (\(w = \appZ\canon{\beta}(\retr{\beta}(w))\)) yields \(\appZ F(w) = \topZ\)
-({\small\leancodeptr{encodeTerm\_spec.pow\_case}{SMT/Reasoning/Basic/EncodeTermCorrectSet.html\#encodeTerm\_spec.pow\_case}}).
+For \(\powB(S)\), let \(T\) be a candidate source set and \(E\) a related target representation.
+After normalizing \(E\) and the representation \(F\) of \(S\) to predicates at a common element type, the emitted predicate \(\Pi\) satisfies
+\[
+  \begin{aligned}
+    \Pi(E)=\topZ
+    &\iff
+      \forall w,\ E(w)=\topZ\Rightarrow F(w)=\topZ\\
+    &\iff
+      \forall x,\ x\in T\Rightarrow x\in S\\
+    &\iff T\subseteq S.
+  \end{aligned}
+\]
+For the middle equivalence, a true target application decodes through \Cref{lem:beer-represented-membership}; in the reverse direction, support supplies a representative of every \(x\in T\).
+Thus \(\Pi\) is true exactly on the members of \(\powB(S)\), and candidate-set support gives the reverse direction required for agreement.
 
-\paragraph{Cartesian product.}
-For \(A \prodB B\), membership of \(z\) in the retraction of the emitted predicate unfolds, through the bridge, to the existence of witnesses \(u, v\) with \(\appZ F(u) = \topZ\), \(\appZ G(v) = \topZ\), and the SMT equation identifying \(\appZ\canon{}(z)\) with the pair \(\pairZ{u}{v}\).
-Forward: a true SMT equation yields the ZF identity \(\appZ\canon{\alpha\prodB\beta}(z) = \pairZ{u}{v}\); applying \(\retr{}\), which acts componentwise, gives \(z = \pairZ{\retr{}(u)}{\retr{}(v)}\) with components in \(\interpB{A}\) and \(\interpB{B}\) by the bridge.
-Backward: for \(z = \pairZ{a}{b} \in \interpB{A} \timesZ \interpB{B}\), choose \(u = \appZ\canon{}(a)\), \(v = \appZ\canon{}(b)\); the bridge validates both applications, and \(\canon{}\) commutes with pairing, validating the equation
-({\small\leancodeptr{encodeTerm\_spec.cprod\_case}{SMT/Reasoning/Basic/EncodeTermCorrectSet.html\#encodeTerm\_spec.cprod\_case}}).
+For \(A\prodB B\), let \(C\) be the emitted predicate and let \(z\) represent a source pair \(\pairZ{x}{y}\).
+The \encruleref{rule:beer-cartesian-product} rule and the two membership bridges give
+\[
+  \begin{aligned}
+    C(z)=\topZ
+    &\iff
+      \exists a,b,\,
+      F_A(a)=\topZ\;\land\; F_B(b)=\topZ
+      \;\land\; z=\pairZ{a}{b}\\
+    &\iff x\in A\;\land\; y\in B\\
+    &\iff \pairZ{x}{y}\in A\times B.
+  \end{aligned}
+\]
+The equality conjunct is reflected by \Cref{lem:beer-represented-equality}.
+Conversely, support supplies \(a,b\) for any source pair in \(A\times B\), and their target pair witnesses the existential.
 
-\paragraph{Partial functions.}
-For \(A \pfunB B\), the two conjuncts of the emitted predicate (\Cref{sec:beer-rules-sets}) correspond to the two defining properties of \(\interpB{A \pfunB B} = \{ g \in \pow(\mathcal{X} \timesZ \mathcal{Y}) \mid g \text{ functional} \}\).
-The first is the powerset argument specialized to a product domain.
-The second is the equality-reflection argument of \Cref{sec:beer-case-pointwise} run under two universal quantifiers: given \(\pairZ{a}{b_1}, \pairZ{a}{b_2} \in g\), instantiating the emitted functionality clause at the canonical images yields the SMT equality of the images of \(b_1, b_2\), and injectivity of the retraction reflects it to \(b_1 = b_2\); conversely, functionality of \(g\) transfers to the SMT side by round-trip~R.
-({\small\leancodeptr{encodeTerm\_spec.pfun\_case}{SMT/Reasoning/Basic/EncodeTermCorrectPFun.html\#encodeTerm\_spec.pfun\_case}}).
+For \(A\pfunB B\), let \(R\) be the relation decoded from a candidate target predicate.
+The first conjunct emitted by \encruleref{rule:beer-partial-function-space} is the Cartesian-product test above; the second says that any two represented pairs with equal first components have equal second components.
+By \Cref{lem:beer-represented-equality},
+\[
+  \begin{aligned}
+    Q(R)=\topZ
+    &\iff
+      R\subseteq A\times B
+      \;\land\;
+      \left(\forall x,y_1,y_2,\,
+        (x,y_1)\in R\land(x,y_2)\in R\;\implies\; y_1=y_2\right)\\
+    &\iff R\in A\pfunB B.
+  \end{aligned}
+\]
+The forward direction decodes the quantified target pairs.
+For the reverse direction, support represents the source pairs and source functionality supplies the equality demanded by the target formula.
+Hence the emitted characteristic predicate agrees with the B partial-function space.
 
-In all three cases, the substantial formal effort lies in totality side conditions---an SMT universal only denotes if its body denotes a Boolean at \emph{every} carrier point---discharged by the totality metatheorem of \Cref{ch:smt} (\Cref{thm:smt-denote-complete}); none of it surfaces in the mathematical argument.
-
-\subsection{Comprehension and the lambda graph}
+\subsection{Comprehension and lambdas}
 \label{sec:beer-case-comprehension}
 
-For a comprehension \(\bcomp{\vec{\var{v}} \inB D}{P}\), the B denotation is the separation \(\mathcal{D}.\mathsf{sep}\,\mathfrak{P}\), where \(\mathcal{D} = \interpB{\aterm{D}{\Delta}}\) and \(\mathfrak{P}(x)\) is the denotation of \(P\) at the tuple \(x\).
-The emitted guarded predicate (\Cref{sec:beer-rules-comprehension}) denotes a total characteristic function \(L\): at a point \(w\), the guard \(\appZ F(w)\) is evaluated first, and only if it is \(\topZ\)---which by the bridge and round-trip~R means \(w = \appZ\canon{}(x)\) for some \(x \in \mathcal{D}\)---is the substituted body consulted.
-There, the substitution lemma and the destructor computation (\Cref{sec:beer-proof-spine}) rewrite the body's denotation at \(w\) into \(\mathfrak{P}(x)\), which is defined because B's well-definedness guarantees \(P\) denotes on all of \(\mathcal{D}\).
-When the guard is \(\botZ\), the \(\iteS\) short-circuits to \(\mathsf{false}\), and the body---possibly meaningless outside \(\mathcal{D}\)---is never evaluated.
-The bridge then computes
-\(x \in \retr{}(L) \iff x \in \mathcal{D} \wedge \mathfrak{P}(x) = \topZ \iff x \in \interpB{\bcomp{\vec{\var{v}} \inB D}{P}}\)
-({\small\leancodeptr{encodeTerm\_spec.collect\_case}{SMT/Reasoning/Basic/EncodeTermCorrectCollect.html\#encodeTerm\_spec.collect\_case}}).
+For a comprehension \(\bcomp{\vec{\var{v}}\inB D}{P}\), write \(\mathcal D\) for the source domain, \(G\) for its reconciled target predicate, and \(P_x\) and \(P'_w\) for the source and target body values under related tuple assignments
+\(\denval{x}[\tau]\;\semrel\;\denval{w}[\rho]\).
+For a tuple \(u\in\mathcal D\), write \(\vec{u}\) for the ordered components obtained by destructuring its left-associated product.
+The \encruleref{rule:beer-comprehension} rule emits a predicate \(C\) with
+\[
+  \begin{aligned}
+    C(w)=\topZ
+    &\iff G(w)=\topZ\land P'_w=\topZ\\
+    &\iff x\in\mathcal D\land P_x=\topZ\\
+    &\iff
+      x\in
+      \{u\in\mathcal D\mid
+        \interpB{\aterm{P[\vec{\var{v}}\leftarrow\vec{u}]}{\Delta}}=\topZ\}.
+  \end{aligned}
+\]
+The first equivalence is the denotation of the guarded target predicate.
+For the second, \Cref{lem:beer-represented-membership} handles the guard; the substitution lemma identifies the two extended valuations, and the Boolean induction hypothesis identifies the body truth values.
+If \(x\) belongs to the source comprehension, support of \(\mathcal D\) provides \(w\), so the reverse pointwise condition also holds.
+The two-sided pointwise argument therefore proves agreement with the B separation denotation.
 
-The lambda case differs in one instructive respect.
-Its emitted graph predicate contains no \(\iteS\): the body \(\sndS\var{u} \eqS P'[\ldots]\) is a conjunction of total, well-typed SMT terms, so the emitted term denotes with no reference to \(\mathcal{D}\) at all---the graph encoding never \emph{applies} the function, it only compares values, and this is precisely why partiality costs nothing here.
-The retraction of the graph is computed pointwise on pairs \(\pairZ{x}{y}\): the first conjunct is \(x \in \mathcal{D}\) by the bridge; for the second, the substitution lemma identifies the denotation of \(P'\) with \(\appZ\canon{}(\mathfrak{P}(x))\), and the two round-trip laws convert \(\appZ\canon{}(y) = \appZ\canon{}(\mathfrak{P}(x))\) into \(y = \mathfrak{P}(x)\) and back.
-The result is the graph \(\{\pairZ{x}{y} \mid x \in \mathcal{D} \wedge y = \mathfrak{P}(x)\} = \interpB{\lambdaB \vec{\var{v}} \inB D \cdot P}\); the degenerate branch \(\mathcal{D} = \emptyset\), which B denotes by \(\emptyset\) directly, follows since the guard conjunct is then identically \(\botZ\)
-({\small\leancodeptr{encodeTerm\_spec.lambda\_case}{SMT/Reasoning/Basic/EncodeTermCorrectLambda.html\#encodeTerm\_spec.lambda\_case}}).
+The lambda case uses the same tuple transport, but the \encruleref{rule:beer-lambda} rule emits an option-valued function \(L\).
+Write \(F'_a\) for the target body value under the tuple assignment \(a\).
+For
+\(\denval{x}[\tau]\;\semrel\;\denval{a}[\rho]\)
+and
+\(\denval{p}[\beta]\;\semrel\;\denval{b}[\sigma]\),
+\[
+  \begin{aligned}
+    L(a)=\someZ b
+    &\iff G(a)=\topZ\land F'_a=b\\
+    &\iff x\in\mathcal D\land
+      p=\interpB{\aterm{P[\vec{\var{v}}\leftarrow\vec{x}]}{\Delta}}\\
+    &\iff
+      (x,p)\in
+      \{(u,\interpB{\aterm{P[\vec{\var{v}}\leftarrow\vec{u}]}{\Delta}})
+        \mid u\in\mathcal D\}.
+  \end{aligned}
+\]
+The forward direction decodes any defined target application into a source maplet.
+Conversely, support supplies a representative \(a\) of every \(x\in\mathcal D\), and the body induction hypothesis supplies a related \(b\); the guard is true and \(L(a)=\someZ b\).
+The option-valued function version of the pointwise argument proves agreement with the B lambda graph.
+
+In both cases the body is interpreted under the bound tuple.
+The declaration-aware induction hypothesis makes both the calculation of
+\(C(w)\) for comprehension and that of \(L(a)\) for lambda valid for every
+typed assignment satisfying the helper specifications.
+This proves the required stability rather than correctness for only one chosen
+evaluation.
 
 \subsection{The universal quantifier}
 \label{sec:beer-case-forall}
 
-The universal quantifier is the largest case: it combines every difficulty seen so far---binders and substitution, membership casts, loosened helpers---and adds the scoping problem of \Cref{sec:beer-rules-quantifier}.
-
-\paragraph{The denotational goal.}
-Recall from \Cref{sec:b-semantics} that B denotes \(\forallB \vec{\var{v}} \inB D \cdot P\) by an explicitly guarded infimum: \(\topZ\) if \(\mathcal{D} = \emptyset\), and otherwise \(\bigandZ_{e \in \mathcal{D}} \mathfrak{P}(e)\), the guard being necessary because the quantified intersection of an empty family is \(\emptyset\), not \(\topZ\).
-The SMT universal needs no such guard: it ranges over the full carrier \(\interpZ{\vec{\tau}}\), which is inhabited (\Cref{thm:smt-type-nonempty}).
-The two sides are reconciled by the membership guard inside the emitted formula \cref{eq:beer-forall-shape}: when \(\mathcal{D} = \emptyset\), the guard \((\vec{\var{z}} \inB D)'\) is identically \(\botZ\)---by the bridge and round-trip~R, exactly as in the comprehension case---so every implication instance is vacuously \(\topZ\) and the infimum over the value set \(\{\topZ\}\) is \(\topZ\), matching the B guard.
-When \(\mathcal{D} \neq \emptyset\), either \(\mathfrak{P}\) is \(\topZ\) on all of \(\mathcal{D}\) and both sides compute \(\topZ\), or some counterexample \(x_0 \in \mathcal{D}\) has \(\mathfrak{P}(x_0) = \botZ\); instantiating the SMT universal at \(\appZ\canon{}(x_0)\)---with the helpers at their specification-determined values, see below---makes the guard \(\topZ\) and the body \(\botZ\), so \(\botZ\) enters the value set and the infimum is \(\botZ\).
-Since the retraction is the identity at \(\boolB\), this pointwise reconciliation is the whole of agreement.
-
-\paragraph{Guarded universals and polarity.}
-It remains to justify that quantifying the helpers universally under their specifications preserves the meaning of the body.
-Write \(G(\vec{z})\) for the encoded domain-membership guard and \(\Phi(\vec{z},h)\) for the specification of one helper.
-The exactness theorem \Cref{thm:loosening-correctness} gives the property needed here: whenever \(G(\vec{z})\) holds and the source expressions involved in the cast are defined, there exists a unique \(h_{\vec{z}}\) satisfying \(\Phi(\vec{z},h_{\vec{z}})\), and it denotes the intended semantic cast image.
-No helper witness need be demanded when \(G(\vec{z})\) is false, because the source bounded quantifier does not inspect its body there.
-
-It follows that
+The universal case \(\forallB \vec{\var{v}} \inB D \cdot P\) combines binder compatibility, scoped helpers, and valuation stability.
+Let \((U',\boolS)\) be the output of the \encruleref{rule:beer-bounded-universal} rule, and define
+\begin{align*}
+  \denval{U_{\mathsf B}}[\boolB][\irrelprf] &\coloneq \interpB{\aterm{\forallB \vec{\var{v}} \inB D \cdot P}{\Delta}},\quad
+  \denval{\mathcal D}[\setB \tau][\irrelprf] \coloneq \interpB{\aterm{D}{\Delta}},\\
+  \denval{U_{\mathsf S}}[\boolS][\irrelprf] &\coloneq \interpS{\aterm{U'}{\Theta'}}.
+\end{align*}
+For \(x\in\mathcal D\), write \(P_x\) for the source body value under the tuple \(x\):
 \[
-  \forall h.\; \Phi(\vec{z},h) \Rightarrow \bigl(G(\vec{z}) \Rightarrow P(\vec{z},h)\bigr)
-  \quad\Longleftrightarrow\quad
-  G(\vec{z}) \Rightarrow P(\vec{z},h_{\vec{z}}),
+  \forall x\in\mathcal D,\,
+  \denval{P_x}[\boolB][\irrelprf] \coloneq
+  \interpB{\aterm{P[\vec{\var{v}}\leftarrow\vec{x}]}{\Delta}}.
 \]
-where the right-hand side uses \(h_{\vec{z}}\) only in the case \(G(\vec{z})\) holds.
-Indeed, when the guard is false both sides are true; when it is true, existence supplies the intended helper and uniqueness makes it the only specification-satisfying assignment.
-The nested helper quantifiers of \cref{eq:beer-forall-shape} are eliminated by iterating this argument.
+The encoding introduces local helper variables \(h_1,\cdots,h_k\).
+For a typed target tuple \(w\) and a typed helper assignment \(\vec{h}=\langle h_1,\cdots,h_k\rangle\), write \(G_{w,\vec{h}}\) and \(P'_{w,\vec{h}}\) for the values of the encoded membership guard and body under the valuation extended by \(w\) and \(\vec{h}\).
+Finally, \(\mathsf{Spec}_w(\vec{h})\) means that every generated helper specification has value \(\topZ\) under this same valuation.
+The B and SMT truth conditions are
+\[
+  \begin{aligned}
+    U_{\mathsf B}=\topZ
+    &\iff \forall x\in\mathcal D,\ P_x=\topZ,\\
+    U_{\mathsf S}=\topZ
+    &\iff
+      \forall w,\vec{h},\,
+      \mathsf{Spec}_w(\vec{h})\implies
+      G_{w,\vec{h}}=\topZ\implies P'_{w,\vec{h}}=\topZ.
+  \end{aligned}
+\]
+The second equivalence is obtained by repeatedly using the Boolean law
+\[
+  (H_1\Rightarrow\cdots\Rightarrow H_k\Rightarrow Q)=\topZ
+  \iff
+  \bigl(H_1=\cdots=H_k=\topZ\bigr)\Rightarrow Q=\topZ
+\]
+for the helper specifications generated by \encruleref{rule:beer-bounded-universal}.
 
-An existential presentation is possible only with the guard placed outside the demand for a witness, as in
-\(G(\vec{z}) \Rightarrow \exists h.\,\Phi(\vec{z},h) \land P(\vec{z},h)\).
-The emitted universal-implication form expresses the same guarded semantics directly and remains meaningful even at assignments where the helper-producing source term is not defined.
+Assume first that \(U_{\mathsf B}=\topZ\), and choose arbitrary typed \(w,\vec{h}\) satisfying \(\mathsf{Spec}_w(\vec{h})\).
+If \(G_{w,\vec{h}}=\botZ\), the implication is true.
+If \(G_{w,\vec{h}}=\topZ\), \Cref{lem:beer-represented-membership} decodes \(w\) to some \(x\in\mathcal D\).
+The source universal gives \(P_x=\topZ\), and the substitution lemma together with the declaration-aware Boolean induction hypothesis gives
+\[
+  P'_{w,\vec{h}}=P_x=\topZ.
+\]
+Thus, \(U_{\mathsf S}=\topZ\).
 
-\paragraph{Mechanization status.}
-This case is where the formal development is most heavily engineered, and honesty requires stating its shape.
-The empty/non-empty infimum computation above, including the transport of a counterexample through the membership cast, is mechanized in standalone lemmas ({\small\leancodeptr{retract\_forallVal\_eq\_sInter\_sep}{SMT/Reasoning/Basic/AllCaseHelpers.html\#retract\_forallVal\_eq\_sInter\_sep}} and its variants), with the adequacy of the loosened membership guard supplied \(\Delta\)-universally by {\small\leancodeptr{castMembership\_branch2\_spec}{SMT/Reasoning/Basic/CastMembershipSpec.html\#castMembership\_branch2\_spec}}.
-Their assembly into the induction is packaged as the two hypotheses of \Cref{thm:beer-encodeTerm-spec} mentioned in \Cref{sec:beer-invariant}---one providing existence of the quantified denotation together with its agreement, one its stability under the alternative valuations that enclosing binders require.
-Moreover, when a bound variable is flagged, its binder type deviates from the canonical image and the induction hypothesis for \(P\) is not applicable; the mechanization then falls back on structural (non-denotational) specifications of the body.
-Three scoping facts about the freshness of helper declarations are axiomatized rather than proved by structural induction.
-The complete audit of these residual assumptions is given in \Cref{sec:beer-tcb,sec:beer-limitations}.
+Conversely, assume \(U_{\mathsf S}=\topZ\) and choose \(x\in\mathcal D\).
+Binder compatibility supplies a target tuple \(w\) whose cast and retraction is \(x\).
+The declaration-aware induction hypotheses and exactness of loosening (\Cref{thm:loosening-correctness}) supply a typed helper assignment \(\vec{h}\) satisfying \(\mathsf{Spec}_w(\vec{h})\).
+Under this assignment, the membership bridge gives \(G_{w,\vec{h}}=\topZ\), so target truth yields \(P'_{w,\vec{h}}=\topZ\).
+Valuation stability then reflects this through the body induction hypothesis to \(P_x=\topZ\).
+Hence \(U_{\mathsf B}=\topZ\).
+When \(\mathcal D=\varnothing\), the same argument is vacuous: every target guard is false and both universals are true.
 
-\subsection{Case and lemma dependencies}
-\label{sec:beer-case-map}
+This proves the universal case at every selected binder type admitted by the compatibility premise.
+Usually, the recursive support of the represented domain supplies the required preimages.
+For an option-valued function binder over a semantically functional relation,
+the correspondence between its predicate and option-valued representations
+supplies the required preimage instead.
+\Cref{sec:beer-po-soundness} records how proof-obligation encoding establishes these alternatives.
 
-\Cref{fig:beer-lemma-map} summarizes which shared lemma carries which case family; totality and type-determinacy (\Cref{tab:beer-spine}) enter every case and are omitted from the figure.
-
-\begin{figure}
-  \centering
-  \begin{tikzpicture}[
-    lem/.style={draw, rounded corners=2pt, inner sep=4pt, font=\small},
-    fam/.style={inner sep=3pt, font=\small},
-    e/.style={-, gray},
-  ]
-    % lemmas (left column)
-    \node[lem] (rtl)    at (0, 0)    {round-trip L \(\retr{}\circ\canon{}=\mathrm{id}\)};
-    \node[lem] (rtr)    at (0, -1.2) {round-trip R \(\canon{}\circ\retr{}=\mathrm{id}\)};
-    \node[lem] (bridge) at (0, -2.4) {bridge lemma};
-    \node[lem] (loos)   at (0, -3.6) {loosening correctness};
-    \node[lem] (subst)  at (0, -4.8) {substitution under binders};
-    % case families (right column)
-    \node[fam] (homo)    at (8.6, 0.6)  {homomorphic (\(\var{v}\), literals, arith., logic, \(\mapletB\))};
-    \node[fam] (basesets)at (8.6, -0.3) {base sets \(\ZintB\), \(\ZboolB\)};
-    \node[fam] (cupcap)  at (8.6, -1.2) {\(\cupB\), \(\capB\)};
-    \node[fam] (memeq)   at (8.6, -2.1) {\(\inB\), \(\eqB\)};
-    \node[fam] (app)     at (8.6, -3.0) {\(\appB\)};
-    \node[fam] (formers) at (8.6, -3.9) {\(\powB\), \(\prodB\), \(\pfunB\)};
-    \node[fam] (binders) at (8.6, -4.8) {\(\bcomp{\cdot}{\cdot}\), \(\lambdaB\)};
-    \node[fam] (all)     at (8.6, -5.7) {\(\forallB\)};
-    % edges
-    \draw[e] (rtl.east) -- (homo.west);
-    \draw[e] (rtl.east) -- (app.west);
-    \draw[e] (rtr.east) -- (memeq.west);
-    \draw[e] (rtr.east) -- (formers.west);
-    \draw[e] (rtr.east) -- (binders.west);
-    \draw[e] (rtr.east) -- (all.west);
-    \draw[e] (bridge.east) -- (basesets.west);
-    \draw[e] (bridge.east) -- (cupcap.west);
-    \draw[e] (bridge.east) -- (memeq.west);
-    \draw[e] (bridge.east) -- (formers.west);
-    \draw[e] (bridge.east) -- (binders.west);
-    \draw[e] (bridge.east) -- (all.west);
-    \draw[e] (loos.east) -- (all.west);
-    \draw[e] (subst.east) -- (binders.west);
-    \draw[e] (subst.east) -- (all.west);
-  \end{tikzpicture}
-  \caption{Shared lemmas (left) and the case families that consume them (right).
-  Round-trip~L also enters every other case through the variables occurring in subterms; the edges shown are the ones where the lemma does the decisive step.}
-  \label{fig:beer-lemma-map}
-\end{figure}
+\subsection{Completion of the induction.}
+The preceding calculations cover every constructor on which encoding succeeds.
+In each case, the encoding rule and the induction hypotheses also establish the \emph{type correctness modulo loosening} clause of \Cref{thm:beer-encodeTerm-spec}.
+Target denotational completeness supplies the denotation \(T'\), while the displayed decoding equation and support argument establish \emph{semantic agreement}.
+Running the same case proof with the declaration-aware induction hypotheses makes each calculation independent of the chosen satisfying helper valuation, which gives \emph{valuation stability}.
+This concludes the proof of \Cref{thm:beer-encodeTerm-spec}.

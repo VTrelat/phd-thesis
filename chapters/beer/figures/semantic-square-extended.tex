@@ -1,0 +1,182 @@
+\begin{tikzpicture}[
+    scale=.9,
+    transform shape,
+    every node/.style={
+      align=center,
+      text=dark-blue,
+      font=\small,
+    },
+    typed/.style={
+      draw=dark-blue,
+      rounded corners=2mm,
+      fill=beige!35,
+      minimum height=10mm,
+      inner xsep=6pt,
+      inner ysep=5pt,
+    },
+    instantiated/.style={
+      draw=blue!70!dark-blue,
+      rounded corners=2mm,
+      fill=blue!7,
+      minimum height=10mm,
+      inner xsep=6pt,
+      inner ysep=5pt,
+    },
+    denotation/.style={
+      draw=dark-blue,
+      rounded corners=2mm,
+      fill=orange!14,
+      minimum height=10mm,
+      inner xsep=6pt,
+      inner ysep=5pt,
+    },
+    construction/.style={
+      funarr,
+      draw=blue,
+    },
+    consequence/.style={
+      funarr,
+      draw=blue,
+      dash pattern=on 4pt off 2pt,
+    },
+    relation/.style={
+      {Stealth[length=6pt, width=5pt]}-{Stealth[length=6pt, width=5pt]},
+      draw=pink,
+      dash pattern=on 4pt off 2pt,
+      line width=1.1pt,
+      shorten >=3pt,
+      shorten <=3pt,
+    },
+    arrow label/.style={
+      fill=white,
+      font=\scriptsize,
+      inner sep=1.5pt,
+    },
+  ]
+  % Open, well-typed terms.
+  \node[typed] (b-term)
+    {\(\btype{\Gamma}{t}{\alpha}\)};
+  \node[
+    typed,
+    right=17mm of b-term,
+    label={
+      [font=\scriptsize, text=dark-blue, label distance=2mm]
+      above:
+      \(
+        \sigma\in
+        [\lgf{(\toSMT{\alpha})},\mgf{(\toSMT{\alpha})}]
+      \)
+    },
+  ] (s-term)
+    {\(\stype{(\toSMT{\Gamma})'}{t'}{\sigma}\)};
+  \node[typed, right=18mm of s-term] (loosened)
+    {\(
+      \begin{gathered}
+        \mathsf{loosen}_{\mathbb c}(t')
+          =\langle\lvar{z},\spec{\lvar{z}}\rangle
+        \\[-1mm]
+        \lvar{z}:\toSMT{\alpha},
+        \qquad
+        \spec{\lvar{z}}:\boolS
+      \end{gathered}
+    \)};
+
+  \draw[construction]
+    (b-term) --
+    node[arrow label, above=2pt]
+      {\beer{}\enspace\textbeer}
+    node[arrow label, below=2pt]
+      {\(t\encto(t',\sigma)\)}
+    (s-term);
+  \draw[construction]
+    (s-term) --
+    node[arrow label, above=2pt]
+      {\(\mathsf{loosen}_{\mathbb c}\)}
+    node[arrow label, below=2pt]
+      {\(\mathbb c:\castpath{\sigma}{\toSMT{\alpha}}\)}
+    (loosened);
+
+  % First apply the valuations: this is the first half of
+  % \interp{\aterm{\cdot}{\cdot}}.
+  \node[instantiated, below=18mm of b-term] (b-instance)
+    {\(\aterm{t}{\Delta}\)};
+  \node[instantiated, below=18mm of s-term] (s-instance)
+    {\(\aterm{t'}{\Theta'}\)};
+  \coordinate (z-column) at ($(loosened.south)+(-16mm,0)$);
+  \coordinate (spec-column) at ($(loosened.south)+(16mm,0)$);
+  \node[instantiated, below=18mm of z-column] (z-instance)
+    {\(\aterm{\lvar{z}}{\Theta^!}\)};
+  \node[instantiated, below=18mm of spec-column] (spec-instance)
+    {\(\aterm{\spec{\lvar{z}}}{\Theta^!}\)};
+
+  \draw[construction]
+    (b-term) --
+    node[arrow label, left=2pt]
+      {\(\aterm{\cdot}{\Delta}\)}
+    (b-instance);
+  \draw[consequence]
+    (s-term) --
+    node[arrow label, left=2pt]
+      {\(\aterm{\cdot}{\Theta'}\)}
+    (s-instance);
+  \draw[consequence]
+    (loosened) --
+    node[arrow label, pos=.58, left=1pt]
+      {\(\aterm{\cdot}{\Theta^!}\)}
+    (z-instance);
+  \draw[consequence]
+    (loosened) --
+    node[arrow label, pos=.58, right=1pt]
+      {\(\aterm{\cdot}{\Theta^!}\)}
+    (spec-instance);
+
+  % Then interpret the resulting closed terms: this is the second half.
+  \node[denotation, below=18mm of b-instance] (X)
+    {\(\denval{X}[\alpha]\)};
+  \node[denotation, below=18mm of s-instance] (Y)
+    {\(\denval{Y}[\sigma]\)};
+  \node[denotation, below=18mm of z-instance] (Y-cast)
+    {\(\denval{Y^!}[\toSMT{\alpha}]\)};
+  \node[denotation, below=18mm of spec-instance] (spec-true)
+    {\(\denval{\topZ}[\boolS]\)};
+
+  \draw[construction]
+    (b-instance) --
+    node[arrow label, left=2pt]
+      {\(\interpB{\cdot}\)}
+    (X);
+  \draw[consequence]
+    (s-instance) --
+    node[arrow label, left=2pt]
+      {\(\interpS{\cdot}\)}
+    (Y);
+  \draw[consequence]
+    (z-instance) --
+    node[arrow label, left=2pt]
+      {\(\interpS{\cdot}\)}
+    (Y-cast);
+  \draw[consequence]
+    (spec-instance) --
+    node[arrow label, right=2pt]
+      {\(\interpS{\cdot}\)}
+    (spec-true);
+
+  % The lower edge of the semantic square, factored through the
+  % canonical SMT representation.
+  \draw[relation]
+    (X) --
+    node[arrow label, text=pink, above=2pt]
+      {\(\semrel\)}
+    (Y);
+  \draw[consequence]
+    (Y) --
+    node[arrow label, above=2pt]
+      {\(\appZ\zop{\mathbb c}(\,\cdot\,)\)}
+    (Y-cast);
+
+  \draw[consequence, draw=pink]
+    (Y-cast.south) to[out=-120, in=-60, looseness=.65]
+    node[arrow label, pos=.62, below=8pt, text=pink]
+      {\(\appZ\retr{\alpha}(Y^!)=X\)}
+    (X.south);
+\end{tikzpicture}

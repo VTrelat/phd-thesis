@@ -23,8 +23,8 @@ B types are mapped to their SMT counterparts homomorphically, the only non-struc
 \end{definition}
 
 Two remarks are in order.
-First, the encoding never produces \(\optS\) or a function type with a non-Boolean codomain, so a straightforward induction shows \(\mgf{(\toSMT{\alpha})} = \toSMT{\alpha}\): every encoded type is in the \emph{most general}, relational normal form of \Cref{ch:loosening}.
-Values known to be functional may nonetheless be manipulated through strictly tighter representations of the same B value; the cast layer of \Cref{sec:beer-rules-cast} relates these intermediate representations to the type encoding above.
+First, the canonical type encoding \(\toSMT{\cdot}\) never produces \(\optS\) or a function type with a non-Boolean codomain, so a straightforward induction shows \(\mgf{(\toSMT{\alpha})} = \toSMT{\alpha}\): every canonically encoded type is in the \emph{most general}, relational normal form of \Cref{ch:loosening}.
+Terms may nonetheless be returned at strictly tighter representations of the same B type---in particular, B lambdas and compatible functional intersections are encoded as option-valued SMT functions; the loosening layer of \Cref{sec:beer-rules-cast} relates these representations to the canonical type encoding above.
 Second, different SMT terms may of course denote the same characteristic predicate, but the semantic representation itself is not forgetful: on the carrier \(\interpZ{\toSMT{\alpha}}\), a value is uniquely determined by its B retraction, as the round-trip laws below will show.
 
 \subsection{The indexed family of canonical isomorphisms and associated retractions}
@@ -253,7 +253,7 @@ Note the asymmetry with \Cref{def:beer-canonical-iso}: \(\retr{\setB\alpha}\) qu
   \tikzsetnextfilename{beer-type-semantic-square}
   \begin{tikzpicture}[
       every node/.style={text=dark-blue},
-      node distance=2cm and 3cm,
+      node distance=2.5cm,
     ]
     \node[font=\large] (alpha) {\(\alpha\)};
     \node[font=\large, right=of alpha] (alpha-smt) {\(\toSMT{\alpha}\)};
@@ -339,10 +339,12 @@ The order-theoretic account of \Cref{ch:loosening} already describes the possibl
 \]
 The equality uses \(\mgf{(\toSMT{\alpha})}=\toSMT{\alpha}\), observed after \Cref{def:beer-type-encoding}.
 In particular, \(\castable{\sigma}{\toSMT{\alpha}}\); by \Cref{cor:castable-constructive}, this yields a cast path \(\mathbb{c}:\castpath{\sigma}{\toSMT{\alpha}}\).
+For a B relation known to be functional, this interval contains two useful representation shapes.
+It may be represented relationally by a characteristic predicate on pairs or functionally by an option-valued function.
+At the semantic level these representations are equivalent: the predicate holds at \((x,y)\) exactly when the function is defined at \(x\) with value \(y\), so both determine the same B graph despite inhabiting different SMT types.
 
-Option-valued functions and their functional graph predicates are equivalent representations: \(\mathsf{optionGraph}\) and \(\mathsf{graphCollapse}\) translate between them and are mutually inverse\footnote{These two identities are formalized by {\leancodeptr{graphCollapse\_optionGraph}{SMT/Reasoning/Representation.html\#graphCollapse_optionGraph}} and {\leancodeptr{optionGraph\_graphCollapse}{SMT/Reasoning/Representation.html\#optionGraph_graphCollapse}}.}.
-
-Decoding an SMT value---first casting it to \(\toSMT{\alpha}\), then applying \(\retr{\alpha}\)---identifies the represented B value, but does not record the representatives needed to inspect that value.
+The agreement relation compares these and all other admissible representations through a common decoding: first casting the SMT value to \(\toSMT{\alpha}\), then applying \(\retr{\alpha}\).
+This identifies the represented B value, but does not record the representatives needed to inspect that value.
 For example, if a set \(X\) is represented by a predicate of type \(\rho\toS\boolS\), a construct that consumes \(X\) binds a target value \(w:\rho\).
 The soundness proof must therefore be able to represent every \(x\in X\) by such a \(w\); if \(x\) is itself set-valued, the same requirement recurs inside \(x\).
 The following definition isolates exactly this information.
@@ -387,9 +389,13 @@ A set \(X\) is supported when a single cast path to \(\toSMT{\alpha}\) lets ever
 Requiring \(x\in\operatorname{supp}_{\alpha}(\widehat{\sigma})\) carries the same guarantee recursively into nested set-valued members.
 \Cref{fig:beer-set-support} depicts the witness condition.
 
-\begin{figure}[t]
+\begin{figure}[b]
   \centering
   \tikzsetnextfilename{beer-set-support}
+  \caption{Support of a set representation. For every \(x\in X\), a representative
+    \(w\in\interpZ{\widehat{\sigma}}\) casts to the canonical image
+    \(\appZ\canon{\alpha}(x)\), which retracts to \(x\).}
+  \label{fig:beer-set-support}
   \begin{tikzpicture}[
       carrier/.style={
         draw=dark-blue,
@@ -460,10 +466,6 @@ Requiring \(x\in\operatorname{supp}_{\alpha}(\widehat{\sigma})\) carries the sam
       (sigma-hat-carrier-2) to[bend right=20]
       node[midway, right, text=blue] {\(\mathbb{e}\)} (alpha-smt-carrier-8);
   \end{tikzpicture}
-  \caption{Support of a set representation. For every \(x\in X\), a representative
-    \(w\in\interpZ{\widehat{\sigma}}\) casts to the canonical image
-    \(\appZ\canon{\alpha}(x)\), which retracts to \(x\).}
-  \label{fig:beer-set-support}
 \end{figure}
 
 \begin{lemma}[Canonical support][ValueCastAdmissible.canonical][SMT/Reasoning/Representation.html\#ValueCastAdmissible.canonical]
@@ -532,9 +534,39 @@ The following lemma generalizes this bridge from canonical images to the represe
   Substituting the two agreement equations gives the claim.
 \end{proof}
 
-Agreement is required only where a term can observe a valuation.
-For a B valuation \(\Delta : \mathsf{String} \rightharpoonup \BDom\), an SMT valuation \(\Theta : \mathsf{String} \rightharpoonup \SDom\), and a term \(t\), we say that \(\Delta\) and \(\Theta\) agree on \(t\) if, for every \(v \in \mathsf{fv}(t)\), both valuations are defined at \(v\) and \(\Delta(v) \semrel \Theta(v)\).
-No condition is imposed outside \(\mathsf{fv}(t)\).
+The semantic relation on individual denotations extends to open terms through their valuations.
+Since a term can inspect only its free variables, it is enough to relate the source and target assignments locally on those names; on the SMT side, the assigned values must also realize the types declared by the current representation context.
+We package these two requirements as follows.
+
+\begin{definition}[Valuation compatibility]
+  \label{def:beer-valuation-compatibility}
+  Let \(V\) be a set of variable names,
+  \(\Delta : \mathsf{String} \rightharpoonup \BDom\) be a B valuation, and
+  \(\Theta : \mathsf{String} \rightharpoonup \SDom\) be an SMT valuation.
+  The valuations \emph{agree on \(V\)} if
+  \[
+    \forall v\in V,\quad
+    \exists d_v:\BDom,\ \exists s_v:\SDom,\qquad
+    \Delta(v)=d_v
+    \ \land\
+    \Theta(v)=s_v
+    \ \land\
+    d_v\semrel s_v.
+  \]
+  Given an SMT typing context \(\Lambda\), the valuation \(\Theta\)
+  \emph{respects \(\Lambda\) on \(V\)} if every declaration visible in \(V\)
+  is realized by a value carrying the declared type:
+  \[
+    \forall v\in V,\ \forall\sigma,\qquad
+    \Lambda(v)=\sigma
+    \ \Longrightarrow\
+    \exists Y,\quad \Theta(v)=\denval{Y}[\sigma].
+  \]
+  We say that valuations agree on a term \(t\), or that \(\Theta\) respects
+  \(\Lambda\) there, by taking \(V=\mathsf{fv}(t)\).
+  No condition is imposed outside \(V\).
+\end{definition}
+
 This is the valuation relation used by \Cref{thm:beer-encodeTerm-spec}.
 
 \begin{definition}[Image valuation][B.RenamingContext.toSMT][SMT/Reasoning/Defs.html\#B.RenamingContext.toSMT]

@@ -1,0 +1,26 @@
+\documentclass[10pt]{scrbook}
+\usepackage[Bjornstrup]{fncychap}
+
+\input{preamble.tex}
+\input{macros.tex}
+\input{edcomment.tex}
+
+\begin{document}
+\tikzexternaldisable
+\pagestyle{empty}
+\begin{figure}[p]
+  \centering
+  \input{chapters/beer/figures/semantic-square-extended.tex}
+  \caption*{The extended representation-aware semantic square.
+    Here \(\Delta(v)\semrel\Theta_0(v)\) for every
+    \(v\in\mathsf{fv}(t)\), \(\Theta_0\subseteq\Theta'\), and
+    \(
+      \Theta^!
+      \coloneq
+      \Theta'[
+        \lvar{z}\mapsto
+        \denval{Y^!}[\toSMT{\alpha}]
+      ]
+    \).}
+\end{figure}
+\end{document}
