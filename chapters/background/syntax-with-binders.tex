@@ -39,7 +39,7 @@ Such a representation still supports syntax-directed algorithms over the constru
 What cannot be inspected syntactically is precisely the component that has been made shallow.
 The contrast is made concrete in \Cref{ex:foas-hoas}, where the identity abstraction \(\lambda x ↦ x\) is rendered both as deep first-order syntax and through a shallow binder.
 
-\subsection{Higher Order Abstract Syntax}
+\subsection{Higher-order abstract syntax}
 
 Higher-order abstract syntax (HOAS)~\cite{pfenning1988hoas} changes the representation of binders by replacing the first-order body syntax with a meta-level function,
 therefore making the representation of binders shallow.
@@ -94,7 +94,7 @@ which does not correspond to any term in the object language.
 \end{example}
 Thus ordinary HOAS requires either a meta host-language designed for HOAS, as in logical-framework presentations of HOAS~\cite{pfenning1988hoas}, or extra restrictions and adequacy arguments before it can be used as a faithful inductive representation of syntax.
 
-\subsection{Parametric Higher-Order Abstract Syntax}
+\subsection{Parametric higher-order abstract syntax}
 
 PHOAS avoids the strict-positivity problem by separating variables from terms.
 Instead of allowing a binder body to be a function from terms to terms, the syntax is parameterized by a type \(\mathcal V\) of variables:

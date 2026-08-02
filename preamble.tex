@@ -17,6 +17,8 @@
 \usepackage[backend=biber, style=numeric, sorting=nyt, giveninits=false, maxbibnames=99]{biblatex}
 \addbibresource{references.bib}
 \usepackage[labelfont=bf, font=small]{caption}
+\usepackage{placeins}
+\usepackage{needspace}
 \usepackage{mathpartir}
 \usepackage{simplebnf}
 \usepackage{tikz}
@@ -183,9 +185,11 @@
   morestring=[b]",
 }
 
-% SMT-LIB code blocks: same beige aesthetic as leanlisting, but uncounted and
-% untitled so the box can be dropped inline (e.g. inside an example).
-\newtcblisting{smtlisting}{
+% SMT-LIB code blocks: same beige aesthetic and listing counter as leanlisting.
+% Optional titles, labels, and placement (e.g. float=t) use the usual
+% tcolorbox keys.
+\makeatletter
+\newtcblisting[use counter from=leanlisting]{smtlisting}[1][]{
   listing only,
   listing options={language=SMTLIB, mathescape=false, keepspaces=true,
     columns=fullflexible, gobble=0, breaklines=true,
@@ -197,7 +201,30 @@
   arc=3pt,
   boxrule=1pt,
   left=4pt, right=4pt, top=2pt, bottom=2pt,
+  before upper={\iftcb@hasTitle\vspace{6pt}\fi},
+  before title={\sffamily Listing~\thetcbcounter\enspace\enspace},
+  fonttitle=\small\sffamily\color{black},
+  attach boxed title to top left={yshift={-\dimexpr\tcboxedtitleheight/2\relax}, xshift=6mm},
+  boxed title style={
+      colback=beige!30,
+      colframe=beige!90!black,
+      arc=3pt,
+      boxrule=1pt,
+      left=4pt, right=4pt, top=1pt, bottom=1pt,
+    },
+  #1,
 }
+% Preserve leading indentation when no optional argument is supplied.
+\expandafter\let\expandafter\smtlisting@worker\csname\string\smtlisting\endcsname
+\def\smtlisting{\futurelet\@let@token\smtlisting@optcheck}
+\def\smtlisting@optcheck{%
+  \ifx\@let@token[%
+    \let\smtlisting@next\smtlisting@worker
+  \else
+    \def\smtlisting@next{\smtlisting@worker[]}%
+  \fi
+  \smtlisting@next}
+\makeatother
 
 \lstdefinelanguage{b} {
 morekeywords=[1]{MACHINE, REFINEMENT, IMPLEMENTATION, REFINES, SEES, INCLUDES, IMPORTS, EXTENDS, SETS, CONSTANTS, VARIABLES, ASSERTIONS, PROPERTIES, INVARIANT, OPERATIONS, INITIALISATION, PRE, IF, THEN, END, ANY, WHERE},

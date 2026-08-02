@@ -149,6 +149,38 @@
 }
 
 % ---------------------------------------------------------------------------
+% QUOTATION -- right-aligned quotation with author, date, and source.
+% Usage: \begin{quotation}[Author][Date][Source] ... \end{quotation}
+% ---------------------------------------------------------------------------
+\RenewDocumentEnvironment{quotation}{O{} O{} O{}}{%
+  \def\thesisquotationattribution{%
+    \if\relax\detokenize{#1}\relax\else\textsc{#1}\fi
+    \if\relax\detokenize{#2}\relax\else
+      \if\relax\detokenize{#1}\relax\else\space\fi
+      (#2)%
+    \fi
+    \if\relax\detokenize{#3}\relax\else
+      \if\relax\detokenize{#1#2}\relax\else,\space\fi
+      \emph{#3}%
+    \fi
+  }%
+  \begin{flushright}%
+    \begin{minipage}{0.96\textwidth}%
+      \raggedleft\itshape\ignorespaces
+}{%
+      \unskip\par\medskip
+      \settowidth{\dimen0}{\normalfont\thesisquotationattribution}%
+      \ifdim\dimen0>0pt
+        \makebox[\linewidth][r]{\color{venn-light}\rule{\dimen0}{0.8pt}}%
+        \par\smallskip
+        \normalfont\raggedleft
+        \thesisquotationattribution
+      \fi
+    \end{minipage}%
+  \end{flushright}%
+}
+
+% ---------------------------------------------------------------------------
 % THEOREM  (pink)
 % ---------------------------------------------------------------------------
 \NewTColorBox{theorembox}{ m m m }{%
