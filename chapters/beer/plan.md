@@ -98,7 +98,7 @@ is the conceptual heart and must be the most polished section.
 ### §7.3 Encoding rules — `encoding-rules.tex`
 Purpose: define the encoder as a mathematical function and give every rule, monad-free.
 
-- **7.3.1 The encoding judgement.** Present `⟦·⟧ : Term_B ⇀ Term_S × SMTType` as a partial function
+- **7.3.1 The encoding judgment.** Present `⟦·⟧ : Term_B ⇀ Term_S × SMTType` as a partial function
   from typed B terms, with the invariant that a term of B-type `α` maps to an SMT term of type
   `α^SMT` (state the typing-preservation lemma here, prove it in §7.4). Explain the two things the
   monad hides — a typing context `Γ` and a fresh-name supply — and say they are treated as ambient

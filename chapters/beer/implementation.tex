@@ -1,117 +1,31 @@
-\section{Implementation}
+\section{\inlremark[Executable realization and scoping invariants]{Find a better title.}}
 \label{sec:beer-implementation}
 
-% Plan: chapters/beer/plan.md §7.6. The single, explicitly subordinate implementation section.
-% Migrated from the former lean-implementation-architecture.tex and binders-names-contexts.tex.
+The rules of \Cref{sec:beer-encoding-rules} deliberately hide the state threaded by the executable Lean encoder.
+This is an expository simplification, not an omission from the formal proof: the state properties are part of the complete mechanized invariant, and their preservation is proved for every encoding operation.
 
-The mathematical rules of \Cref{sec:beer-encoding-rules} and the soundness statements of
-\Cref{sec:beer-soundness} are realized in Lean as a state-passing computation. This section records
-how, and---more to the point---why the state never surfaces in the mathematical development.
-
-\subsection{The two-pass pipeline and the encoder monad}
+\subsection{From declarative rules to a pure encoder}
 \label{sec:lean-implementation-architecture}
 
-\beer{} is structured as a two-pass pipeline that threads a single mutable state
-functionally, through a \emph{monad}. Recall that a monad organizes effectful
-computations: it fixes a notion of effect---here, reading and updating a state and
-failing with an error---together with the sequencing discipline that Lean's
-\leaninl{do}-notation renders implicit, where \leaninl{let x ← c} runs the
-computation \leaninl{c}, propagates its effects, and binds its result to
-\leaninl{x}. Each of the two passes runs in one such monad.
+After decoding an Atelier~B proof obligation file, \beer{} runs a pure state-and-error computation ({\small\leancodeptr{Encoder}{Encoder/Basic.html\#Encoder}}) that produces the SMT-LIB script.
+Its state contains the running SMT typing context~$\Gamma$, a monotone supply of fresh names, and the declarations and assertions emitted so far.
+The proof of \Cref{sec:beer-soundness} exposes only the semantic projection of the invariant; the Lean proof also preserves the clauses relating these state components.
+We elide the corresponding weakest-precondition calculations and retain only one representative example of the scoping discipline they establish.
 
-The first pass, the \emph{decoder}, parses an Atelier~B proof-obligation file
-into the internal concrete representation of \Cref{ch:b}. It
-runs in the monad {\small\leancodeptr{Decoder}{POGReader/Basic.html\#Decoder}}, defined as
-\leaninl{StateT DecoderState (ExceptT String IO)}: a state carrying the B
-environment under construction, over exceptions, over \leaninl{IO} for reading the
-file.
-
-The second pass, the \emph{encoder}, is the subject of this thesis. It transforms
-the decoded B environment into an SMT-LIB script and runs in
-{\small\leancodeptr{Encoder}{Encoder/Basic.html\#Encoder}}, defined as
-\leaninl{StateT EncoderState (Except String)}. Its state records everything the
-translation must track:
-\begin{leanlisting}
-structure EncoderState where
-  env   : SMT.Env          -- fresh-variable counter, used names, emitted script
-  types : SMT.TypeContext  -- the running SMT typing context Γ
-\end{leanlisting}
-namely the running SMT typing context~$\Gamma$ (the field \leaninl{types}), a
-monotone fresh-variable counter together with the set of names already in use, and
-the SMT declarations and assertions accumulated so far---the eventual output.
-The encoder's effects are exactly these: consulting and
-extending~$\Gamma$, allocating fresh names, emitting declarations and assertions,
-and raising an error on an ill-typed or unsupported input.
-
-Crucially, the encoder is \emph{pure}: unlike the decoder, its stack contains no
-\leaninl{IO}. It therefore denotes a total function from a B environment to either
-an error or an SMT script paired with a final state. This is what licenses the
-mathematical style adopted throughout this chapter: the correctness
-statements of \Cref{sec:beer-soundness} are equalities between the
-denotation of the emitted term and that of the source term, in which the state
-threaded through every intermediate step never appears. In the Lean development the
-state-passing obligations are discharged separately, by reasoning about the monadic
-primitives, \eg \leaninl{get}, \leaninl{modifyGet}, and \leaninl{throw}, in a
-Floyd--Hoare-style~\cite{floyd1967meanings,hoare1969axiomatic} weakest-precondition
-calculus~\cite{dijkstra1975guarded} for monadic programs, so that the encoding rules may
-be read---and verified---as if they manipulated~$\Gamma$ and the fresh-name supply directly.
-
-\subsection{Handling of binders, names, and contexts}
+\subsection{Binders, names, and contexts}
 \label{sec:binders-names-contexts}
 
-Encoding a quantified or functional B construct forces the encoder to invent SMT
-names for the variables it binds and to record their types. Both tasks are realized
-as effects of the {\small\leancodeptr{Encoder}{Encoder/Basic.html\#Encoder}} monad
-(\Cref{sec:lean-implementation-architecture}), acting on two components of its state
-that are given deliberately different lifetimes.
+The fresh-name supply and the typing context have deliberately different lifetimes: the supply remains monotone throughout the run, whereas~$\Gamma$ is extended on entering a binder and restored on leaving it.
 
-\paragraph{Fresh names and the typing context.}
-The operation {\small\leancodeptr{freshVar}{Encoder/Basic.html\#SMT.freshVar}}, given a type
-$\tau$, returns a name distinct from every name used so far, records it among the
-used names, and inserts the binding into the running context~$\Gamma$;
-{\small\leancodeptr{addToContext}{Encoder/Basic.html\#SMT.addToContext}} and
-{\small\leancodeptr{eraseFromContext}{Encoder/Basic.html\#SMT.eraseFromContext}} insert and
-remove bindings explicitly. The fresh-variable counter and the set of used names are
-\emph{monotone}---never rolled back---which guarantees that every generated name is
-globally unique across the whole run. The typing context~$\Gamma$, by contrast, is
-\emph{scoped}: a bound variable is meaningful only while its body is being encoded,
-so~$\Gamma$ is extended on entering a binder and restored on leaving it.
-
-\paragraph{Erasing binder variables.}
-The interplay is visible in
-{\small\leancodeptr{defaultSpecM}{Encoder/Loosening/Rules.html\#defaultSpecM}}, which builds
-the predicate expressing that a term takes the canonical default value of its
-type. At a function type $\alpha \toS \beta$ the default is taken
-pointwise, $\forallS x : \alpha.\ \mathsf{dflt}_{\beta}\bigl(t(x)\bigr)$, which in the
-encoder reads:
+The function case of {\small\leancodeptr{defaultSpecM}{Encoder/Loosening/Rules.html\#defaultSpecM}} illustrates the discipline:
 \begin{leanlisting}
 | .fun α β, t => do
-    let x    ← freshVar α                     -- inserts x : α into Γ
+    let x    ← freshVar α
     let body ← defaultSpecM β (.app t (.var x))
-    eraseFromContext x                        -- x occurs only under the ∀ below
+    eraseFromContext x
     pure (.forall [x] [α] body)
 \end{leanlisting}
-The fresh $x$ is drawn solely to serve as the universal binder. Since
-\leaninl{freshVar} has inserted $x : \alpha$ into~$\Gamma$, but $x$ occurs only under
-the $\forallS$ about to be built, it must be erased from~$\Gamma$ before the
-predicate is returned: otherwise the result would carry a spurious free constant~$x$
-and fail to typecheck in the ambient context, where $x$ is a variable bound by the
-quantifier rather than a global symbol.
-
-The same discipline recurs throughout the encoder. Every case of
-{\small\leancodeptr{loosenAux}{Encoder/Loosening/Rules.html\#loosenAux_prf}} erases the
-$\existsS$- and $\lamS$-binders it introduces once their specification is assembled,
-and the universal case of {\small\leancodeptr{encodeTerm}{Encoder/Encoder.html\#encodeTerm}}
-additionally snapshots~$\Gamma$ and the emitted declarations before encoding the
-body: helper declarations produced while translating under the binder are then
-re-scoped \emph{inside} the quantifier---as guarded universals---rather than left as
-global constants that would escape their intended scope.
-
-\begin{note}
-  Keeping the fresh-name counter monotone while rolling back~$\Gamma$ is a matter of
-  correctness, not convenience. Restoring the counter on leaving a binder could
-  re-issue a name already attached to an emitted declaration, conflating two
-  distinct SMT symbols; keeping it monotone preserves the global freshness invariant
-  on which the correctness proofs rely, at the negligible cost of a few unused
-  indices.
-\end{note}
+Here $x$ is needed in~$\Gamma$ while the body is constructed, but it is bound in the returned formula and must not remain visible as a free constant afterwards.
+The cast machinery follows the same pattern for its local binders.
+In the universal case, helpers generated beneath a source binder are likewise moved from the global declaration stream into the target quantifier, as prescribed by the \encruleref{rule:beer-bounded-universal} rule.
+The preserved invariant therefore ensures both that bound names do not escape and that a name already used by an emitted declaration is never issued again; the lower-level proof details play no further role in the mathematical development.

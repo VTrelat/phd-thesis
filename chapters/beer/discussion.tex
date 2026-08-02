@@ -1,46 +1,79 @@
 \section{Discussion}
 \label{sec:beer-discussion}
 
+In \emph{Reflections on Trusting Trust}, his Turing Award lecture published in 1984, Ken Thompson showed how a compromised compiler could insert a Trojan horse into generated programs and perpetuate the attack through recompilation even after the malicious code had been removed from the compiler's source~\cite{thompson1984reflections}.
+He drew the following conclusion:
+\begin{quotation}[Ken Thompson][1984][Reflections on Trusting Trust]
+  No amount of source-level verification or scrutiny will protect you from using untrusted code.
+\end{quotation}
+Applied to formal verification, Thompson's warning translates into a simple principle: a verification result is only as strong as what it assumes.
+We therefore close the chapter by listing exactly what a user of \beer{} trusts beyond the proofs of \Cref{sec:beer-soundness}.
+
 \subsection{Trusted computing base}
 \label{sec:beer-tcb}
 
-A verification result is only as strong as what it assumes; we close the chapter by listing exactly what a user of \beer{} trusts beyond the proofs of \Cref{sec:beer-soundness}.
-
 First, the generic infrastructure: the Lean~4 kernel and the consistency of Mathlib, and the ZFC model of \Cref{ch:zflean} on which every denotation of this thesis is built.
-Second, the \emph{decoder}: the parser translating Atelier~B proof-obligation files into the B terms of \Cref{ch:b} is unverified, and so are the elaborations it performs---rewriting \(\subseteqB\) into a bounded universal, the function spaces into comprehensions over \(\pfunB\), and the detection of flagged variables (\Cref{sec:beer-rules-cast}).
+Second, the \emph{decoder}: the parser translating Atelier~B proof obligation files into the B terms of \Cref{ch:b} is unverified, and so are the elaborations it performs---rewriting \(\subseteqB\) into a bounded universal and the function spaces into comprehensions over \(\pfunB\).
 An error there changes \emph{which} statement is proved, not whether the proof is correct.
-Third, the \emph{back end}: the printer from the abstract script to concrete SMT-LIB syntax, and the SMT solver itself, trusted to answer \textsf{unsat} only for scripts unsatisfiable in the semantics of \Cref{ch:smt}; the assembly of \Cref{thm:beer-end-to-end} from the mechanized \Cref{thm:beer-encodeTerm-spec} is likewise a paper argument (\Cref{sec:beer-po-soundness}).
+Third, the \emph{back-end}: the printer from the abstract script to concrete SMT-LIB syntax, and the SMT solver itself, trusted to answer \texttt{unsat} only for scripts unsatisfiable in the semantics of \Cref{ch:smt}; assembly of the script-level theorem from the mechanized term contracts is likewise a paper argument (\Cref{sec:beer-po-soundness}).
 
-Finally, the residual assumptions inside the development itself, all localized and \texttt{axiom}-tagged ({\small\leancodeptr{Axioms}{SMT/Reasoning/Axioms.html}}, {\small\leancodeptr{AllCaseHelpers}{SMT/Reasoning/Basic/AllCaseHelpers.html}}).
-They fall into three groups.
-Five are variable-scoping facts---the encoder only binds names drawn from its monotone fresh supply, so generated binders never capture source variables---which are operationally evident from the encoder's definition and provable by (large, tedious) structural inductions that were not carried out.
-One asserts the well-typedness of the emitted guarded universal of \cref{eq:beer-forall-shape}, again a structural induction.
-One admits a weakest-precondition subcase of the universal quantifier over flagged binders on an empty domain.
-To these one must add the two witness hypotheses threaded by \Cref{thm:beer-encodeTerm-spec} for the quantifier case (\Cref{sec:beer-case-forall}): the underlying infimum computations are mechanized as standalone lemmas, but their wiring into the induction is assumed rather than proved.
-Everything else---the bridge, the encoding rules, and every case argument of \Cref{sec:beer-soundness}---is proved from first principles.
+Finally, the formal development has an explicit axiom audit.
+Lean has a command \leaninl{#print axioms}, which reports that both {\small\leancodeptr{encodeTerm\_rep\_spec}{SMT/Reasoning/EncodeTermRepresented.html\#encodeTerm_rep_spec}} and its Boolean corollary rely only on the usual logical principles admitted by Lean: propositional extensionality, classical choice, and quotient soundness.
+In particular, the representation-aware proof introduces no project-specific axiom or proof placeholder: the represented universal and its declaration-aware helper contract are assembled inside the proved structural induction rather than assumed at its boundary.
 
-\subsection{Limitations}
-\label{sec:beer-limitations}
+This development nevertheless has two limitations.
+The first concerns unsupported constructs.
+The encoder rejects \(\cardB{\cdot}\), \(\minB\), \(\maxB\), and other constructs like operations on sequences: no encoding rule exists and the encoder fails on it. \Cref{thm:beer-encodeTerm-spec} constrains successful runs only.
+This failure mode is the benign one: a proof obligation containing an unsupported construct is never translated, so no unsound script is ever produced; the cost is coverage, not correctness.
 
-\paragraph{Unsupported constructs.}
-The encoder rejects \(\cardB{\cdot}\): the constructor is declared in the term language, but no encoding rule exists and the encoder fails on it, so the corresponding induction case of \Cref{thm:beer-encodeTerm-spec} holds vacuously---the theorem constrains only successful runs.
-The same holds for the minimum and maximum operators, which the Lean term language carries but which lie outside the fragment presented in \Cref{ch:b}.
-This failure mode is the benign one: a proof obligation containing an unsupported construct is never translated, so no unsound script is ever produced; the cost is coverage, quantified in \Cref{ch:evaluation}.
-
-\paragraph{Partially verified cast paths.}
-As stated in \Cref{sec:beer-case-pointwise}, the denotational theorems for the binary set operations cover their homogeneous branches, which are the ones reachable when every variable has its canonical type.
-The heterogeneous branches---the graph-path union of the running example among them---are verified for typing, totality, and state hygiene, and the loosened-membership adequacy that the quantifier case consumes is proved \(\Delta\)-universally; but their full denotational specifications are not yet wired into the main induction, and quantification over \emph{flagged} binders additionally relies on the witness hypotheses discussed above.
-The mathematics required is loosening correctness (\Cref{thm:loosening-correctness}), already available; the gap is proof engineering, not theory.
-
-\paragraph{Representation blow-up.}
-Loosening is not free.
-Each cast introduces a helper variable and a quantified specification, and the guarded-universal scoping of \cref{eq:beer-forall-shape} nests these under the source quantifier, adding quantifier alternations to the emitted formula.
-Characteristic-predicate representations likewise trade solver-friendly function values for higher-order terms.
+The second limitation is the representation blow-up caused by loosening.
+Each cast introduces a helper variable and a quantified specification, and the \encruleref{rule:beer-bounded-universal} rule nests these under the source quantifier, adding quantifier alternations to the emitted formula.
+Characteristic predicate representations likewise trade solver-friendly function values for higher-order terms; this is the ``encoding-functions-as-functions'' principle that ruled the design choices advocated in \Cref{ch:loosening}.
 The practical impact of both on solver performance is deliberately out of scope here and is measured in \Cref{ch:evaluation}.
 
-\subsection{Outlook}
-\label{sec:beer-outlook}
+\subsection{Zero-Proof \beer{}}
+\label{sec:beer-zero-proof}
 
-The path forward is largely mapped by the previous subsection: discharge the scoping axioms by the structural inductions they call for, wire the existing cast-path specifications into the induction to cover heterogeneous operations and flagged binders without hypotheses, and mechanize the script-level assembly of \Cref{thm:beer-end-to-end}.
-On the encoding side, \(\cardB{\cdot}\) admits a finite-cardinality axiomatization, and tighter representations---keeping both operands functional when possible instead of loosening to graphs---would relieve the solver where \Cref{ch:evaluation} shows it struggling.
-None of these steps requires new mathematics: the bridge of \Cref{sec:beer-semantic-bridge} and the loosening theory of \Cref{ch:loosening} were designed to carry them.
+The limitations above concern the fragment for which the encoder and its soundness proof are maintained in lockstep.
+This coupling is valuable for certification, but makes every extension of the source language or optimization of the encoder a proof-engineering task as well as an implementation task.
+For uses that favor coverage and translation speed over certification, we therefore also maintain \emph{\textsc{Zero-Proof} \beer{}}\footnote{The name plays on the two senses of \emph{proof}: zero-proof drinks are alcohol-free, while \textsc{Zero-Proof} \beer{} omits the formal proof of correctness.}, a variant from which the correctness development is deliberately elided.
+Freed from the requirement that every implementation change preserve the proof architecture, it supports a larger fragment of B and can be optimized more aggressively.
+
+Whereas the verified encoder is covered by the soundness theorem proved in this chapter, \textsc{Zero-Proof} \beer{} provides no mechanized semantic link between a source obligation and the SMT script it emits.
+It instead complements the certified development as an experimental and high-coverage implementation, while the verified encoder remains the reference for the guarantees established here.
+
+\subsection{Conclusion}
+\label{sec:beer-conclusion}
+
+This chapter has established a representation-aware translation from B terms to SMT terms.
+Its central invariant relates source denotations not to a single canonical target type, but to every representation that the encoder may select and to the exact loosening paths between them.
+The resulting soundness theorem covers the complete successful execution of the term encoder, including its generated declarations, fresh names, and binder-scoping obligations.
+Together with the proof-obligation argument of \Cref{sec:beer-po-soundness}, it explains why an unsatisfiable generated script is evidence for the validity of the source obligation, subject precisely to the trusted components identified above.
+
+The compact square of \Cref{fig:beer-semantic-square} records the soundness
+theorem's main commuting property.
+\Cref{fig:beer-semantic-square-extended} closes the chapter by expanding it
+into the complete semantic path: valuation application and interpretation are
+separated from the end-to-end encoding step.
+Any syntactic loosening of already encoded subterms is internal to that step;
+the lower factorization instead displays the semantic cast and retraction used
+to decode the denotation of the final target term.
+
+\begin{center}
+  \begin{minipage}{\textwidth}
+  \centering
+  \tikzsetnextfilename{beer-semantic-square-extended}
+  \input{chapters/beer/figures/semantic-square-extended.tex}
+  \captionof{figure}{The extended representation-aware semantic diagram.
+    Here \(\Lambda_0\coloneq\toSMT{\Gamma}\subseteq\Lambda'\),
+    \(\sigma\in[\lgf{(\toSMT{\alpha})},\mgf{(\toSMT{\alpha})}]\),
+    \(\Delta(v)\semrel\Theta_0(v)\) for every
+    \(v\in\mathsf{fv}(t)\), \(\Theta_0\subseteq\Theta'\), and
+    \(\mathbb c:\castpath{\sigma}{\toSMT{\alpha}}\).
+    The \(\semrel\) edge additionally records
+    the support condition of \Cref{def:beer-agreement}.}
+  \label{fig:beer-semantic-square-extended}
+  \end{minipage}
+\end{center}
+
+The diagram summarizes the role of the semantic bridge developed in this chapter: representation changes are visible to the encoder and to the solver, but transparent at the level of the B statement being proved.

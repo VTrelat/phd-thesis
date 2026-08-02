@@ -1,4 +1,4 @@
-\section{Encoding Rules}
+\section{Encoding rules}
 \label{sec:beer-encoding-rules}
 
 This section presents the term encoder as a partial, syntax-directed translation from B terms to SMT terms.
@@ -383,7 +383,7 @@ Encoding the body \(P\) and the domain guard may itself invoke the loosening lay
 Helpers generated for the \emph{bound} variables \(\vec{\var{v}}\) cannot be declared globally: their values depend on the quantified variables and would otherwise escape their scope.
 The encoder therefore re-scopes them \emph{inside} the quantifier, universally bound and guarded by their specifications.
 Suppose \(D \encto (D', \sigma \toS \boolS)\).
-We replace the bound variables \(\vec{\var{v}}\) by fresh bound variables \(\vec{\var{z}}\) of types \(\vec{\tau}\), then encode the membership guard and \(P \encto (P', \boolS)\) in the extended context, collecting the generated helpers \(\var{h}_1, \dots, \var{h}_k\).
+We replace the bound variables \(\vec{\var{v}}\) by fresh bound variables \(\vec{\var{z}}\) of types \(\vec{\tau}\), then encode the membership guard and \(P \encto (P', \boolS)\) in the extended context, collecting as \(\var{h}_1, \dots, \var{h}_k\) those generated helpers whose specifications depend on the bound variables.
 \begin{encrule}[bounded universal]{rule:beer-bounded-universal}
 \[
   \forallB \vec{\var{v}} \inB D \cdot P
@@ -395,7 +395,7 @@ We replace the bound variables \(\vec{\var{v}}\) by fresh bound variables \(\vec
   \boolS\Bigr)
 \]
 \end{encrule}
-The helper binders keep every generated specification in the scope of the variables on which it depends.
+The helper binders keep these specifications in the scope of the variables on which they depend; helpers involving only free variables remain in the surrounding scope.
 Here \((\vec{\var{z}} \inB D)'\) abbreviates the membership encoding of \Cref{sec:beer-rules-cast}.
 The binder types \(\vec{\tau}\) are derived from the component types of \(\sigma\); a component is changed to an option-valued function type only when that bound name is explicitly selected for a functional representation.
 Semantic agreement already ensures that every value in the B domain has a representative at the element type carried by the encoded domain, recursively at nested set positions.
@@ -429,23 +429,21 @@ under the generated specification
     \bigl(\appS{\var{f}}{\var{u}}\eqS\someS\var{v}\bigr).
 \]
 
-The binder rule moves this helper beneath the quantifier over \(\var{z}\).
-Writing \(U\) for the complete SMT term returned for the union goal, the rules above give
+The specification depends only on the free variable \(\var{f}\), so it remains in the surrounding proof-obligation scope.
+The binder rule re-scopes only helpers whose specifications depend on \(\var{z}\).
+Writing \(U\) for the complete SMT term returned for the union goal, with \(\spec{\var{f}^{\mathrm{rel}}}\) asserted in that surrounding scope, the rules above give
 \[
 \begin{aligned}
 U \;\coloneq\;&
   \forallS \var{z}:\intS\timesS\intS\cdot \\[-1pt]
-  &\quad \forallS \var{f}^{\mathrm{rel}}:
-      (\intS\timesS\intS)\toS\boolS\cdot \\[-1pt]
-  &\qquad \spec{\var{f}^{\mathrm{rel}}}\impS \\[-1pt]
-  &\qquad\quad \Bigl(
+  &\quad \Bigl(
     \appS{
       \bigl(\lamS \var{p}:\intS\timesS\intS\cdot\;
         \appS{\var{f}^{\mathrm{rel}}}{\var{p}}
         \orS \appS{\var{g}}{\var{p}}\bigr)
     }{\var{z}}
     \impS \\[-1pt]
-  &\qquad\qquad
+  &\qquad
     \existsS \var{a}:\intS,\,\var{b}:\intS\cdot\;
       \appS{X}{\var{a}}
       \andS\bigl(
@@ -460,10 +458,7 @@ which, after \(\beta\)-reducing the application of the emitted union predicate, 
 \begin{aligned}
 U \;=_{\beta}\;&
   \forallS \var{z}:\intS\timesS\intS\cdot \\[-1pt]
-  &\quad \forallS \var{f}^{\mathrm{rel}}:
-    (\intS\timesS\intS)\toS\boolS\cdot \\[-1pt]
-  &\qquad
-    \spec{\var{f}^{\mathrm{rel}}}\impS
+  &\quad
     \bigl(\appS{\var{f}^{\mathrm{rel}}}{\var{z}}\orS\appS{\var{g}}{\var{z}}\bigr)\impS
     \existsS \var{a}:\intS,\,\var{b}:\intS\cdot\;
     \appS{X}{\var{a}}\andS
@@ -471,5 +466,5 @@ U \;=_{\beta}\;&
 \end{aligned}
 \]
 Thus, the goal encodes as \((U,\boolS)\).
-The first implication scopes the generated graph specification, the second is the encoded bounded implication, and the existential is the characteristic predicate emitted for \(X\prodB Y\).
+The implication is the encoded bounded implication, and the existential is the characteristic predicate emitted for \(X\prodB Y\).
 The proof-obligation layer subsequently asserts \(\notS U\); its surrounding declarations, hypotheses, and full emitted script is shown in \Cref{sec:beer-proof-obligations}.

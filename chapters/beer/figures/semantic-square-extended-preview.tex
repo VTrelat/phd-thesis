@@ -12,15 +12,16 @@
   \centering
   \input{chapters/beer/figures/semantic-square-extended.tex}
   \caption*{The extended representation-aware semantic square.
-    Here \(\Delta(v)\semrel\Theta_0(v)\) for every
+    The arrow \(t\encto(t',\sigma)\) includes every internal encoding and
+    loosening step.
+    Here \(\Lambda_0\coloneq\toSMT{\Gamma}\subseteq\Lambda'\),
+    \(\sigma\in[\lgf{(\toSMT{\alpha})},\mgf{(\toSMT{\alpha})}]\),
+    \(\Delta(v)\semrel\Theta_0(v)\) for every
     \(v\in\mathsf{fv}(t)\), \(\Theta_0\subseteq\Theta'\), and
-    \(
-      \Theta^!
-      \coloneq
-      \Theta'[
-        \lvar{z}\mapsto
-        \denval{Y^!}[\toSMT{\alpha}]
-      ]
-    \).}
+    \(\mathbb c:\castpath{\sigma}{\toSMT{\alpha}}\).
+    The lower factorization sets
+    \(T^!\coloneq\appZ\zop{\mathbb c}(T')\), with
+    \(\appZ\retr{\alpha}(T^!)=T\); the \(\semrel\) edge additionally records
+    the support condition of representation-aware agreement.}
 \end{figure}
 \end{document}

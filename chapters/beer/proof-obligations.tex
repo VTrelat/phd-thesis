@@ -1,95 +1,246 @@
-\section{Encoding Proof Obligations}
+\section{Encoding proof obligations}
 \label{sec:beer-proof-obligations}
 
-Term soundness is the kernel; this section wraps it into the end-to-end guarantee.
+Term soundness is the kernel: this section explains the corresponding end-to-end result for proof obligations.
 A decoded proof obligation (\Cref{ch:b}) consists of a typing context, a list of definitions and hypotheses, and one or more goals.
-The encoder {\small\leancodeptr{encode}{Encoder/Encoder.html\#encode}} processes a whole B environment as the composition
-\[
-  \mathsf{encodeTypeContext} \mathbin{;} \mathsf{encodeDefs} \mathbin{;} \mathsf{encodeDistinctFinite} \mathbin{;} \mathsf{encodeProofObligations} \mathbin{;} \mathsf{finalBulkDeclare},
-\]
-each stage emitting declarations or assertions into the growing script.
+The {\small\leancodeptr{encode}{Encoder/Encoder.html\#encode}} function processes a whole B environment by encoding each proof obligation in turn, each stage emitting declarations or assertions into the growing SMT script.
 
 \subsection{From terms to environments}
 \label{sec:beer-po-environments}
 
-The typing context is emitted first: each variable \(\var{v}\) of B type \(\alpha\) yields \((\mathsf{declare\text{-}const}\ \var{v}\ \toSMT{\alpha})\), except that flagged variables (\Cref{sec:beer-rules-cast}) are declared at their tightened functional type.
-Named definitions become \(\mathsf{define\text{-}fun}\)s over their encoded bodies, and the environment's distinctness and finiteness constraints are encoded and asserted.
-Global \emph{hypotheses}, however, are deliberately not asserted at this stage: in the Atelier~B format, a clause that is a hypothesis for one proof obligation (an invariant, an assertion) is the \emph{goal} of another, so asserting them globally would beg the very questions the obligations pose.
-Each proof obligation instead carries the list of definition blocks it may use, and only those are asserted, locally.
+The typing context is emitted first.
+For every B binding \(v:\alpha\), the context encoder selects either the canonical type \(\toSMT{\alpha}\), or, when the binding is selected as a binary function, the option-valued type \(\toSMT{\beta}\toS\optS\,\toSMT{\gamma}\) for \(\alpha=\setB(\beta\prodB\gamma)\).
+The resulting pair of contexts satisfies the \emph{representation-context} invariant: the type of every target binding lies in the adjoint interval associated with the canonical encoding of its source type.
+Named definitions are recorded through the SMT-LIB command \smtinl{define-fun} over their encoded bodies, and the environment's distinctness and finiteness constraints are encoded and asserted.
+Each proof obligation carries the list of definition blocks it may use, and only those are asserted, locally.
 A final pass declares the residual variables that were typed during encoding but not yet declared---bound variables of constraints whose helper specifications were emitted globally.
 
-\subsection{Goals and refutation}
+\subsection{Refutation and semantic adequacy}
 \label{sec:beer-po-refutation}
+\label{sec:beer-po-soundness}
 
-Each proof obligation is encoded inside its own \((\mathsf{push}\ 1) \dots (\mathsf{pop}\ 1)\) block containing its local declarations, its asserted definitions and hypotheses, and then, per goal, a nested block asserting the \emph{negated} encoded goal followed by \(\mathsf{check\text{-}sat}\).
+Each proof obligation is encoded and scoped inside its own level using \smtinl{(push 1) ... (pop 1)} blocks containing their local declarations, asserted definitions and hypotheses, and then, per goal, a nested block asserting the \emph{negated} encoded goal followed by \smtinl{check-sat}.
 The scoping is not cosmetic.
-Atelier~B synthesizes fresh identifiers per obligation and freely reuses a name at \emph{different types} across obligations; the local blocks realize the corresponding scoping discipline on the SMT side, so that each \(\mathsf{check\text{-}sat}\) sees exactly the declarations and assertions of its own obligation, and the typing invariants of \Cref{thm:beer-encodeTerm-spec} hold per block.
-One script thus carries one \(\mathsf{check\text{-}sat}\) per goal, and each answer is interpreted independently: \textsf{unsat} discharges that goal, \textsf{sat} exhibits a countermodel and therefore invalidates it, while \textsf{unknown} or a timeout leaves it open.
+Atelier~B synthesizes fresh identifiers per obligation and freely reuses a name at \emph{different types} across obligations; the local blocks realize the corresponding scoping discipline on the SMT side, so that each \smtinl{check-sat} sees exactly the declarations and assertions of its own obligation.
+One script thus carries one \smtinl{check-sat} per goal.
+Each answer is interpreted independently: \texttt{unsat} discharges that goal, \texttt{sat} exhibits a countermodel and therefore invalidates it, while \texttt{unknown} or a timeout leaves it open.
 
-On the running example, the emitted script is, abridged to its structure:
-\begin{smtlisting}
+Consider one proof obligation
+\[
+  H_1,\cdots,H_n\ \vdash\ G
+\]
+over a B typing context \(\Gamma_{\mathsf B}\).
+Its meaning is direct: it is valid when every valuation \(\Delta\), well formed for \(\Gamma_{\mathsf B}\) and defined on the free variables of the obligation, that makes all the hypotheses true also makes the goal true.
+Equivalently, invalidity is witnessed by a B countermodel satisfying
+\[
+  \interpB{\aterm{H_i}{\Delta}}=\denval{\topZ}[\boolB]
+  \quad\text{for every \(i\)},\qquad
+  \interpB{\aterm{G}{\Delta}}=\denval{\botZ}[\boolB].
+\]
+Hypotheses and goals are assumed well-defined, consistently with Atelier~B's separate emission of well-definedness obligations (\Cref{sec:b-wd}).
+
+Assume that the obligation is well typed and its encoding succeeds.
+If all function-selected free variables are justified by true, well-typed function-space hypotheses and bounded universals satisfy binder compatibility (\Cref{fig:beer-binder-compatibility}), then the refutational reduction is preserved by encoding:
+\[
+  \begin{aligned}
+    H_1,\cdots,H_n\vdash G
+    &\quad\Longleftrightarrow\quad
+    H_1,\cdots,H_n,\notB G\vdash\bot\\
+    &\quad\Longleftrightarrow\quad
+    \text{the emitted refutation block is unsatisfiable}.
+  \end{aligned}
+\]
+At a fixed SMT scope, all active \smtinl{assert} commands are conjoined.
+The nested goal block therefore asks whether
+\[
+  H_1' \andS \cdots \andS H_n' \andS \notS G'
+\]
+has a model, together with the surrounding local assertions; this is the refutational computation performed by \smtinl{check-sat}.
+
+\begin{center}
+  \begin{minipage}{\textwidth}
+  \centering
+  \tikzsetnextfilename{beer-refutation-adequacy}
+  \begin{tikzpicture}[
+      node distance=24mm,
+      every node/.style={text=dark-blue},
+      semantic state/.style={
+        draw=dark-blue,
+        thick,
+        rounded corners=2mm,
+        fill=blue!7,
+        align=center,
+        text width=5.1cm,
+        minimum height=2.2cm,
+        inner sep=6pt,
+      },
+    ]
+    \node[semantic state] (b-countermodel) {
+      \textbf{B countermodel \(\Delta\)}\\[3pt]
+      all \(H_i\) are true under \(\Delta\)\\
+      \(G\) is false under \(\Delta\)
+    };
+    \node[semantic state, right=of b-countermodel] (s-model) {
+      \textbf{SMT model \(\Theta'\)}\\[3pt]
+      all \(H_i'\) are true under \(\Theta'\)\\
+      \(\notS G'\) is true under \(\Theta'\)
+    };
+
+    \draw[funarr, draw=blue, bend left=18]
+      (b-countermodel) to
+      node[midway, above=4pt, align=center, font=\small]
+        {canonical representatives\\and graph collapse}
+      (s-model);
+    \draw[funarr, draw=pink, bend left=18]
+      (s-model) to
+      node[midway, below=4pt, align=center, font=\small]
+        {retraction\\and option graphs}
+      (b-countermodel);
+  \end{tikzpicture}
+  \captionof{figure}{Countermodel correspondence underlying the validity criterion.}
+  \label{fig:beer-refutation-adequacy}
+  \end{minipage}
+\end{center}
+
+The proof uses the equivalent countermodel correspondence shown in \Cref{fig:beer-refutation-adequacy}.
+Retracting an SMT model yields an agreeing B valuation, with option-valued functions read as graphs; the Boolean term corollary \Cref{cor:beer-encodeTerm-bool-spec} then recovers true B hypotheses and a false goal.
+Conversely, represent a B countermodel at the selected SMT types and interpret each generated helper by its specification; the same corollary makes every encoded hypothesis and the negated goal true.
+
+The valuation transports and term-level results are mechanized; their assembly over all assertions and scopes is not.
+Interpreting solver answers also assumes solver soundness for the ZF semantics of \Cref{ch:smt} as discussed later in \Cref{sec:beer-tcb}.
+
+\subsection{The running example}
+\label{sec:beer-po-running-example}
+
+We follow the encoding of \cref{eq:beer-running-po} to the final solver call using fragments of the complete input in \Cref{lst:beer-running-po}.
+They omit unused machinery and administrative scopes and simplify fresh names and definitions using the datatype equations.
+The negated universal is retained before final propositional simplification to expose the refutational structure; these changes preserve the active SMT formula.
+
+\Needspace{9\baselineskip}
+\paragraph{Global prelude.}
+Before encoding individual proof obligations, the encoder emits the shared datatype declarations as a global prelude, shown in \Cref{lst:beer-running-prelude}, outside every proof-obligation scope.
+
+\begin{smtlisting}[title={Global datatype prelude.}, label=lst:beer-running-prelude, float=h]
+(declare-datatype Pair (par (T1 T2) ((pair (fst T1) (snd T2)))))
+(declare-datatype Option (par (T) ((some (the T)) (none))))
+\end{smtlisting}
+
+\paragraph{Selecting the representations.}
+Sets of integers use their canonical characteristic predicate representation from \Cref{def:beer-type-encoding}.
+The context instead selects the functional representation for \(\var{f}\), justified by the hypothesis \(\var{f}\inB X\tfunB Y\), while \(\var{g}\) remains relational.
+The encoder then increments the current scope level with \smtinl{(push 1)}.
+Within that level, the declarations in \Cref{lst:beer-running-declarations} assign the two operands of the union different SMT types.
+
+\begin{smtlisting}[title={Selected representations.}, label=lst:beer-running-declarations, float=h]
+(declare-const X (-> Int Bool))
+(declare-const Y (-> Int Bool))
+(declare-const f (-> Int (Option Int)))
+(declare-const g (-> (Pair Int Int) Bool))
+\end{smtlisting}
+
+\paragraph{Encoding the assumptions.}
+After elaboration of the derived function and relation spaces, the \encruleref{rule:beer-membership}, \encruleref{rule:beer-partial-function-space}, \encruleref{rule:beer-powerset}, and \encruleref{rule:beer-cartesian-product} rules yield the two assertions in \Cref{lst:beer-running-assumptions}.
+For \(\var{f}\), the first conjunct confines its graph to \(X\prodB Y\), and the second makes its domain total on \(X\); single-valuedness is already enforced by the option-valued function representation.
+The assertion for \(\var{g}\) states directly that every pair in its graph belongs to \(X\prodB Y\).
+
+\begin{smtlisting}[title={Encoded assumptions.}, label=lst:beer-running-assumptions, float=h]
+(assert
+  (and
+    (forall ((u Int) (v Int))
+      (=> (= (f u) (some v)) (and (X u) (Y v))))
+    (forall ((u Int))
+      (=> (X u) (exists ((v Int)) (= (f u) (some v)))))))
+(assert
+  (forall ((p (Pair Int Int)))
+    (=> (g p)
+      (exists ((u Int) (v Int))
+        (and (X u) (Y v) (= p (pair u v)))))))
+\end{smtlisting}
+
+\Needspace{13\baselineskip}
+\paragraph{Loosening inside the goal.}
+The union cannot combine the option-valued \(\var{f}\) with the relational \(\var{g}\) directly.
+Following \Cref{sec:beer-rules-cast}, the \encruleref{rule:beer-union} rule keeps \(\var{g}\) and loosens \(\var{f}\) to the fresh graph predicate \smtinl{f!} specified in \Cref{lst:beer-running-loosening}.
+
+\begin{smtlisting}[title={Loosening to a graph.}, label=lst:beer-running-loosening, float=h]
+(declare-const f! (-> (Pair Int Int) Bool))
+(define-fun f!_spec () Bool
+  (forall ((u Int) (v Int))
+    (= (f! (pair u v)) (= (f u) (some v)))))
+(assert f!_spec)
+\end{smtlisting}
+
+The specification says that \smtinl{(pair u v)} belongs to \smtinl{f!} exactly when \smtinl{f} returns \smtinl{(some v)} at \smtinl{u}.
+After this reconciliation, union membership reduces to \smtinl{(or (f! z) (g z))}.
+The specification depends only on the free variable \smtinl{f}, not on the quantified pair \smtinl{z}.
+The helper can therefore be declared outside the quantified goal, with its specification asserted in the proof-obligation scope.
+The re-scoping part of the \encruleref{rule:beer-bounded-universal} rule is needed only for helpers whose specifications depend on a bound variable; in this instance, the encoded goal quantifies \smtinl{z} alone.
+Its guard is the union predicate above, and its existential conclusion is the characteristic predicate produced for \(X\prodB Y\) by the \encruleref{rule:beer-cartesian-product} rule.
+
+\paragraph{Refutation.}
+The proof obligation layer leaves the assumptions in the outer scope and asserts the negation of the encoded bounded universal in a nested goal scope.
+The resulting block in \Cref{lst:beer-running-refutation} makes the final step explicit: its active assertions express exactly the two hypotheses together with the negation of the goal, as explained in \Cref{sec:beer-po-refutation}.
+
+\begin{smtlisting}[title={Negated goal.}, label=lst:beer-running-refutation, float=h]
+(push 1)
+  (assert
+    (not
+      (forall ((z (Pair Int Int)))
+        (=> (or (f! z) (g z))
+          (exists ((u Int) (v Int))
+            (and (X u) (Y v) (= z (pair u v))))))))
+  (check-sat)
+(pop 1)
+\end{smtlisting}
+
+The complete emitted script is given in \Cref{lst:beer-running-po}.
+Running cvc5 (\Cref{sec:ar-smt}) with the following options returns \textsf{unsat} on this script:
+\begin{itemize}
+  \item \texttt{incremental} to enable incremental solving (\smtinl{push} and \smtinl{pop}) even if this script contains only one \smtinl{check-sat};
+  \item \texttt{mbqi} to enable model-based quantifier instantiation for higher-order quantifiers.
+\end{itemize}
+Indeed, the assumptions place both graphs in \(X\prodB Y\), and the loosening specification preserves the graph of \(\var{f}\), so their union cannot contain a counterexample to the inclusion.
+By the refutational criterion, \cref{eq:beer-running-po} is valid.
+
+\begingroup
+\makeatletter
+\@fptop=0pt
+\makeatother
+\begin{smtlisting}[title={Complete running-example refutation.}, label=lst:beer-running-po, float=t]
 (set-logic HO_ALL)
 (declare-datatype Pair (par (T1 T2) ((pair (fst T1) (snd T2)))))
 (declare-datatype Option (par (T) ((some (the T)) (none))))
-(declare-const X (-> Int Bool))
-(declare-const Y (-> Int Bool))
 (push 1)
+  (declare-const X (-> Int Bool))
+  (declare-const Y (-> Int Bool))
   (declare-const f (-> Int (Option Int)))
   (declare-const g (-> (Pair Int Int) Bool))
-  (assert ...)  ; f : X --> Y, elided
-  (assert ...)  ; g : X <-> Y, elided
+  (declare-const f! (-> (Pair Int Int) Bool))
+  (define-fun f!_spec () Bool
+    (forall ((u Int) (v Int))
+      (= (f! (pair u v)) (= (f u) (some v)))))
+  (assert f!_spec)
+  (assert
+    (and
+      (forall ((u Int) (v Int))
+        (=> (= (f u) (some v)) (and (X u) (Y v))))
+      (forall ((u Int))
+        (=> (X u) (exists ((v Int)) (= (f u) (some v)))))))
+  (assert
+    (forall ((p (Pair Int Int)))
+      (=> (g p)
+        (exists ((u Int) (v Int))
+          (and (X u) (Y v) (= p (pair u v)))))))
   (push 1)
-    (assert (not
-      (forall ((z (Pair Int Int)))
-      (forall ((f! (-> (Pair Int Int) Bool)))
-        (=> (forall ((u Int) (v Int))
-              (= (f! (pair u v)) (= (f u) (some v))))
-        (=> ((lambda ((p (Pair Int Int))) (or (f! p) (g p))) z)
-            (exists ((a Int) (b Int))
-              (and (X a) (and (Y b) (= z (pair a b)))))))))))
+    (assert
+      (not
+        (forall ((z (Pair Int Int)))
+          (=> (or (f! z) (g z))
+            (exists ((u Int) (v Int))
+              (and (X u) (Y v) (= z (pair u v))))))))
     (check-sat)
   (pop 1)
 (pop 1)
 \end{smtlisting}
-Every ingredient of the chapter is visible: the flagged \(\var{f}\) declared functionally and \(\var{g}\) relationally, the goal encoded as a guarded universal \cref{eq:beer-forall-shape} with the helper \(\lvar{f}\) universally bound under its graph specification, the union \cref{eq:beer-union-graph} applied to the bound variable, and the Cartesian product predicate of \Cref{sec:beer-rules-sets} as the conclusion.
-
-\subsection{Semantic adequacy of proof-obligation encoding}
-\label{sec:beer-po-soundness}
-
-Validity of a proof obligation is measured against the B semantics.
-
-\begin{definition}[Validity]
-  \label{def:beer-po-validity}
-  A proof obligation with typing context \(\Gamma_{\mathsf{B}}\), hypotheses \(H_1, \dots, H_n\), and goal \(G\) is \emph{valid} if for every valuation \(\Delta\) well formed for \(\Gamma_{\mathsf{B}}\) and defined on the free variables of the obligation,
-  \[
-    \Bigl(\textstyle\bigwedge_{i} \interpB{\aterm{H_i}{\Delta}} = \denval{\topZ}[\boolB]\Bigr)
-    \implies
-    \interpB{\aterm{G}{\Delta}} = \denval{\topZ}[\boolB].
-  \]
-  Hypotheses and goals are assumed well-defined, consistently with Atelier~B's separate emission of well-definedness obligations (\Cref{sec:b-wd}).
-\end{definition}
-
-\begin{theorem}[Semantic adequacy of proof-obligation encoding]
-  \label{thm:beer-end-to-end}
-  The refutation script emitted for a proof obligation is satisfiable with respect to the SMT semantics of \Cref{ch:smt} if and only if the proof obligation is invalid with respect to the B semantics.
-  Equivalently, the emitted script is unsatisfiable if and only if the proof obligation is valid.
-\end{theorem}
-
-\begin{proof}[Proof sketch]
-  For the forward implication, let an SMT valuation satisfy the emitted script.
-  Transport the interpretations of the source variables back through the semantic bridge, and use the exactness specifications of the cast helpers to recover the corresponding B valuation.
-  Semantic equivalence of term encoding then turns every true encoded hypothesis into a true B hypothesis and the asserted encoded negation of the goal into a false B goal.
-  The obligation is therefore invalid.
-
-  Conversely, invalidity yields a B valuation \(\Delta\) under which every hypothesis denotes \(\topZ\) and the goal denotes \(\botZ\).
-  Transport \(\Delta\) through the bridge and interpret each helper by the semantic value determined by its specification: loosened variables receive the cast image of their source (\Cref{thm:loosening-correctness}), and function witnesses receive the functional collapse of the corresponding graph.
-  Under the resulting SMT valuation, every encoded hypothesis denotes \(\topZ\), every helper specification is satisfied, and the encoded negation of the goal denotes \(\notZ\botZ = \topZ\).
-  Hence all assertions in the obligation's block are satisfied and the emitted script is satisfiable.
-\end{proof}
-
-The theorem statement deserves the same honesty as the rest of the chapter.
-The mechanized artifact is \Cref{thm:beer-encodeTerm-spec}, which carries, in its totality clause and helper-witness constructions, the term-level ingredients the equivalence consumes; its assembly at the level of scripts---iterating over assertions and interpreting \(\mathsf{push}/\mathsf{pop}\)---is a paper argument and is not, at the time of writing, a Lean theorem.
-Moreover, satisfiability and unsatisfiability in \Cref{thm:beer-end-to-end} refer to our ZF semantics of SMT scripts, so interpreting the solver's answer assumes the solver correct for that semantics.
-Both points are recorded in the trusted-base audit of \Cref{sec:beer-tcb}.
-
-On the running example, the goal of \cref{eq:beer-running-po} is indeed valid---\(\interpB{\var{f}} \subseteq X \timesZ Y\) and \(\interpB{\var{g}} \subseteq X \timesZ Y\) follow from the two hypotheses, and the union of two subsets of \(X \timesZ Y\) is one---and \textsf{cvc5} answers \textsf{unsat} on the emitted script, closing the proof obligation.
+\FloatBarrier
+\endgroup
