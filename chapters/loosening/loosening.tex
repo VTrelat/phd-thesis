@@ -37,7 +37,7 @@ The two definitions share their inference rules: $\regnotation{\castable{\alpha}
 \end{mathpar}
 \end{definition}
 
-The base case \ref{rule:castable-refl} keeps atomic types unchanged, and the structural rules \ref{rule:castable-opt}, \ref{rule:castable-chpred}, \ref{rule:castable-pair} and \ref{rule:castable-fun} loosen homomorphically---componentwise under an option, under the domain of a characteristic predicate, under a product, and under a function space respectively. The one essential rule is \ref{rule:castable-graph}, which turns the functional encoding $\alpha \toS \optS\,\beta$ of a partial function into the relational encoding $(\alpha' \timesS \beta') \toS \boolS$ of its graph---the move motivated in \Cref{sec:loosening-motivation}. The side condition $\beta \neq \boolS$ on \ref{rule:castable-fun} keeps \ref{rule:castable-fun} and \ref{rule:castable-chpred} disjoint: a function into $\boolS$ is a characteristic predicate, handled by \ref{rule:castable-chpred}, never by \ref{rule:castable-fun}.
+The base case \ref{rule:castable-refl} keeps atomic types unchanged. The structural rules \ref{rule:castable-opt}, \ref{rule:castable-chpred}, \ref{rule:castable-pair} and \ref{rule:castable-fun} loosen componentwise under an option, a characteristic-predicate domain, a product, and a function space. The essential rule \ref{rule:castable-graph} turns the functional encoding $\alpha \toS \optS\,\beta$ of a partial function into the relational encoding $(\alpha' \timesS \beta') \toS \boolS$ of its graph---the move motivated in \Cref{sec:loosening-motivation}. The side condition $\beta \neq \boolS$ makes \ref{rule:castable-fun} and \ref{rule:castable-chpred} disjoint: a function into $\boolS$ is a characteristic predicate and is handled only by \ref{rule:castable-chpred}.
 
 The cast path $\castpath{}{}$ replays the very same rules, but as a \emph{proof-relevant}, or \emph{constructive} version of them: where $\castable{\alpha}{\beta}$ is a mere proposition (it lives in \leaninl{Prop}), a cast path $\castpath{\alpha}{\beta}$ is a piece of data (it lives in \leaninl{Type}) recording \emph{how} $\alpha$ is loosened into $\beta$.
 
@@ -99,7 +99,7 @@ Let $\alpha$, $\beta$, and $\delta$ be SMT types. The relation $\castable{}{}$ e
 By structural recursion on $\alpha$ and $\beta$: each rule is selected by the head constructors of $\alpha$ and $\beta$, decidable equality on $\mathsf{SMTType}$ settles the atomic \ref{rule:castable-refl} case, and the structural cases reduce to deciding loosenability of the components. The argument is routine but lengthy, as it enumerates every case explicitly.
 \end{proof}
 
-Decidability is what makes loosening usable in the encoder, \ie at runtime: confronted with two SMT types, it can test whether one loosens into the other and, if so, recover an explicit witness. The proof of \Cref{thm:castable-decidable} provides the discrimination tree for the decision procedure.
+Decidability is what makes loosening usable in the encoder, \ie at runtime: confronted with two SMT types, it can test whether one loosens into the other and, if so, recover an explicit witness. The~proof~of~\Cref{thm:castable-decidable} provides the discrimination tree for the decision procedure.
 The next two corollaries record this passage between the propositional and the proof-relevant views.
 
 \begin{corollary}[Constructiveness and convertibility][castable?.toCastPath, castable?\_of\_castPath][
@@ -352,10 +352,10 @@ These facts assemble into the central property of the pair: $\mathsf{lgf}$ and $
   \end{center}
 \end{theorem}
 \begin{proof}
-Both directions combine monotonicity, the bounds $\lgf{\gamma} \sqsubseteq \gamma \sqsubseteq \mgf{\gamma}$, and the triangular identities. If $\lgf{\alpha} \sqsubseteq \beta$, then $\alpha \sqsubseteq \mgf{\alpha} = \mathsf{mgf}(\lgf{\alpha}) \sqsubseteq \mgf{\beta}$; conversely, if $\alpha \sqsubseteq \mgf{\beta}$, then $\lgf{\alpha} \sqsubseteq \mathsf{lgf}(\mgf{\beta}) = \lgf{\beta} \sqsubseteq \beta$.
+Both directions combine monotonicity, the bounds $\lgf{\alpha} \sqsubseteq \alpha \sqsubseteq \mgf{\alpha}$ and $\lgf{\beta} \sqsubseteq \beta \sqsubseteq \mgf{\beta}$, and the triangular identities. If $\lgf{\alpha} \sqsubseteq \beta$, then $\alpha \sqsubseteq \mgf{\alpha} = \mathsf{mgf}(\lgf{\alpha}) \sqsubseteq \mgf{\beta}$; conversely, if $\alpha \sqsubseteq \mgf{\beta}$, then $\lgf{\alpha} \sqsubseteq \mathsf{lgf}(\mgf{\beta}) = \lgf{\beta} \sqsubseteq \beta$.
 \end{proof}
 
-Intuitively, the adjunction means that loosenability can always be decided against a normal form. To ask whether $\alpha$ loosens into $\beta$, one may either tighten the source and ask whether $\lgf{\alpha}$ loosens into $\beta$, or loosen the target and ask whether $\alpha$ loosens into $\mgf{\beta}$; the two questions have the same answer. As $\lgf{\alpha}$ and $\mgf{\beta}$ are the best functional and relational approximations of $\alpha$ and $\beta$, the adjunction says precisely that comparing a type against either canonical approximation suffices.
+Intuitively, the adjunction means that loosenability can always be decided against a normal form. As $\lgf{\alpha}$ and $\mgf{\beta}$ are the best functional and relational approximations of $\alpha$ and $\beta$, the adjunction says precisely that comparing a type against either canonical approximation suffices.
 
 As mentioned already, meets and joins do not exist globally, but they do exist locally in each adjoint interval $[\lgf{\alpha}, \mgf{\alpha}]$.
 They are defined as follows for any $\theta, \tau \in [\lgf{\alpha}, \mgf{\alpha}]$:
@@ -591,6 +591,10 @@ They are defined as follows for any $\theta, \tau \in [\lgf{\alpha}, \mgf{\alpha
   Each is computed, inside the lattice of \Cref{fig:loosening-hasse}, as an extremum of an intersection of adjoint intervals (framed): on the left, the join $\alpha^{(1)} \sqcup \alpha^{(2)} = \alpha^{(3)}$ is the least element of $[\alpha^{(1)},\mgf{\alpha^{(1)}}] \cap [\alpha^{(2)},\mgf{\alpha^{(2)}}]$; on the right, the meet $\alpha \sqcap \alpha^{(5)} = \alpha^{(4)}$ is the greatest element of $[\lgf{\alpha},\alpha] \cap [\lgf{\alpha},\alpha^{(5)}]$.
 \end{example}
 
+\begin{note}
+The next four order-theoretic results are the only statements in this chapter that are not formalized in Lean. They are not used by the certified encoder; we include short mathematical proofs for completeness. As the short proofs below show, mechanizing them would be a routine exercise.
+\end{note}
+
 We then show expected properties of the join and meet operations, such as idempotence, commutativity, and absorption.
 
 \begin{lemma}[Idempotence]
@@ -618,12 +622,8 @@ Since $\theta \sqcap \tau \sqsubseteq \theta$, the join $\theta \sqcup (\theta \
   For any SMT type $\alpha$, the adjoint interval $[\lgf{\alpha}, \mgf{\alpha}]$ is a complete lattice with join $\sqcup$, meet $\sqcap$, bottom $\lgf{\alpha}$ and top $\mgf{\alpha}$.
 \end{theorem}
 \begin{proof}[Proof sketch]
-The interval is finite: each of the finitely many functional positions of $\alpha$ makes an independent choice between its functional and relational forms. It is closed under the binary meet and join above, with least element $\lgf{\alpha}$ and greatest element $\mgf{\alpha}$. A finite lattice is complete.
+The interval is finite: each of the finitely many functional positions of $\alpha$ makes an independent choice between its functional and relational forms. Because the interval is finite and closed under binary joins and meets, every finite subset has a join and a meet by iteration, using the bottom and top elements for the empty subset. Every subset of a finite interval is finite; hence arbitrary joins and meets exist, so the lattice is complete.
 \end{proof}
-
-\begin{note}
-These four results---idempotence, commutativity and absorption of $\sqcup$ and $\sqcap$, and completeness of each adjoint interval---are the only statements of the chapter left unformalized: they played no part in the certified development and were omitted for that reason. As the short proofs above show, mechanizing them would be a routine exercise.
-\end{note}
 
 \section{Loosening equations}
 \label{sec:loosening-rules}
@@ -640,17 +640,19 @@ Each case introduces the fresh (loosened) target variable and also generates a s
 The equations below are the proof-oriented formulation; the implementation additionally short-circuits reflexive sub-casts (replacing a recursive call on $\castpath{\gamma}{\gamma}$ by an identity), an optimization that affects neither the denotation nor the correctness argument and that we therefore suppress.
 
 \subsection{Case \texttt{refl}}\label{case:refl}
-Every atomic type is loosened to itself, and the specification merely equates the fresh variable with the source term. For the cast path $\mathbb{c} = \mathtt{refl} : \castpath{\alpha}{\alpha}$---which exists exactly when $\alpha$ is one of $\intS$, $\boolS$, $\unitS$---and any fresh variable $\lvar{x}$, we define $\spec{\lvar{x}}$.
+Every atomic type is loosened to itself, and the specification merely equates the fresh variable with the source term.
 \begin{definition}[refl][loosen][Encoder/Loosening/Rules.html\#loosenAux_prf]
+Let $\mathbb{c} = \mathtt{refl} : \castpath{\alpha}{\alpha}$---which exists exactly when $\alpha$ is one of $\intS$, $\boolS$, and $\unitS$---and let $\lvar{x}$ be fresh. Define $\spec{\lvar{x}}$ by
 \[
   \spec{\lvar{x}} \;\;\triangleq\;\; \lvar{x} \eqS x
 \]
 \end{definition}
 
 \subsection{Case \texttt{opt}}\label{case:opt}
-An optional value is loosened by cases on its two constructors. When the source term is syntactically $\noneS$ or $\someS$, we commit to the matching target shape directly; otherwise we emit a dynamic test on $x$. For a cast path $\mathbb{c} = \mathtt{opt}\;\mathbb{c}_\alpha : \castpath{\optS\,\alpha}{\optS\,\alpha'}$, where $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$, and any fresh variable $\lvar{x}$, we define $\spec{\lvar{x}}$.
+An optional value is loosened by cases on its two constructors. When the source term is syntactically $\noneS$ or $\someS$, we commit to the matching target shape directly; otherwise we emit a dynamic test on $x$.
 
 \begin{definition}[opt][loosen][Encoder/Loosening/Rules.html\#loosenAux_prf]
+Let $\mathbb{c} = \mathtt{opt}\;\mathbb{c}_\alpha : \castpath{\optS\,\alpha}{\optS\,\alpha'}$, where $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$, and let $\lvar{x}$ be fresh. Define $\spec{\lvar{x}}$ by
 \[
 \begin{array}{r@{\qquad}rl}
 x = \noneS_{\alpha}: & \spec{\lvar{x}} &\triangleq \lvar{x} \eqS \noneS_{\alpha'}\\
@@ -668,9 +670,10 @@ x = \someS\ y : & \spec{\lvar{x}} &\triangleq \existsS \lvar{y} : \alpha'\cdot\,
 
 
 \subsection{Case \texttt{pair}}\label{case:pair}
-A pair is loosened componentwise: the two projections are loosened independently and reassembled. For a cast path $\mathbb{c} = \mathtt{pair}\;\mathbb{c}_\alpha\;\mathbb{c}_\beta : \castpath{\alpha \timesS \beta}{\alpha' \timesS \beta'}$, where $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$ and $\mathbb{c}_\beta : \castpath{\beta}{\beta'}$, and any fresh variable $\lvar{x}$, we define $\spec{\lvar{x}}$.
+A pair is loosened componentwise: the two projections are loosened independently and reassembled.
 
 \begin{definition}[pair][loosen][Encoder/Loosening/Rules.html\#loosenAux_prf]
+Let $\mathbb{c} = \mathtt{pair}\;\mathbb{c}_\alpha\;\mathbb{c}_\beta : \castpath{\alpha \timesS \beta}{\alpha' \timesS \beta'}$, where $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$ and $\mathbb{c}_\beta : \castpath{\beta}{\beta'}$, and let $\lvar{x}$ be fresh. Define $\spec{\lvar{x}}$ by
 \[
 \spec{\lvar{x}} \;\;\triangleq\;\; \existsS \lvar{fst} : \alpha',\, \lvar{snd} : \beta'\cdot\, (\lvar{x} \eqS \pairS{\lvar{fst}}{\lvar{snd}}) \andS \spec{\lvar{fst}} \andS \spec{\lvar{snd}}
 \]
@@ -678,18 +681,23 @@ where $\langle \lvar{fst}, \spec{\lvar{fst}} \rangle$ and $\langle \lvar{snd}, \
 \end{definition}
 
 \subsection{Case \texttt{chpred}}\label{case:chpred}
-A characteristic predicate is loosened by relabeling its domain along the inner cast: the loosened target $\lvar{x}$ must hold for an element $\lvar{z}$ loosening $\var{z}$ exactly when $x$ holds for that source element $\var{z}$. For a cast path $\mathbb{c} = \mathtt{chpred}\;\mathbb{c}_\alpha : \castpath{(\alpha \toS \boolS)}{(\alpha' \toS \boolS)}$, where $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$, and any fresh variable $\lvar{x}$, we define $\spec{\lvar{x}}$.
+A characteristic predicate is loosened by relabeling its domain along the inner cast: the loosened target $\lvar{x}$ must hold for an element $\lvar{z}$ loosening $\var{z}$ exactly when $x$ holds for that source element $\var{z}$.
 
 \begin{definition}[chpred][loosen][Encoder/Loosening/Rules.html\#loosenAux_prf]
+Let $\mathbb{c} = \mathtt{chpred}\;\mathbb{c}_\alpha : \castpath{(\alpha \toS \boolS)}{(\alpha' \toS \boolS)}$, where $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$, and let $\lvar{x}$ be fresh. Let $\var{z}:\alpha$ be fresh and set
 \[
-\spec{\lvar{x}} \;\;\triangleq\;\; \lvar{x} \eqS \lamS \lvar{z} : \alpha' \mapsto \existsS \var{z} : \alpha\cdot\, \appS x (\var{z}) \andS \spec{\lvar{z}}
+  \langle\lvar{z},\spec{\lvar{z}}\rangle
+  \coloneq \mathsf{loosen}_{\mathbb{c}_\alpha}(\var{z}).
 \]
-%
-where $\spec{\lvar{z}}$ casts the source variable $\var{z}$ to $\alpha'$: for a fresh source variable $\var{z}$, obtain $\langle \lvar{z}, \spec{\lvar{z}} \rangle \coloneq \mathsf{loosen}_{\mathbb{c}_\alpha}(\var{z})$.
+Define $\spec{\lvar{x}}$ by
+\[
+\spec{\lvar{x}} \;\;\triangleq\;\; \lvar{x} \eqS \lamS \lvar{z} : \alpha' \cdot\, \existsS \var{z} : \alpha\cdot\, \appS x (\var{z}) \andS \spec{\lvar{z}}.
+\]
+The recursive specification $\spec{\lvar{z}}$ relates $\var{z}$ to its image at type $\alpha'$.
 \end{definition}
 
 \subsection{Case \texttt{fun}}\label{case:fun}
-When the codomain is not $\boolS$---so the source is a genuine function rather than a characteristic predicate---loosening acts pointwise: the loosened function $\lvar{x}$ agrees with $x$ on every argument that lies in the image of the domain cast, and takes a fixed \emph{default} value elsewhere. Pinning down the value off the image is what makes the loosened function total, and hence well typed; we therefore first specify these defaults. For a cast path $\mathbb{c} = \mathtt{fun}\;\mathbb{c}_\alpha\;\mathbb{c}_\beta : \castpath{(\alpha \toS \beta)}{(\alpha' \toS \beta')}$, where $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$, $\mathbb{c}_\beta : \castpath{\beta}{\beta'}$ and $\beta \neq \boolS$, and any fresh variable $\lvar{x}$, define $\spec{\lvar{x}}$ as follows.
+When the codomain is not $\boolS$---so the source is a genuine function rather than a characteristic predicate---loosening acts pointwise: the loosened function $\lvar{x}$ agrees with $x$ on every argument that lies in the image of the domain cast, and takes a fixed \emph{default} value elsewhere. Pinning down the value off the image is what makes the loosened function total, and hence well typed; we therefore first specify these defaults.
 
 We write $\regnotation{\mathsf{defaultSpec}_{\gamma}}(t)$ for the predicate stating
 that $t$ is the canonical default element of type $\gamma$, defined recursively by
@@ -708,10 +716,10 @@ t \eqS \noneS_{\gamma_1} & \text{if } \gamma = \optS\ \gamma_1\\
 \]
 
 \begin{example}
-  The default specification of the term \(\lamS \var{x} : \intS \timesS \intS \cdot \fstS \var{x} +  \sndS \var{x}\) is given by the following SMT term:
+  Let $\gamma \coloneq (\intS \timesS \intS) \toS \intS$. The default specification, at type $\gamma$, of the term \(\lamS \var{x} : \intS \timesS \intS \cdot \fstS \var{x} +  \sndS \var{x}\) is given by the following SMT term:
   \[
   \begin{aligned}
-  &\mathsf{defaultSpec}_{(\intS \timesS \intS) \toS \intS}\left(\lamS \var{x} : \intS \timesS \intS \cdot \fstS \var{x} +  \sndS \var{x}\right) = \\
+  &\mathsf{defaultSpec}_{\gamma}\left(\lamS \var{x} : \intS \timesS \intS \cdot \fstS \var{x} +  \sndS \var{x}\right) = \\
   &\mkern50mu \forallS \var{u} : \intS \timesS \intS\cdot\, \mathsf{defaultSpec}_{\intS} \left( \appS{\left(\lamS \var{x} : \intS \timesS \intS \cdot \fstS \var{x} +  \sndS \var{x}\right)}{\var{u}}\right) =\\
   &\mkern50mu \forallS \var{u} : \intS \timesS \intS\cdot\, \left(\appS{\left(\lamS \var{x} : \intS \timesS \intS \cdot \fstS \var{x} +  \sndS \var{x}\right)}{\var{u}}\right) \eqS 0
   \end{aligned}
@@ -721,7 +729,8 @@ t \eqS \noneS_{\gamma_1} & \text{if } \gamma = \optS\ \gamma_1\\
 \end{example}
 
 \begin{definition}[fun][loosen][Encoder/Loosening/Rules.html\#loosenAux_prf]
-  \vspace{-.9\baselineskip}
+Let $\mathbb{c} = \mathtt{fun}\;\mathbb{c}_\alpha\;\mathbb{c}_\beta : \castpath{(\alpha \toS \beta)}{(\alpha' \toS \beta')}$, where $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$, $\mathbb{c}_\beta : \castpath{\beta}{\beta'}$, and $\beta \neq \boolS$. Let $\lvar{x}$ be fresh. Define $\spec{\lvar{x}}$ by
+  \vspace{-.5\baselineskip}
 \begin{align*}
   \spec{\lvar{x}} \;\;\triangleq\;\; {} & \forallS \lvar{a} : \alpha'\cdot\, \\
   &\qquad \iteS \left(\existsS \var{a} : \alpha\cdot\, \spec{\lvar{a}}\right) \\
@@ -740,26 +749,23 @@ Thus, at an argument in the image of the domain cast, the specification fixes th
 \subsection{Case \texttt{graph}}\label{case:graph}
 This case turns a partial function into its graph: the functional encoding $\alpha \toS \optS\,\beta$ is loosened to the relational encoding $(\alpha' \timesS \beta') \toS \boolS$. The fresh variable $\lvar{x}$ is the characteristic predicate of the set of loosened pairs $\lvar{z}$ such that $x$ maps the first component of $\var{z}$ to its second.
 
-For a cast path $\mathbb{c} = \mathtt{graph}\;\mathbb{c}_\alpha\;\mathbb{c}_\beta : \castpath{(\alpha \toS \optS\,\beta)}{((\alpha' \timesS \beta') \toS \boolS)}$, where $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$ and $\mathbb{c}_\beta : \castpath{\beta}{\beta'}$, and any fresh variable $\lvar{x}$, we define $\spec{\lvar{x}}$.
-
 \begin{definition}[graph][loosen][Encoder/Loosening/Rules.html\#loosenAux_prf]
-  \vspace{-.9\baselineskip}
+Let $\mathbb{c} = \mathtt{graph}\;\mathbb{c}_\alpha\;\mathbb{c}_\beta : \castpath{(\alpha \toS \optS\,\beta)}{((\alpha' \timesS \beta') \toS \boolS)}$, where $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$ and $\mathbb{c}_\beta : \castpath{\beta}{\beta'}$, and let $\lvar{x}$ be fresh. Let
+\[
+  \mathbb{c}_{\alpha \timesS \beta} \coloneq (\mathbb{c}_\alpha,\mathbb{c}_\beta)
+  : \castpath{\alpha \timesS \beta}{\alpha' \timesS \beta'},
+\]
+and, for a fresh source pair $\var{z}:\alpha \timesS \beta$, set
+\[
+  \langle \lvar{z}, \spec{\lvar{z}} \rangle
+  \coloneq \mathsf{loosen}_{\mathbb{c}_{\alpha \timesS \beta}}(\var{z}).
+\]
+Define $\spec{\lvar{x}}$ by
+  \vspace{-.5\baselineskip}
 \begin{align*}
-\spec{\lvar{x}} \;\;\triangleq\;\; {} & \lvar{x} \eqS \lamS \lvar{z} : \alpha' \timesS \beta' \mapsto\\
+\spec{\lvar{x}} \;\;\triangleq\;\; {} & \lvar{x} \eqS \lamS \lvar{z} : \alpha' \timesS \beta' \cdot\\
 &\qquad \existsS \var{z} : \alpha \timesS \beta\cdot\, (\appS x (\fstS \var{z}) \eqS \someS(\sndS \var{z})) \andS \spec{\lvar{z}}
 \end{align*}
-%
-where $\spec{\lvar{z}}$ casts the source pair $\var{z}$ to $\alpha' \timesS \beta'$ and is computed recursively from a fresh source variable $\var{z}$ as follows:
-\begin{itemize}
-\item
-from $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$ and $\mathbb{c}_\beta : \castpath{\beta}{\beta'}$ and \cref{rule:castable-pair},
-obtain the pair cast
-\[
-(\mathbb{c}_\alpha,\mathbb{c}_\beta) : \castpath{\alpha \timesS \beta}{\alpha' \timesS \beta'}
-\]
-\item call \(\mathsf{loosen}_{(\mathbb{c}_\alpha,\mathbb{c}_\beta)}\) once on the fresh source pair $\var{z}$, to obtain
-\[\langle \lvar{z}, \spec{\lvar{z}} \rangle \coloneq \mathsf{loosen}_{(\mathbb{c}_\alpha,\mathbb{c}_\beta)}(\var{z})\]
-\end{itemize}
 \end{definition}
 
 \section{Correctness of loosening}
@@ -802,9 +808,9 @@ The first five clauses are \emph{structural}: they loosen componentwise and leav
 \begin{equation}
   \label{eq:castZF-chpred}
   \zop{\mathbb{c}} \;\triangleq\;
-  \lamZ\,X \mapsto \left(\lamZ\,b \mapsto
+  \lamZ\,X \mapsto \left(\lamZ\,a' \mapsto
   \begin{cases}
-    \appZ X\bigl(\appZ {\zop{\mathbb{c}}}_\alpha^{-1}(b)\bigr) & \text{if } b \in \Ran(\zop{\mathbb{c}}_\alpha),\\
+    \appZ X\bigl(\appZ {\zop{\mathbb{c}}}_\alpha^{-1}(a')\bigr) & \text{if } a' \in \Ran(\zop{\mathbb{c}}_\alpha),\\
     \botZ & \text{otherwise}
   \end{cases}\right).
   \tag{$\zop{\mathtt{chpred}}$}
@@ -821,7 +827,11 @@ The first five clauses are \emph{structural}: they loosen componentwise and leav
   \end{cases}\right).
   \tag{$\zop{\mathtt{fun}}$}
 \end{equation}
-where $d_{\beta'} \coloneq \interpS{\mathsf{default}(\beta')} \in \interpZ{\beta'}$ is the canonical default of $\interpZ{\beta'}$ (\Cref{def:smt-default}).
+where $d_{\beta'}$ is defined by
+\[
+  \interpS{\mathsf{default}(\beta')} = \denval{d_{\beta'}}[\beta'],
+\]
+so $d_{\beta'} \in \interpZ{\beta'}$ is the canonical default value (\Cref{def:smt-default}).
 
 \paragraph{\texttt{graph}.} The graph cast carries a partial function $F \in (\optZ\,\interpZ{\beta})^{\interpZ{\alpha}}$ to the characteristic predicate of its graph, pushed forward through the two component casts; from \(\mathbb{c} : \castpath{(\alpha \toS \optS\,\beta)}{((\alpha' \timesS \beta') \toS \boolS)}\), we obtain \(\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}\) and \(\mathbb{c}_\beta : \castpath{\beta}{\beta'}\) and define \(\zop{\mathbb{c}} \in {\interpZ{(\alpha' \timesS \beta') \toS \boolS}}^{\interpZ{\alpha \toS \optS\,\beta}}\) as
 \begin{equation}
@@ -893,7 +903,7 @@ is defined; and the following additionally holds:
 \end{enumerate}
 \end{theorem}
 
-Item~2 is a completeness statement---the cast image $\appZ \zop{\mathbb{c}}(X)$ satisfies $\spec{\lvar{x}}$---and item~3 a soundness one---among typed targets, only the cast image does. Together they show that $\spec{\lvar{x}}$ has a unique typed solution, namely $\appZ \zop{\mathbb{c}}(X)$; and since $\zop{\mathbb{c}}$ is injective, this image in turn determines $X$, which is the precise sense in which $\lvar{x}$ ``is'' the loosened $x$.
+Item~2 is a completeness statement: under the valuation assigning the cast image $\appZ \zop{\mathbb{c}}(X)$ to $\lvar{x}$, the formula $\spec{\lvar{x}}$ denotes $\topZ$. Item~3 is a soundness statement: among valuations assigning a typed target to $\lvar{x}$, this can happen only for the cast image. Together they show that $\spec{\lvar{x}}$ has a unique typed solution, namely $\appZ \zop{\mathbb{c}}(X)$; and since $\zop{\mathbb{c}}$ is injective, this image in turn determines $X$, which is the precise sense in which $\lvar{x}$ ``is'' the loosened $x$.
 
 \Cref{thm:loosening-correctness} is depicted as a diagram in \Cref{fig:loosening-square}, in which loosening commutes with denotation and the semantic cast.
 
@@ -927,7 +937,7 @@ Throughout, we do not construct the proof component of denotation triples, often
   \end{scope}
 \end{tikzpicture}
 \end{center}
-\caption{The loosening square. Solid arrows depict assumptions, dashed arrows denote conclusions, and $\Delta' \coloneq \Delta[\lvar{x}\mapsto\denval{X^!}[\beta]]$.}
+\caption{The loosening diagram. Solid arrows depict assumptions, dashed arrows denote conclusions, and $\Delta' \coloneq \Delta[\lvar{x}\mapsto\denval{X^!}[\beta]]$.}
 \label{fig:loosening-square}
 \end{figure}
 
@@ -938,6 +948,7 @@ Assume $\stype{\Gamma}{x}{\alpha}$ and let $\mathbb{c} : \castpath{\alpha}{\alph
 \end{lemma}
 
 \begin{proof}
+We verify the three conclusions of \Cref{thm:loosening-correctness}: typing of the specification; existence of a cast-image assignment under which it denotes $\topZ$; and definedness on every typed assignment, with uniqueness of the satisfying one.
 By construction, $\spec{\lvar{x}} \;\triangleq\; \lvar{x} \eqS x$ (see \Cref{case:refl}).
 Fix a valuation $\Delta$ and a set $X$ with $\interpS{\aterm{x}{\Delta}} = \denval{X}$; semantic typing (\Cref{thm:b-denote-type-det}) gives $\tau_X = \alpha$. As $\lvar{x}$ is fresh, updating $\Delta$ at $\lvar{x}$ leaves the denotation of $x$ unchanged:
 \begin{equation}\label{eq:refl_fresh}
@@ -953,7 +964,7 @@ Hence, for any typed $Y$ carrying the SMT type $\alpha$, writing $\Delta' \colon
 \end{align*}
 where the set-level equality $Y \eqZ X$ denotes $\topZ$ exactly when $Y = X$ and $\botZ$ otherwise. The cast image is $X^! \coloneq \idZ{\interpZ{\alpha}}(X) = X$.
 
-Taking $Y = X^! = X$ therefore reduces this equality to \(\topZ\), which is item~2, while the displayed equivalence is precisely the definedness and soundness of item~3. Here the loosening square (\Cref{fig:loosening-square}) degenerates, its semantic cast collapsing to the identity, as shown below.
+Taking $Y = X^! = X$ therefore reduces this equality to \(\topZ\), which is item~2, while the displayed equivalence is precisely the definedness and soundness of item~3. Here the loosening diagram (\Cref{fig:loosening-square}) degenerates, its semantic cast collapsing to the identity, as shown below.
 
 \begin{center}
 \begin{tikzpicture}[
@@ -975,7 +986,7 @@ Taking $Y = X^! = X$ therefore reduces this equality to \(\topZ\), which is item
 \end{center}
 \end{proof}
 
-\subsection{Case \texttt{opt}}\inlremark{Fix vertical spacing.}
+\subsection{Case \texttt{opt}}
 
 \begin{lemma}[Correctness of \texttt{opt}][loosenAux\_prf\_exact.opt][SMT/Reasoning/Basic/LoosenAuxExact/Opt.html\#loosenAux_prf_exact.opt]
 \label{lem:loosening-opt}
@@ -983,6 +994,7 @@ Assume $\stype{\Gamma}{x}{\optS\,\alpha}$, let $\mathbb{c}_\alpha : \castpath{\a
 \end{lemma}
 
 \begin{proof}
+We verify the three conclusions of \Cref{thm:loosening-correctness}: typing of the specification; existence of a cast-image assignment under which it denotes $\topZ$; and definedness on every typed assignment, with uniqueness of the satisfying one.
 Fix $\Delta$ with $\interpS{\aterm{x}{\Delta}} = \denval{X}$; then by \Cref{thm:b-denote-type-det}, $\tau_X = \optS\,\alpha$, so $X$ is either $\noneZ$ or $\someZ\ Y$ with $Y \in \interpZ{\alpha}$.
 The semantic option cast \eqref{eq:castZF-opt} acts as $\zop{\mathbb{c}}(\noneZ) = \noneZ$ and $\zop{\mathbb{c}}(\someZ\ Y) = \someZ\ \appZ\zop{\mathbb{c}_\alpha}(Y)$, loosening $Y$ by the inner cast. The definition branches on the syntactic shape of the term $x$:
 
@@ -1004,29 +1016,19 @@ The semantic option cast \eqref{eq:castZF-opt} acts as $\zop{\mathbb{c}}(\noneZ)
     \]
     Write $\Delta_{\lvar{x}} \coloneq \Delta[\lvar{x} \mapsto \denval{X^!}[\optS\,\alpha']]$.
     \begin{fact}
-    The loosened specification $\spec{\lvar{x}}$ is satisfied at the cast image, \ie under $\Delta_{\lvar{x}}$,
+    Under the valuation $\Delta_{\lvar{x}}$, which assigns the cast image to $\lvar{x}$, the loosened specification $\spec{\lvar{x}}$ denotes $\topZ$:
     \[
       \interpS{\aterm{\spec{\lvar{x}}}{\Delta_{\lvar{x}}}} = \denval{\topZ}[\boolS].
     \]
     \end{fact}
     \begin{subproof}
-    Recall that $\existsS \lvar{y}:\alpha'\cdot\ \psi$ abbreviates $\notS (\forallS \lvar{y}:\alpha'\cdot\ \notS\psi)$ (\Cref{def:smt-denote}), and that $\forallS$ is denoted by the infimum (in the sense of the smallest set, obtained by an intersection) over $\interpZ{\alpha'}$ of its body values. Since an infimum in $\mathsf{ZFBool}$ is $\botZ$ as soon as any of its values is, it suffices to exhibit a witness $V \in \interpZ{\alpha'}$ for the bound variable $\lvar{y}$ under which the body $\psi \coloneq (\lvar{x} \eqS \someS\ \lvar{y}) \andS \spec{\lvar{y}}$ is denoted by $\topZ$; at that witness $\notS\psi$ is denoted by $\botZ$, so
-    \[
-      \interpS{\aterm{\forallS \lvar{y}:\alpha'\cdot\ \notS\psi}{\Delta_{\lvar{x}}}} = \botZ,
-    \] hence $\interpS{\aterm{\spec{\lvar{x}}}{\Delta_{\lvar{x}}}} = \notZ\botZ = \topZ$.
-    
-    Taking $Y^!$ for the witness $V$ and $\Delta'' \coloneq \Delta_{\lvar{x}}[\lvar{y} \mapsto \denval{Y^!}[\alpha']]$, the two conjuncts of $\psi$ are such that:
-    \[
-      \interpS{\aterm{\lvar{x} \eqS \someS\ \lvar{y}}{\Delta''}} \;=\; (\someZ\ Y^! \eqZ \someZ\ Y^!) \;=\; \topZ
-      \quad\text{and}\quad
-      \interpS{\aterm{\spec{\lvar{y}}}{\Delta''}} = \topZ,
-    \]
-    the first because $\lvar{x}$ and $\someS\ \lvar{y}$ are both denoted by $\someZ\ Y^!$ under $\Delta''$, the second because $\Delta''$ agrees with $\Delta'$ on the free variables of $\spec{\lvar{y}}$ (as $\lvar{x}$ does not occur in $\spec{\lvar{y}}$). Thus, $\interpS{\aterm{\psi}{\Delta''}} = \topZ \andZ \topZ = \topZ$, which establishes the fact.
+    Let $\psi \coloneq (\lvar{x} \eqS \someS\ \lvar{y}) \andS \spec{\lvar{y}}$ be the existential body. Take $Y^!$ as the witness and set $\Delta'' \coloneq \Delta_{\lvar{x}}[\lvar{y} \mapsto \denval{Y^!}[\alpha']]$. Under $\Delta''$, both $\lvar{x}$ and $\someS\ \lvar{y}$ denote $\someZ\ Y^!$, so the equality conjunct denotes $\topZ$. The recursive conjunct also denotes $\topZ$ by the induction hypothesis, since $\Delta''$ agrees with $\Delta'$ on the free variables of $\spec{\lvar{y}}$. Thus, $\interpS{\aterm{\psi}{\Delta''}} \;=\; \topZ \andZ \topZ \;=\; \topZ$, and the existential specification denotes $\topZ$.
     \end{subproof}
-  \item[Otherwise:] the definition emits the dynamic test $\iteS (x \eqS \noneS_{\alpha})\,(\cdots)\,(\cdots)$: if $X = \noneZ$ it reduces to the first case, else $\tau_X = \optS\,\alpha$ forces $X = \someZ\ Y_0$, and
+  \item[Otherwise:] the definition emits the dynamic test $\iteS (x \eqS \noneS_{\alpha})\,(\cdots)\,(\cdots)$. If $X = \noneZ$, it reduces to the first case. Otherwise $X\neq\noneZ$. Since $X\in\optZ(\interpZ{\alpha})$, there is a unique $Y_0\in\interpZ{\alpha}$ such that $X=\someZ\,Y_0$. Consequently,
   \[
     \interpS{\aterm{\theS x}{\Delta''}} = \denval{Y_0}[\alpha],
-  \] reducing to the second with $X^! = \someZ\ Y_0^!$.
+  \]
+  and the argument reduces to the syntactic $\someS$ case with $X^! = \someZ\,Y_0^!$.
 \end{description}
 In every branch $\appZ\zop{\mathbb{c}}(X) = X^!$, which is item~2 of \Cref{thm:loosening-correctness}.
 
@@ -1051,7 +1053,7 @@ For item~3, a typed target $\denval{W}[\optS\,\alpha']$ is either $\noneZ$ or $\
 \end{tikzpicture}
 \end{center}
 
-Here the loosening square (\Cref{fig:loosening-square}) specializes to the $\someS$ constructor: its semantic cast carries $\someZ\ Y$ to $\someZ\ Y^!$, as shown above.
+Here the loosening diagram (\Cref{fig:loosening-square}) specializes to the $\someS$ constructor: its semantic cast carries $\someZ\ Y$ to $\someZ\ Y^!$, as shown above.
 \end{proof}
 
 \subsection{Case \texttt{pair}}
@@ -1062,6 +1064,7 @@ Assume $\stype{\Gamma}{x}{\alpha \timesS \beta}$, let $\mathbb{c}_\alpha : \cast
 \end{lemma}
 
 \begin{proof}
+We verify the three conclusions of \Cref{thm:loosening-correctness}: typing of the specification; existence of a cast-image assignment under which it denotes $\topZ$; and definedness on every typed assignment, with uniqueness of the satisfying one.
 Fix a valuation $\Delta$ and a set $X$ with $\interpS{\aterm{x}{\Delta}} = \denval{X}$; semantic typing (\Cref{thm:b-denote-type-det}) gives $\tau_X = \alpha \timesS \beta$, so $X = (a, b)$ is a Kuratowski pair with $a \in \interpZ{\alpha}$ and $b \in \interpZ{\beta}$, and the two projections denote the components,
 \[
   \interpS{\aterm{\fstS x}{\Delta}} = \denval{a}[\alpha]
@@ -1086,7 +1089,7 @@ Set $X^! \coloneq (a^!, b^!)$. Since the pair cast is the product of the compone
 \end{equation}
 
 \begin{fact}
-The loosened pair specification $\spec{\lvar{x}}$ is satisfied at the cast image, \ie under $\Delta_{\lvar{x}} \coloneq \Delta[\lvar{x} \mapsto \denval{X^!}[\alpha' \timesS \beta']]$,
+Under the valuation $\Delta_{\lvar{x}} \coloneq \Delta[\lvar{x} \mapsto \denval{X^!}[\alpha' \timesS \beta']]$, which assigns the cast image to $\lvar{x}$, the loosened pair specification $\spec{\lvar{x}}$ denotes $\topZ$:
 \[
   \interpS{\aterm{\spec{\lvar{x}}}{\Delta_{\lvar{x}}}} = \denval{\topZ}[\boolS].
 \]
@@ -1108,7 +1111,7 @@ Thus, $\interpS{\aterm{\psi}{\Delta''}} = \topZ \andZ \topZ \andZ \topZ = \topZ$
 
 Together with \eqref{eq:pair_castimg} this is item~2. For item~3, a typed target $\denval{Y}[\alpha' \timesS \beta']$ decomposes as $Y = (u, v)$; the pair equality is boolean and the recursive specifications $\spec{\lvar{fst}}, \spec{\lvar{snd}}$ are defined on typed data, so $\spec{\lvar{x}}$ is defined. If it holds at $Y$, recursive soundness identifies the witnesses with the components, $u = \appZ\zop{\mathbb{c}_\alpha}(a)$ and $v = \appZ\zop{\mathbb{c}_\beta}(b)$, whence $Y = (u, v) = (a^!, b^!) = X^! = \appZ\zop{\mathbb{c}}(X)$ by \eqref{eq:pair_castimg}.
 
-Here the loosening square (\Cref{fig:loosening-square}) specializes to the product, its semantic cast $\zop{\mathbb{c}} = (\zop{\mathbb{c}_\alpha}, \zop{\mathbb{c}_\beta})$ acting componentwise:
+Here the loosening diagram (\Cref{fig:loosening-square}) specializes to the product, its semantic cast $\zop{\mathbb{c}} = (\zop{\mathbb{c}_\alpha}, \zop{\mathbb{c}_\beta})$ acting componentwise:
 
 \begin{center}
 \begin{tikzpicture}[node distance=1.5cm and 1.5cm, minimum size=2em]
@@ -1135,6 +1138,7 @@ Assume $\stype{\Gamma}{x}{\alpha \toS \boolS}$, let $\mathbb{c}_\alpha : \castpa
 \end{lemma}
 
 \begin{proof}
+We verify the three conclusions of \Cref{thm:loosening-correctness}: typing of the specification; existence of a cast-image assignment under which it denotes $\topZ$; and definedness on every typed assignment, with uniqueness of the satisfying one.
 Fix a valuation $\Delta$ and a set $X$ with $\interpS{\aterm{x}{\Delta}} = \denval{X}$.
 By \Cref{thm:b-denote-type-det}, \(\tau_X = \alpha \toS \boolS\) and \(X \in \mathbb{B}^{\interpZ{\alpha}}\) is a characteristic predicate. The construction (\Cref{case:chpred}) loosens a fresh source variable $\var{z} : \alpha$ by the inner cast, producing $\langle \lvar{z}, \spec{\lvar{z}} \rangle \coloneq \mathsf{loosen}_{\mathbb{c}_\alpha}(\var{z})$, whose specification computes the graph of \(\zop{\mathbb{c}}_\alpha\).
 
@@ -1145,14 +1149,14 @@ For every $Z \in \interpZ{\alpha}$ and $Z^! \in \interpZ{\alpha'}$, the denotati
 \end{equation}
 \end{fact}
 \begin{subproof}
-Apply \Cref{thm:loosening-correctness} inductively\footnotemark{} to the fresh source variable $\var{z} : \alpha$, well typed with $\interpS{\aterm{\var{z}}{\Delta_{\var{z}, \var{z}^!}}} = \denval{Z}[\alpha]$. Item~3 gives that $\spec{\lvar{z}}$ is defined at every typed target $b$ and, by soundness, the forward implication: if $\Phi_{Z,Z^!} = \topZ$ then $Z^! = \appZ \zop{\mathbb{c}}_\alpha(Z)$. Item~2 gives the converse: at the cast image $Z^! = \appZ \zop{\mathbb{c}}_\alpha(Z)$ the specification holds, so $\Phi_{Z,\appZ \zop{\mathbb{c}}_\alpha(Z)} = \topZ$. Together they yield \eqref{eq:zspec_chpred}.
+The induction is on the cast path, so applying \Cref{thm:loosening-correctness} recursively to the strict subpath $\mathbb{c}_\alpha$ is legitimate. Apply it to the fresh source variable $\var{z} : \alpha$, well typed with $\interpS{\aterm{\var{z}}{\Delta_{\var{z}, \var{z}^!}}} = \denval{Z}[\alpha]$. Item~3 gives that $\spec{\lvar{z}}$ is defined at every typed target $Z^!$ and, by soundness, the forward implication: if $\Phi_{Z,Z^!} = \topZ$ then $Z^! = \appZ \zop{\mathbb{c}}_\alpha(Z)$. Item~2 gives the converse: at the cast image $Z^! = \appZ \zop{\mathbb{c}}_\alpha(Z)$ the specification holds, so $\Phi_{Z,\appZ \zop{\mathbb{c}}_\alpha(Z)} = \topZ$. Together they yield \eqref{eq:zspec_chpred}.
 \end{subproof}
 
 Define $X^! \in \mathbb{B}^{\interpZ{\alpha'}}$ as the transport of $X$ along $\zop{\mathbb{c}}_\alpha$:
 \[
 X^! \coloneq
 \begin{cases}
-  X \regnotation{\fcompZ} {\zop{\mathbb{c}}_\alpha}^{-1} & \text{on } \Ran(\zop{\mathbb{c}}_\alpha),\\
+  X \fcompZ {\zop{\mathbb{c}}_\alpha}^{-1} & \text{on } \Ran(\zop{\mathbb{c}}_\alpha),\\
   \botZ & \text{off } \Ran(\zop{\mathbb{c}}_\alpha).
 \end{cases}%
 \]
@@ -1160,35 +1164,26 @@ This is well-defined since $\zop{\mathbb{c}}_\alpha$ is injective, hence inverti
 
 The \texttt{chpred} case (\Cref{case:chpred}) defines
 \[
-  \spec{\lvar{x}} \;\;\triangleq\;\; \lvar{x} \eqS \left(\lamS \lvar{z}:\alpha' \mapsto \existsS \var{z}:\alpha\cdot\ \appS x(\var{z}) \andS \spec{\lvar{z}}\right),
+  \spec{\lvar{x}} \;\;\triangleq\;\; \lvar{x} \eqS \left(\lamS \lvar{z}:\alpha' \cdot\, \existsS \var{z}:\alpha\cdot\ \appS x(\var{z}) \andS \spec{\lvar{z}}\right),
 \] whose $\lamS$-body denotes $X^!$ pointwise.
 
 \begin{fact}
-For every $b \in \interpZ{\alpha'}$, writing $\Delta_{\lvar{z}} \coloneq \Delta[\lvar{z} \mapsto \denval{b}[\alpha']]$---the source variable $\var{z}$ is bound by the inner existential, hence left unassigned,
+For every $a' \in \interpZ{\alpha'}$, writing $\Delta_{\lvar{z}} \coloneq \Delta[\lvar{z} \mapsto \denval{a'}[\alpha']]$---the source variable $\var{z}$ is bound by the inner existential, hence left unassigned,
 \[
-  \interpS{\aterm{\existsS \var{z}:\alpha\cdot\ \appS x(\var{z}) \andS \spec{\lvar{z}}}{\Delta_{\lvar{z}}}} = X^!(b).
+  \interpS{\aterm{\existsS \var{z}:\alpha\cdot\ \appS x(\var{z}) \andS \spec{\lvar{z}}}{\Delta_{\lvar{z}}}} = X^!(a').
 \]
 \end{fact}
 \begin{subproof}
-Two cases on $b$:
-\begin{description}
-  \item[if $b \notin \Ran(\zop{\mathbb{c}}_\alpha)$ then:] by \eqref{eq:zspec_chpred}, \(\spec{\lvar{z}}\) is \(\botZ\) at $(a, b)$ for every $a$, \ie
-    \[
-    \forall a \in \interpZ{\alpha},\quad
-    \interpS{\aterm{\spec{\lvar{z}}}{\Delta_{\lvar{z}}[\var{z} \mapsto \denval{a}[\alpha]]}} = \denval{\botZ}[\boolS],
-    \]
-    a true value would force $\appZ \zop{\mathbb{c}}_\alpha(a) = b \in \Ran(\zop{\mathbb{c}}_\alpha)$.
-    So, each disjunct $\appS x(\var{z}) \andS \spec{\lvar{z}}$ is (denoted by) $\botZ$ and the existential is $\botZ = X^!(b)$.
-    
-  \item[if $b = \appZ \zop{\mathbb{c}}_\alpha(a_0)$ then:] the existential is $\topZ$ if and only if there exists an $a$ such that $\appZ X(a) = \topZ$ and $\spec{\lvar{z}}$ true at $(a, b)$. By \eqref{eq:zspec_chpred}, the latter forces $\appZ \zop{\mathbb{c}}_\alpha(a) = b = \appZ \zop{\mathbb{c}}_\alpha(a_0)$, hence $a = a_0$ by injectivity of $\zop{\mathbb{c}}_\alpha$. Thus, the existential is $\topZ$ exactly when $\appZ X(a_0) = \topZ$, that is, exactly when $\appZ X(a_0) = X^!(b)$.
-\end{description}
+If $a' \notin \Ran(\zop{\mathbb{c}}_\alpha)$, then \eqref{eq:zspec_chpred} makes $\spec{\lvar{z}}$ denote $\botZ$ for every source value $a$. Hence the existential denotes $\botZ=X^!(a')$.
+
+If $a' \in \Ran(\zop{\mathbb{c}}_\alpha)$, let $a_0 \in \interpZ{\alpha}$ be the unique preimage satisfying $\appZ \zop{\mathbb{c}}_\alpha(a_0)=a'$; uniqueness follows from injectivity. By \eqref{eq:zspec_chpred}, only $a_0$ can make $\spec{\lvar{z}}$ true. The existential therefore denotes $\topZ$ exactly when $\appZ X(a_0)=\topZ$, which is exactly when $X^!(a')=\topZ$.
 \end{subproof}
 
 By the second fact the $\lamS$-body denotes $X^!$, so the (denotation of the) outer equality $\spec{\lvar{x}}$ holds (\ie equals \(\topZ\)) under $\Delta[\lvar{x} \mapsto \denval{X^!}[\alpha' \toS \boolS]]$; with $\appZ \zop{\mathbb{c}}(X) = X^!$ this is item~2.
 
 For item~3, at any typed target $\denval{Y}[\alpha' \toS \boolS]$ the $\lamS$-body has a denotation (it is built from $\appS x(\var{z})$ and $\spec{\lvar{z}}$), and so has $\spec{\lvar{x}}$. It is therefore \(\topZ\) at $Y$ if and only if $Y$ equals the body's denotation $\appZ \zop{\mathbb{c}}(X)$, \ie if and only if $Y = X^!$.
 
-The loosening square (\Cref{fig:loosening-square}) here transports a predicate along $\zop{\mathbb{c}}_\alpha$, its semantic cast relabeling the domain by $b = \appZ \zop{\mathbb{c}}_\alpha(a)$ and defaulting to $\botZ$ off $\Ran(\zop{\mathbb{c}}_\alpha)$:
+The loosening diagram (\Cref{fig:loosening-square}) here transports a predicate along $\zop{\mathbb{c}}_\alpha$, its semantic cast relabeling the domain by $a' = \appZ \zop{\mathbb{c}}_\alpha(a)$ and defaulting to $\botZ$ off $\Ran(\zop{\mathbb{c}}_\alpha)$:
 
 \begin{center}
 \begin{tikzpicture}[node distance=1.5cm and 1.5cm, minimum size=2em]
@@ -1206,9 +1201,6 @@ The loosening square (\Cref{fig:loosening-square}) here transports a predicate a
 \vspace*{-\baselineskip}
 \end{center}
 \end{proof}
-\footnotetext{
-  The six cases detailed here as distinct sections are the actual cases in the proof of \Cref{thm:loosening-correctness}, carried out by induction on cast paths. A recursive call to \Cref{thm:loosening-correctness} is therefore legitimate.
-}
 
 \subsection{Case \texttt{fun}}
 
@@ -1220,6 +1212,7 @@ Assume $\stype{\Gamma}{x}{\alpha \toS \beta}$ with $\beta \neq \boolS$. Let $\ma
 \end{lemma}
 
 \begin{proof}
+We verify the three conclusions of \Cref{thm:loosening-correctness}: typing of the specification; existence of a cast-image assignment under which it denotes $\topZ$; and definedness on every typed assignment, with uniqueness of the satisfying one.
 Fix a valuation $\Delta$ and a set $X$ with $\interpS{\aterm{x}{\Delta}} = \denval{X}$. So, $\tau_X = \alpha \toS \beta$ and $X \in {\interpZ{\beta}}^{\interpZ{\alpha}}$ is a total function. The component casts $\zop{\mathbb{c}}_\alpha$ and $\zop{\mathbb{c}}_\beta$ are injective by \Cref{lem:semantic-cast-injective}. With $d_{\beta'}$ the canonical default of $\interpZ{\beta'}$ (\Cref{def:smt-default}), the semantic function cast \eqref{eq:castZF-fun} conjugates $X$ by the component casts:
 
 \noindent
@@ -1232,7 +1225,7 @@ d_{\beta'} & \text{off } \Ran(\zop{\mathbb{c}}_\alpha)
 \end{cases}
 \qquad\text{and}\qquad \appZ\zop{\mathbb{c}}(X) = X^!,
 \]
-well-defined since $\zop{\mathbb{c}}_\alpha$ is injective, hence invertible on its range.
+This definition of $X^!$ is well-defined because $\zop{\mathbb{c}}_\alpha$ is injective and therefore invertible on its range.
 \end{minipage}\hfill
 \begin{minipage}[t]{0.25\textwidth}
 \vspace{0pt}
@@ -1270,26 +1263,10 @@ For every SMT type $\gamma$ and term $t$ with $\stype{\Gamma}{t}{\gamma}$, and e
   \iff
   D = d_{\gamma},
 \]
-where $d_{\gamma} \coloneq \interpS{\mathsf{default}(\gamma)} \in \interpZ{\gamma}$.
+where $d_{\gamma}$ is defined by $\interpS{\mathsf{default}(\gamma)} = \denval{d_{\gamma}}[\gamma]$, so $d_{\gamma} \in \interpZ{\gamma}$ is the canonical default value.
 \end{fact}
 \begin{subproof}
-By structural induction on $\gamma$, following the definition of $\mathsf{defaultSpec}$ (\Cref{case:fun}).
-The constant cases (\(\intS, \boolS, \unitS\)) are trivial.
-
-For $\gamma = \optS\,\xi$, $\interpS{\aterm{t \eqS \noneS}{\Delta}}$ is $\topZ$ exactly when $D = \noneZ = d_{\optS\,\xi}$.
-
-For $\gamma = \xi \timesS \kappa$, the predicate is the conjunction
-\[
-  \mathsf{defaultSpec}_{\xi}(\fstS t) \andS \mathsf{defaultSpec}_{\kappa}(\sndS t).
-\]
-By the induction hypotheses, we obtain $\fstZ D = d_{\xi}$ and $\sndZ D = d_{\kappa}$, \ie
-\[
-  D = (d_{\xi}, d_{\kappa}) = d_{\xi \timesS \kappa}.
-\]
-
-For $\gamma = \xi \toS \kappa$, the predicate is
-\[\forallS \var{u}:\xi\cdot\ \mathsf{defaultSpec}_{\kappa}(\appS t(\var{u})).\]
-By the induction hypothesis, the predicate evaluates to $\topZ$ at each $\var{u}$ under \(\var{u} \mapsto \denval{u}[\xi]\) exactly when $\appZ D(u) = d_{\kappa}$, hence overall exactly when $D$ is the constant map $d_{\xi \toS \kappa}$.
+Proceed by structural induction on $\gamma$, following the definition of $\mathsf{defaultSpec}$ (\Cref{case:fun}). The cases $\intS$, $\boolS$, and $\unitS$ are immediate. For $\optS\,\xi$, the defining equality holds exactly when $D=\noneZ=d_{\optS\,\xi}$. For $\xi\timesS\kappa$, the two induction hypotheses identify the components of $D$ with $d_\xi$ and $d_\kappa$, hence $D=(d_\xi,d_\kappa)=d_{\xi\timesS\kappa}$. Finally, for $\xi\toS\kappa$, the induction hypothesis applies pointwise, so the universal specification denotes $\topZ$ exactly when $D$ is the constant map with value $d_\kappa$, namely $d_{\xi\toS\kappa}$.
 \end{subproof}
 
 We moreover show that, for a typed target $\denval{Y}[\alpha' \toS \beta']$, the specification holds at $Y$ precisely when $Y = X^!$ pointwise.
@@ -1313,7 +1290,7 @@ So, the denotation of the positive branch of the $\iteS$-specification holds exa
 
 Since $\spec{\lvar{x}}$ is the universal quantification $\forallS \lvar{a}\cdot(\cdots)$ over these bodies, it is defined throughout and, by functional extensionality, holds at $Y$ if and only if $\appZ Y(a') = X^!(a')$ for every $a'$, \ie $Y = X^!$. Taking $Y = X^! = \appZ\zop{\mathbb{c}}(X)$ gives item~2, and the biconditional is item~3 in its sharpened, pointwise form---available here because $\beta \neq \boolS$, so the target is a genuine function space.
 
-The loosening square (\Cref{fig:loosening-square}) specializes with the function conjugation as its semantic cast:
+The loosening diagram (\Cref{fig:loosening-square}) specializes with the function conjugation as its semantic cast:
 
 \begin{center}
 \begin{tikzpicture}[node distance=1.5cm and 1.5cm, minimum size=2em]
@@ -1337,10 +1314,11 @@ The loosening square (\Cref{fig:loosening-square}) specializes with the function
 \label{lem:loosening-graph}
 Assume $\stype{\Gamma}{x}{\alpha \toS \optS\,\beta}$. Let $\mathbb{c}_\alpha : \castpath{\alpha}{\alpha'}$ and $\mathbb{c}_\beta : \castpath{\beta}{\beta'}$, and let $\mathbb{c} \coloneq \texttt{graph}\,\mathbb{c}_\alpha\,\mathbb{c}_\beta : \castpath{(\alpha \toS \optS\,\beta)}{((\alpha' \timesS \beta') \toS \boolS)}$.
 
-\Cref{thm:loosening-correctness} holds with target type $(\alpha' \timesS \beta') \toS \boolS$ and semantic cast \(\graphcastZ{\zop{\mathbb{c}_\alpha}}{\zop{\mathbb{c}_\beta}}\).
+\Cref{thm:loosening-correctness} holds with target type $(\alpha' \timesS \beta') \toS \boolS$ and semantic cast \(\bigl(\graphcastZ{\zop{\mathbb{c}_\alpha}}{\zop{\mathbb{c}_\beta}}\bigr)\).
 \end{lemma}
 
 \begin{proof}
+We verify the three conclusions of \Cref{thm:loosening-correctness}: typing of the specification; existence of a cast-image assignment under which it denotes $\topZ$; and definedness on every typed assignment, with uniqueness of the satisfying one.
 Fix a valuation $\Delta$ and a set $X$ with $\interpS{\aterm{x}{\Delta}} = \denval{X}$. By typing, \(\tau_X = \alpha \toS \optS\,\beta\) and $X \in (\optZ\,\interpZ{\beta})^{\interpZ{\alpha}}$ is a partial function. The \texttt{graph} case (\Cref{case:graph}) loosens a fresh source pair $\var{z} : \alpha \timesS \beta$ through the pair cast $\mathbb{c}_{\alpha \timesS \beta}$, yielding $\langle \lvar{z}, \spec{\lvar{z}} \rangle$ whose specification characterizes the pair cast.
 
 \begin{fact}
@@ -1373,7 +1351,7 @@ Injectivity of the component casts (\Cref{lem:semantic-cast-injective}) makes th
 
 The \texttt{graph} case defines
 \[
-  \spec{\lvar{x}} \triangleq \lvar{x} \eqS \lamS \lvar{z}:\alpha' \timesS \beta' \mapsto \existsS \var{z}:\alpha \timesS \beta\cdot\ (\appS x(\fstS\var{z}) \eqS \someS(\sndS\var{z})) \andS \spec{\lvar{z}},
+  \spec{\lvar{x}} \triangleq \lvar{x} \eqS \lamS \lvar{z}:\alpha' \timesS \beta' \cdot\, \existsS \var{z}:\alpha \timesS \beta\cdot\ (\appS x(\fstS\var{z}) \eqS \someS(\sndS\var{z})) \andS \spec{\lvar{z}},
 \] whose $\lamS$-body denotes $X^!$ pointwise.
 
 \begin{fact}
@@ -1397,7 +1375,7 @@ Consequently, under $\Delta_{\lvar{x}} \coloneq \Delta[\lvar{x} \mapsto \denval{
 For item~3, at any typed target $\denval{Y}[(\alpha' \timesS \beta') \toS \boolS][\irrelprf]$, the $\lamS$-body has a denotation, and so has $\spec{\lvar{x}}$.
 If the equality $\lvar{x} \eqS \lamS(\cdots)$ holds at $Y$, then $Y$ equals the $\lamS$-body's denotation $X^! = \appZ \graphcastZ{\zop{\mathbb{c}_\alpha}}{\zop{\mathbb{c}_\beta}}(X)$, that is $(X,Y)$ lies in the graph cast.
 
-This is the one shape-changing rule: the loosening square (\Cref{fig:loosening-square}) turns the functional encoding of a partial function into the relational encoding of its graph.
+This is the one shape-changing rule: the loosening diagram (\Cref{fig:loosening-square}) turns the functional encoding of a partial function into the relational encoding of its graph.
 
 \begin{center}
 \begin{tikzpicture}[node distance=1.5cm and 1.5cm, minimum size=2em]
@@ -1418,11 +1396,11 @@ This is the one shape-changing rule: the loosening square (\Cref{fig:loosening-s
 
 \medskip
 
-Taken together, the six cases exhaust the constructors of a cast path and therefore establish \Cref{thm:loosening-correctness} by induction on $\mathbb{c}$. In each of them the loosening square (\Cref{fig:loosening-square}) commutes: the denotation of the loosened term $\lvar{x}$ is the semantic cast $\appZ\zop{\mathbb{c}}(X)$ of the denotation $X$ of the source $x$, and the specification $\spec{\lvar{x}}$ singles out this cast image as its unique typed solution---completeness (item~2) placing the image among the solutions, soundness (item~3) ruling out every other typed target. As the semantic cast is injective (\Cref{lem:semantic-cast-injective}), that image in turn determines $X$, so $\spec{\lvar{x}}$ ties $\lvar{x}$ to $x$ unambiguously: loosening rewrites the \emph{representation} of a value but never the set it denotes. Only the \texttt{graph} case changes the shape of that representation---trading the functional encoding of a partial function for the relational encoding of its graph---while the other five act homomorphically, transporting the value componentwise. This discharges the slogan of \Cref{sec:loosening-rules}: a term may be replaced by its loosened view at a looser type with its denotation provably unchanged.
+Taken together, the six cases exhaust the constructors of a cast path and therefore establish \Cref{thm:loosening-correctness} by induction on $\mathbb{c}$. In each of them the loosening diagram (\Cref{fig:loosening-square}) commutes: the denotation of the loosened term $\lvar{x}$ is the semantic cast $\appZ\zop{\mathbb{c}}(X)$ of the denotation $X$ of the source $x$, and the specification $\spec{\lvar{x}}$ singles out this cast image as its unique typed solution---completeness (item~2) placing the image among the solutions, soundness (item~3) ruling out every other typed target. As the semantic cast is injective (\Cref{lem:semantic-cast-injective}), that image in turn determines $X$, so $\spec{\lvar{x}}$ ties $\lvar{x}$ to $x$ unambiguously: loosening rewrites the \emph{representation} of a value but never the set it denotes. Only the \texttt{graph} case changes the shape of that representation---trading the functional encoding of a partial function for the relational encoding of its graph---while the other five act homomorphically, transporting the value componentwise. This discharges the slogan of \Cref{sec:loosening-rules}: a term may be replaced by its loosened view at a looser type with its denotation provably unchanged.
 
 \section{Conclusion}
 \label{sec:loosening-conclusion}
 
-This chapter isolated and resolved the tension identified in \Cref{sec:loosening-motivation}: because a B object is a set while every SMT term carries a fixed type, one and the same set admits several equally faithful SMT representations, and the operators of the encoding must move between them. We called this passage \emph{loosening}---the directional move from a more specific, functional representation to a more general, relational one that leaves the denoted set untouched---and gave it a complete order-theoretic and semantic account. On types, the \emph{castable} relation $\sqsubseteq$ and its proof-relevant companion, the cast paths $\castpath{}{}$, were shown to coincide and to form a decidable partial order in which every type lies in an interval $[\lgf{\alpha}, \mgf{\alpha}]$ between its least (fully functional) and most general (fully relational) forms; the two normal forms constitute a Galois connection $\mathsf{lgf} \dashv \mathsf{mgf}$, and each such interval is a complete lattice. On terms, the $\mathsf{loosen}$ construction realizes this order, returning for every cast path a fresh target variable together with a specification relating it to the source; and \Cref{thm:loosening-correctness} established, rule by rule and against the ZFC semantics, that this specification is sound and definite---it pins the target to the semantic-cast image of the source, and to nothing else.
+This chapter isolated and resolved the tension identified in \Cref{sec:loosening-motivation}: because a B object is a set while every SMT term carries a fixed type, one and the same set admits several equally faithful SMT representations, and the operators of the encoding must move between them. We called this passage \emph{loosening}---the directional move from a more specific, functional representation to a more general, relational one that leaves the denoted set untouched---and gave a complete order-theoretic and semantic account of it. On types, the \emph{castable} relation $\sqsubseteq$ and the proof-relevant cast-path relation $\castpath{}{}$ were shown to coincide and to induce a decidable partial order in which every type lies in an interval $[\lgf{\alpha}, \mgf{\alpha}]$ between its least (fully functional) and most general (fully relational) forms; the two normal forms constitute a Galois connection $\mathsf{lgf} \dashv \mathsf{mgf}$, and each such interval is a complete lattice. On terms, the $\mathsf{loosen}$ construction realizes this order, returning for every cast path a fresh target variable together with a specification relating it to the source; and \Cref{thm:loosening-correctness} established, rule by rule and against the ZFC semantics, that this specification is sound and definite---it pins the target to the semantic-cast image of the source, and to nothing else.
 
 Type loosening is the first concrete contribution of the encoding developed in this thesis, and the mechanism on which the \beer encoder described in the next chapter (\Cref{ch:beer}) rests: every combinator that must reconcile the types of its operands---the union of two partial functions, the equality of a function with a relation, the membership of a maplet in a set of pairs, or the application of a relation that happens to be a function---does so by loosening one representation into another, secure that the denotation is preserved. Loosening is, by design, one-directional: a function may always be viewed as its graph, but recovering a function from a relation would demand the determinism and totality that loosening deliberately forgets. This asymmetry is exactly what the encoder needs: a single, semantics-preserving coercion toward looser types.

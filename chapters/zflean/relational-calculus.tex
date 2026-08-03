@@ -27,7 +27,7 @@ These tactics are designated \inlinelean|zrel|, \inlinelean|zpfun|, and \inlinel
           \end{equation*}
           Unlike the converse, the composition carries \emph{no} side-condition on $R$ and $S$: it is defined for arbitrary sets and, being a separation of $A\times C$, always yields a relation between $A$ and $C$.
           When $R$ and $S$ are genuine relations between $A,B$ and $B,C$, it computes their expected composition; any pairs of $R$ or $S$ lying outside $A\times B$ or $B\times C$ are simply ignored.  
-          For functions specifically, we define a dedicated \emph{functional composition} $\zbinop{\circ}$ that requires $R$ and $S$ to be functions, and uses the \inlinelean|zfun| tactic to discharge these side-conditions automatically.
+          For functions specifically, we define a dedicated \emph{functional composition} $\regnotation{\fcompZ}$ that requires $R$ and $S$ to be functions, and uses the \inlinelean|zfun| tactic to discharge these side-conditions automatically.
   \end{itemize}
 \end{definition}
 
@@ -80,7 +80,7 @@ In a purely set-theoretic setting these are not primitive---a function \emph{is}
     \fapply{f}{x} = \bigcap f[\{x\}] \tag{\small\leancodeptr{fapply\_eq\_Image\_singleton}{ZFLean/Functions.html\#ZFSet.fapply_eq_Image_singleton}}.
   \]
 
-  \item $\lambda$-abstraction constructs functions from expressions, written as:
+  \item $\lambda$-abstraction, whose binder we write $\regnotation{\lamZ}$, constructs functions from expressions:
     \begin{equation*}
       \left(\zlambda{A}{B}{x}{e(x)}\right)
       \qquad\text{is the relation}\qquad
