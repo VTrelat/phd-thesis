@@ -1,3 +1,149 @@
 \section{Motivation}
 \label{sec:intro-motivation}
 
+During the three years in which this thesis was written, the practical meaning
+of \emph{machine-assisted reasoning} changed. In my own work, general-purpose
+artificial intelligence (AI) assistants moved from short, relatively local
+exchanges to sustained sessions over sizeable programs and formal developments,
+proposing multi-step solutions and responding repeatedly to feedback from
+compilers and proof assistants. These tools, initially peripheral to the
+research process, became part of its daily practice. This transition gives the
+subject of this manuscript---trustworthy reasoning---an urgency that was less
+visible when the work began.
+
+Computers did not begin assisting reasoning with large language models (LLMs).
+They have long performed calculations, explored large spaces of possibilities,
+and checked arguments that would be exhausting to follow by hand. What is new
+is the breadth and apparent fluency of what a general-purpose system can
+propose. LLMs now produce source code, technical explanations, proof scripts,
+reviews, hypotheses, and research plans in forms that resemble the products of
+human reasoning. They participate through the same languages in which
+researchers formulate ideas and communicate results.
+
+The underlying systems have progressed rapidly enough that any detailed
+forecast risks becoming obsolete before it is printed. Nevertheless, the
+direction is already visible.
+Systems are being designed not only to answer questions but to participate in
+hypothesis generation, experimental planning, programming, and other parts of
+the scientific workflow~\cite{stanfordAIIndex2026,gottweis2026coscientist}.
+Whether or not the strongest predictions about autonomous research are
+realized, it is prudent to expect research to accommodate a growing volume of
+machine-generated claims and artefacts.
+
+This expansion of capability does not remove the problem of reliability; it
+makes it more pressing. Striking results in mathematics, coding, and scientific
+question answering coexist with brittle behaviour on apparently simpler tasks
+and with poor performance on end-to-end scientific
+replication~\cite{stanfordAIIndex2026}. A generated answer may be correct,
+subtly wrong, or correct for reasons unrelated to the explanation that
+accompanies it. Fluency makes these cases harder, not easier, to distinguish.
+As the cost of producing plausible answers falls, the scarce resource becomes a
+justification that deserves confidence.
+
+Leonardo de Moura recently captured this reciprocal promise in three
+sentences~\cite{deMoura2026floc}:
+\begin{quotation}[Leonardo de Moura][2026][The Lean Theorem Prover: Design, Evolution, and Impact]
+  We have never been more relevant.
+
+  Formal verification makes AI trustworthy.
+
+  AI makes formal verification cost-effective.
+\end{quotation}
+
+These lines capture the perspective adopted in this thesis: formal verification
+can provide an independent criterion for accepting AI-generated artefacts,
+while AI can reduce the effort required to construct formally checked ones.
+This reciprocity renews the relevance of formal methods. At their broadest,
+formal methods are not synonymous with the familiar slogan of ``proving
+software correct.'' They provide languages and calculi in which artefacts,
+assumptions, and arguments can be made precise. The artefact may be a program,
+a hardware design, a communication protocol, a system model, or a mathematical
+theory; the claim may concern safety, consistency, refinement, equivalence,
+security, or some other property. What unites these applications is the attempt
+to replace an appeal to plausibility with an explicit argument whose individual
+steps can be checked.
+
+Formalization does not create certainty from nothing. A theorem can faithfully
+establish the wrong requirement; an axiom can be inappropriate; a model can omit
+an important aspect of the world; and the software that performs the checking
+is itself part of the trust placed in the result. Formal methods are valuable
+because they make these dependencies more visible and more sharply delimited.
+They turn the question ``Do we trust this answer?'' into more concrete
+questions: what exactly was stated, from which assumptions was it derived, what
+mechanism checked the derivation, and which components remain trusted?
+
+Generative AI and formal methods can therefore be complementary. A human, an
+LLM, or a search procedure may suggest an invariant, a program, or a proof. A
+formal system can then reject the suggestion or certify that it satisfies a
+precisely stated criterion. The creative component may be probabilistic and
+opaque while the acceptance criterion remains deterministic and inspectable.
+Recent systems for mathematical reasoning illustrate this architecture:
+AlphaProof, for example, couples learned proof search with the Lean proof
+assistant, so that successful searches yield formal proofs checked by Lean's
+kernel~\cite{hubert2026alphaproof}. The result is trustworthy because acceptance
+does not depend on trusting the model's account of its own reasoning.
+
+This thesis adopts that separation as a guiding principle. Its ambition is to
+construct a trustworthy reasoning chain in which increasingly powerful forms
+of automation---including AI-assisted proof construction---can be used without
+making the validity of a result depend on the opacity of the tool that proposed it.
+A methodological account of how LLMs were themselves used during this work is given in
+\Cref{sec:intro-llm-use}.
+
+\subsection{Two modes of machine-assisted reasoning}
+\label{subsec:intro-itp-atp}
+
+Computer-assisted proof is commonly organized around two complementary kinds of
+system. An \emph{automated theorem prover} (ATP) receives a conjecture and
+searches for a proof with little or no guidance from its user. Modern
+satisfiability modulo theories (SMT) solvers such as Z3~\cite{demoura2008z3} and cvc5~\cite{barbosa2022cvc5} are particularly
+effective ATPs for verification conditions: they combine propositional search
+with specialized procedures for equality, arithmetic, arrays, and other useful
+theories. Their main attraction is throughput: once an obligation has been
+translated into the solver's language, large batches can be attempted automatically.
+
+An \emph{interactive theorem prover} (ITP), or proof assistant, instead provides
+an environment in which definitions, statements, and proofs are developed
+together. The user may guide the argument step by step or invoke substantial
+automation, but every successful proof is ultimately represented by a proof term
+checked by a comparatively small kernel. Lean~4~\cite{deMouraUllrich2021Lean4},
+used throughout this thesis, combines this kernel architecture with dependent
+types, an extensible tactic and metaprogramming framework, and the large
+mathematical library Mathlib~\cite{mathlib4}. Its main attractions are
+expressiveness, direct access to the proof state, and the possibility of
+independently rechecking the resulting theorem. The corresponding cost is that
+proofs which lie beyond the available automation require insight and
+maintenance.
+
+The distinction is therefore not simply ``automatic versus manual.'' ITPs
+routinely run powerful tactics, and ATPs may emit proof certificates that
+another program can check. Rather, the difference lies in how proof search,
+interaction, and trust are organized.
+
+\subsection{The bridge is part of the proof}
+\label{subsec:intro-bridge-trust}
+
+Using either kind of prover as a backend for an existing formalism requires a
+translation. The source and target languages---\eg B and SMT-LIB---may differ
+in their type systems, primitive constructions, mathematical foundations, and
+representation of binders. Connecting them is therefore not merely a matter of
+printing the same formula in another syntax. The translation must choose
+representations, recover the information required by the target, and preserve
+the meaning of the source statement.
+
+This bridge belongs to the assurance argument. A flawless prover cannot repair
+a translation that changes the meaning of its input: an invalid source
+statement may become a valid target statement, causing the backend to solve the
+wrong problem correctly. Likewise, checking a target proof establishes only the
+target statement unless its relationship with the source statement is itself
+justified. The more capable the backend becomes, the more important it is not to
+hide this boundary behind the success message of a tool.
+
+The work in this thesis originates from this tension between \emph{automation}
+and \emph{assurance}.
+Addressing it requires more than a new collection of prover heuristics: it
+requires a mathematical account of the languages being connected, an
+implementation architecture in which semantic claims can be stated and checked,
+and a clear separation between what has been proved and what remains trusted.
+The contributions presented next address these requirements while pursuing the
+automated and interactive routes in parallel.

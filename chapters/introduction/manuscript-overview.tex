@@ -1,6 +1,8 @@
 \section{Manuscript overview}
 \label{sec:manuscript-overview}
 
+\inlremark{This section is still WIP.}
+
 This manuscript is deliberately written in a mathematical register: the encoding and
 its metatheory are presented through definitions, typing judgments, and denotations
 rather than through the Lean code that realizes them. The artifact behind the thesis
@@ -15,10 +17,10 @@ the state it manipulates implicit everywhere else.
 
 \paragraph{Notations.}
 We fix two notational conventions used throughout the thesis.
-We write \leaninl{:=} to denote \emph{definitional assignment}---binding a name to a term,
-or giving the body of a definition---as distinct from propositional equality \leaninl{=}
+We write \(\regnotation{\coloneq}\) to denote \emph{definitional assignment}---binding a name to a term,
+or giving the body of a definition---as distinct from propositional equality \(=\)
 (a proposition asserting that two terms are equal) and from the metatheoretic symbol
-\(\triangleq\), read ``defined as'', used in displayed mathematics.
+\(\regnotation{\triangleq}\), read ``defined as'', used in displayed mathematics.
 
-When the proof is unused or irrelevant in a given context, we simply write ``\(\irrelprf\)'' in
+When the proof is unused or irrelevant in a given context, we simply write ``\(\regnotation{\irrelprf}\)'' in
 such triples, mimicking Lean notations.

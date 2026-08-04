@@ -149,7 +149,7 @@
 }
 
 % ---------------------------------------------------------------------------
-% QUOTATION -- right-aligned quotation with author, date, and source.
+% QUOTATION -- centered block with right-aligned text, author, date, and source.
 % Usage: \begin{quotation}[Author][Date][Source] ... \end{quotation}
 % ---------------------------------------------------------------------------
 \RenewDocumentEnvironment{quotation}{O{} O{} O{}}{%
@@ -164,20 +164,23 @@
       \emph{#3}%
     \fi
   }%
-  \begin{flushright}%
-    \begin{minipage}{0.96\textwidth}%
+  \par\addvspace{1.15\baselineskip}%
+  \begingroup
+    \centering
+    \begin{minipage}{0.88\linewidth}%
       \raggedleft\itshape\ignorespaces
 }{%
-      \unskip\par\medskip
+      \unskip\par\vspace{0.2\baselineskip}%
       \settowidth{\dimen0}{\normalfont\thesisquotationattribution}%
       \ifdim\dimen0>0pt
         \makebox[\linewidth][r]{\color{venn-light}\rule{\dimen0}{0.8pt}}%
-        \par\smallskip
+        \par\vspace{0.08\baselineskip}%
         \normalfont\raggedleft
         \thesisquotationattribution
       \fi
-    \end{minipage}%
-  \end{flushright}%
+    \end{minipage}\par
+  \endgroup
+  \addvspace{1.15\baselineskip}\ignorespacesafterend
 }
 
 % ---------------------------------------------------------------------------
