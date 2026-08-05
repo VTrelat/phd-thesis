@@ -53,12 +53,12 @@
 The distinction between automated and interactive reasoning becomes concrete in
 this thesis through the B method, a formal method for specifying and refining
 systems~\cite{abrial1996bbook}. A B development generates logical claims, called
-\emph{proof obligations}, that must be discharged for its correctness arguments
-to hold. Large developments may generate many such obligations: routine ones
-favour automated discharge, while the remaining arguments require inspection
-and guidance. This organization is summarized in \Cref{fig:intro-reasoning-routes}.
-This thesis addresses these two needs through three open-source developments in
-Lean~4.
+\emph{proof obligations}, that must be discharged to establish the desired
+correctness properties. Large developments may generate many such obligations:
+routine ones favor automated discharge, while the remaining obligations require
+inspection and guidance. This organization is summarized in
+\Cref{fig:intro-reasoning-routes}. This thesis addresses these two needs through
+three open-source developments in Lean~4.
 
 \subsection{A set-theoretic foundation}
 \label{subsec:intro-contrib-zflean}
@@ -74,10 +74,10 @@ reasoning and typed results from Mathlib without conflating the two foundations.
 
 Within this thesis, \zflean has a semantic role. It allows B and SMT-LIB
 to be interpreted in the same ZFC universe, so that correctness of the encoding
-can be expressed as a precise set-theoretic correspondence between denotations rather than as
-an informal comparison of unrelated models. \Cref{ch:zflean} presents the
-library, its relational calculus, its mathematical constructions, and its
-interoperability layer.
+can be expressed as a precise set-theoretic correspondence between denotations,
+rather than as an informal comparison of unrelated models. \Cref{ch:zflean}
+presents the library, its relational calculus, its mathematical constructions,
+and its interoperability layer.
 
 \begin{quote}\small
   \fullcite{trelat2026zflean}
@@ -90,7 +90,7 @@ The second contribution, \beer (B Encoder), follows the automated route. It
 encodes Atelier~B proof obligations to SMT-LIB~2.7, and the translation is
 verified in Lean. The development formalizes the relevant fragments of B
 and SMT-LIB, together with their typing and denotational semantics, and
-interprets both in the set-theoretic universe provided by \zflean.
+interprets both fragments in the set-theoretic universe provided by \zflean.
 
 The main technical difficulty is that a single B value may admit several useful
 SMT representations. A B set may become a characteristic predicate, while a
@@ -116,10 +116,10 @@ by this thesis.
 
 Maintaining the encoder and its soundness proof in lockstep necessarily limits
 how quickly its supported fragment can evolve. For experiments that prioritize
-coverage and translation speed, \textsc{Zero-Proof} \beer{}, deliberately
-omits the mechanized correctness argument. It is therefore shown in
-\Cref{fig:intro-reasoning-routes} as the broader-coverage variant, not as carrying
-the verified encoder's guarantee.
+coverage and translation speed, \textsc{Zero-Proof} \beer{} deliberately omits
+the mechanized correctness argument. It is therefore shown in
+\Cref{fig:intro-reasoning-routes} as the broader-coverage variant, but it does
+not carry the verified encoder's guarantee.
 
 \subsection{Bringing B proof obligations to Lean}
 \label{subsec:intro-contrib-barrel}
@@ -143,8 +143,8 @@ metaprogramming interface, and representative development.
 
 The ``kernel-checked'' tag in \Cref{fig:intro-reasoning-routes} states the precise
 scope of the guarantee. Lean checks the proof of each generated theorem, while
-\barrel currently trusts Atelier~B's generation of the original obligation and
-the faithfulness of its B-to-Lean shallow embedding.
+\barrel currently includes Atelier~B's generation of the original obligation
+and the faithfulness of its B-to-Lean shallow embedding in its trusted base.
 
 \begin{quote}\small
   \fullcite{bergeron2026barrel}

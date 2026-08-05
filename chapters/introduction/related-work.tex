@@ -1,121 +1,310 @@
 \section{Related work}
 \label{sec:intro-related-work}
 
-The work presented in this manuscript lies at the confluence of three research traditions that have largely developed on their own terms: deductive verification frameworks, which reduce the correctness of software to logical proof obligations; automated theorem proving, and satisfiability modulo theories (SMT) solving in particular; and the mechanization of languages and their metatheory inside proof assistants.
-This section retraces the relevant history of each tradition and then reviews prior work on the problem at the heart of this thesis: translating proof obligations rooted in set theory into the language of automated provers, and the degree of trust such translations deserve.
+The work presented in this manuscript lies at the confluence of three research
+traditions that have largely developed independently: deductive verification
+frameworks, which reduce software correctness to logical proof obligations;
+automated theorem proving, particularly satisfiability modulo theories (SMT)
+solving; and the mechanization of languages and their metatheory in proof
+assistants. This section traces the relevant history of each tradition and then
+reviews prior work on the problem at the heart of this thesis: translating
+proof obligations rooted in set theory into the language of automated provers,
+and determining how much trust such translations warrant.
 
 \subsection{Proof obligations and the cost of proof}
 \label{subsec:rw-proof-obligations}
 
-Deductive program verification goes back to the assertion method of Floyd~\cite{floyd1967meanings} and Hoare's axiomatic semantics~\cite{hoare1969axiomatic}, later recast by Dijkstra's weakest-precondition calculus~\cite{dijkstra1975guarded} into a systematic discipline: the correctness of a program with respect to its specification is reduced to a finite collection of logical formulas, the \emph{verification conditions} or \emph{proof obligations}, whose validity implies that of the program.
-Under this reduction, the practicality of formal development is governed by a single factor: the effort needed to discharge these formulas.
+Deductive program verification goes back to Floyd's assertion
+method~\cite{floyd1967meanings} and Hoare's axiomatic
+semantics~\cite{hoare1969axiomatic}. Dijkstra's weakest-precondition
+calculus~\cite{dijkstra1975guarded} later recast these ideas as a systematic
+discipline: the correctness of a program with respect to its specification is
+reduced to the validity of a finite collection of logical formulas, called
+\emph{verification conditions} or \emph{proof obligations}. Under this
+reduction, the practicality of formal development is governed by a single
+factor: the effort needed to discharge these formulas.
 
-The B method~\cite{abrial1996bbook} is a prominent industrial embodiment of this idea: every step of a B development generates proof obligations expressed in the set-theoretic language of the method (\Cref{sec:b-method} presents it in detail).
-The method earned its reputation with the automatic train protection software of the Paris M\'etro Line~14~\cite{behm1999meteor}, deployed without a single defect traced to the formally developed code, and it has since sustained a continuous industrial practice in railway signaling and other safety-critical domains~\cite{butler2020first}.
-Its descendant Event-B~\cite{abrial2010modeling} streamlines the notation and generalizes refinement, and is supported by the extensible Rodin platform~\cite{abrial2010rodin}.
+The B method~\cite{abrial1996bbook} is a prominent industrial embodiment of
+this idea: every step of a B development generates proof obligations expressed
+in the method's set-theoretic language (\Cref{sec:b-method} presents it in
+detail). The method earned its reputation through the automatic train
+protection software for Paris M\'etro Line~14~\cite{behm1999meteor}, which was
+deployed without a single defect traced to the formally developed code. It has
+since sustained a continuous industrial practice in railway signaling and
+other safety-critical domains~\cite{butler2020first}. Its descendant,
+Event-B~\cite{abrial2010modeling}, streamlines the notation and generalizes
+refinement, and the extensible Rodin platform supports
+it~\cite{abrial2010rodin}.
 
 In both settings, proof is the dominant cost.
-Atelier~B, the industrial development environment for B~\cite{lecomte2024proving}, discharges obligations with its built-in automatic provers, the predicate prover (PP) and the mono-lemma prover (ML); every obligation they miss falls back to interactive proof or to user-added rules whose validity must in turn be justified.
-On industrial projects, which routinely generate tens of thousands of obligations, even a residual few percent of unproved obligations translates into weeks of expert work.
-This economic pressure is the original motivation for connecting B tools to external automated provers~\cite{deharbe2010automatic,mentre2012discharging}---and each such connection immediately raises the question that runs through this entire survey: the connection is a \emph{translation} between logics, and every guarantee obtained downstream is conditioned on its soundness.
+Atelier~B, the industrial development environment for
+B~\cite{lecomte2024proving}, discharges obligations with its built-in automatic
+provers, the predicate prover (PP) and the mono-lemma prover (ML). Any obligation
+they fail to prove requires interactive proof or user-added rules whose validity
+must in turn be justified. Industrial projects routinely generate tens of
+thousands of obligations, so even a remaining few percent of unproved
+obligations can require weeks of expert work. This economic pressure originally
+motivated efforts to connect B tools to external automated
+provers~\cite{deharbe2010automatic,mentre2012discharging}. Each such connection
+immediately raises the question that runs through this survey: because the
+connection translates between logics, every downstream guarantee depends on
+the soundness of that translation.
 
 \subsection{From resolution to satisfiability modulo theories}
 \label{subsec:rw-atp-smt}
 
 Automated deduction predates mechanized verification.
-Robinson's resolution principle~\cite{robinson1965resolution} gave first-order logic a single machine-oriented inference rule and founded a lineage of saturation-based provers that continues with Vampire~\cite{kovacs2013vampire}, E~\cite{schulz2013e}, and Zipperposition~\cite{bentkamp2023higherorder}.
-Set theory was an early and revealing stress test for this technology: Quaife's semi-automated development of von Neumann--Bernays--G\"odel set theory with the Otter prover~\cite{quaife1992nbg} demonstrated both that resolution could in principle carry elementary set theory and how laborious axiomatic reasoning about membership remains for general-purpose provers---a difficulty that every encoding surveyed below has had to confront.
+Robinson's resolution principle~\cite{robinson1965resolution} gave first-order
+logic a single machine-oriented inference rule and founded a lineage of
+saturation-based provers that continues with
+Vampire~\cite{kovacs2013vampire}, E~\cite{schulz2013e}, and
+Zipperposition~\cite{bentkamp2023higherorder}. Set theory was an early and
+revealing stress test for this technology. Quaife's semi-automated development
+of von Neumann--Bernays--G\"odel set theory with the Otter
+prover~\cite{quaife1992nbg} demonstrated both that resolution could, in
+principle, handle elementary set theory and that axiomatic reasoning about
+membership remains laborious for general-purpose provers. Every encoding
+surveyed below has had to confront this difficulty.
 
 A second lineage grew out of propositional logic.
-The procedures of Davis, Putnam, Logemann, and Loveland~\cite{davis1960computing,davis1962machine} evolved, with conflict-driven clause learning (CDCL)~\cite{marquessilva1999grasp,biere2021handbook}, into SAT solvers of remarkable scalability.
-Program checking, however, needs more than propositional reasoning: it needs equality, arithmetic, and data structures.
-Nelson and Oppen showed how decision procedures for such theories cooperate~\cite{nelson1979simplification}, and their approach matured into Simplify~\cite{detlefs2005simplify}, the prover behind the extended static checker ESC/Java~\cite{flanagan2002escjava} and the direct ancestor of modern SMT solvers.
-The synthesis of both lineages, formalized as DPLL(\(T\))~\cite{nieuwenhuis2006dpllt}, combines CDCL-style propositional search with dedicated theory solvers and defines the architecture of the field's flagship systems: Z3~\cite{demoura2008z3}, CVC4 and its successor cvc5~\cite{barrett2011cvc4,barbosa2022cvc5}, veriT~\cite{bouton2009verit}, and Alt-Ergo~\cite{conchon2018altergo}, the last natively supporting the polymorphic first-order logic favored by deductive verification platforms.
-The SMT-LIB initiative~\cite{barrett2010smtlib} standardized the input language and, together with the annual solver competition, turned SMT solving into a reliable off-the-shelf technology~\cite{demoura2011smt}.
-Its expressiveness has kept growing in directions relevant to this thesis: a decision procedure for finite sets with cardinality~\cite{bansal2016sets}, pragmatic extensions of SMT solvers to higher-order logic~\cite{barbosa2019hosmt}, and, with version~2.7 of the standard, lambda abstractions in the language itself~\cite{smtlib2.7}.
-\Cref{sec:ar-smt} presents the technical background on SMT solving assumed in the rest of the manuscript.
+The procedures of Davis, Putnam, Logemann, and
+Loveland~\cite{davis1960computing,davis1962machine} evolved, with
+conflict-driven clause learning
+(CDCL)~\cite{marquessilva1999grasp,biere2021handbook}, into SAT solvers of
+remarkable scalability. Program checking, however, needs more than
+propositional reasoning: it also needs equality, arithmetic, and data
+structures. Nelson and Oppen showed how decision procedures for such theories
+can cooperate~\cite{nelson1979simplification}, and their approach matured into
+Simplify~\cite{detlefs2005simplify}, the prover behind the extended static
+checker ESC/Java~\cite{flanagan2002escjava} and a direct ancestor of modern SMT
+solvers.
+
+The synthesis of both lineages, formalized as
+DPLL(\(T\))~\cite{nieuwenhuis2006dpllt}, combines CDCL-style propositional
+search with dedicated theory solvers. It defines the architecture of the
+field's flagship systems: Z3~\cite{demoura2008z3}, CVC4 and its successor
+cvc5~\cite{barrett2011cvc4,barbosa2022cvc5},
+veriT~\cite{bouton2009verit}, and Alt-Ergo~\cite{conchon2018altergo}. The latter
+natively supports the polymorphic first-order logic favored by deductive
+verification platforms. The SMT-LIB initiative~\cite{barrett2010smtlib}
+standardized the input language and, together with the annual solver
+competition, turned SMT solving into a reliable off-the-shelf
+technology~\cite{demoura2011smt}. SMT technology has continued to develop in
+directions relevant to this thesis, including a decision procedure for finite
+sets with cardinality~\cite{bansal2016sets}, pragmatic extensions to
+higher-order logic~\cite{barbosa2019hosmt}, and, in version~2.7 of the SMT-LIB
+standard, lambda abstractions in the language itself~\cite{smtlib2.7}.
+\Cref{sec:ar-smt} presents the technical background on SMT solving assumed
+throughout the rest of the manuscript.
 
 \subsection{Intermediate verification languages}
 \label{subsec:rw-ivl}
 
-With reliable automated back-ends available, the verification community converged on a common architecture: a front-end tool generates proof obligations in an \emph{intermediate verification language}, from which prover-agnostic translators produce input for many provers at once.
-Boogie~\cite{barnett2006boogie} pioneered this design and serves as the middle layer of, among others, the Dafny verifier~\cite{leino2010dafny}, which discharges its obligations with Z3.
-Why3~\cite{bobot2011why3,filliatre2013why3} generalizes the idea: obligations are expressed in a polymorphic first-order logic and dispatched, through a system of \emph{drivers} that accommodate each prover's dialect and axiomatic strengths, to dozens of back-ends ranging from SMT solvers to saturation provers and proof assistants.
-Industrial verifiers such as SPARK for Ada~\cite{hoang2015spark} and the WP plug-in of Frama-C for C~\cite{kirchner2015framac} rest on this infrastructure.
-The B world joined this architecture when Mentr\'e et al.\ translated Atelier~B proof obligations into Why3's logic, modeling B's set theory as a polymorphic theory and measurably increasing the proportion of automatically discharged obligations on industrial case studies~\cite{mentre2012discharging}.
+With reliable automated backends available, the verification community
+converged on a common architecture: a frontend tool generates proof obligations
+in an \emph{intermediate verification language}, from which prover-agnostic
+translators produce input for many provers. Boogie~\cite{barnett2006boogie}
+pioneered this design and serves as the middle layer for several systems,
+including the Dafny verifier~\cite{leino2010dafny}, which discharges its
+obligations with Z3. Why3~\cite{bobot2011why3,filliatre2013why3} generalizes the
+idea. It expresses obligations in a polymorphic first-order logic and dispatches
+them to dozens of backends, ranging from SMT solvers to saturation provers and
+proof assistants, through \emph{drivers} that accommodate each prover's dialect
+and axiomatic strengths. Industrial verifiers such as SPARK for
+Ada~\cite{hoang2015spark} and the WP plug-in of Frama-C for
+C~\cite{kirchner2015framac} build on this infrastructure.
 
-The pattern, however, concentrates trust in the middle: every driver, every encoding of the source theory, and every normalization performed by the platform belongs to the trusted base of the verification.
-These translations are justified, when they are justified at all, by careful design and paper arguments; none of the platforms cited above verifies them mechanically.
+The B community adopted this architecture when Mentr\'e et al.\ translated
+Atelier~B proof obligations into Why3's logic. Their encoding modeled B's set
+theory as a polymorphic theory and measurably increased the proportion of
+automatically discharged obligations in industrial case
+studies~\cite{mentre2012discharging}.
+
+The pattern, however, concentrates trust in the middle: every driver, every
+encoding of the source theory, and every normalization performed by the
+platform belong to the trusted base of the verification. When these
+translations are justified at all, they are justified by careful design and
+arguments on paper; none of the platforms cited above verifies them
+mechanically.
 
 \subsection{Encoding set theory for automated provers}
 \label{subsec:rw-set-encodings}
 
-The specification languages of the B family confront the translator with a distinctive gap.
-Their expressions denote objects of a set-theoretic universe: membership is pervasive, functions are graphs, sets of sets are commonplace, and operators may be partial.
-SMT solvers, by contrast, reason in many-sorted first-order logic over total functions, with no primitive notion of membership.
-Every encoding must therefore decide how to represent sets---by an axiomatized membership predicate or by characteristic functions---and how to recover sorts from a language whose typing discipline, when it exists at all, is coarser than the solver's.
-The systems reviewed below explore essentially every corner of this design space.
+The specification languages of the B family confront the translator with a
+distinctive gap. Their expressions denote objects in a set-theoretic universe:
+membership is pervasive, functions are graphs, sets of sets are commonplace,
+and operators may be partial. SMT solvers, by contrast, reason in many-sorted
+first-order logic over total functions, with no primitive notion of membership.
+Every encoding must therefore decide how to represent sets---by an axiomatized
+membership predicate or by characteristic functions---and how to recover sorts
+from a language whose typing discipline, when it exists at all, is coarser than
+the solver's. The systems reviewed below explore essentially every part of this
+design space.
 
 \paragraph*{Event-B and Rodin.}
-D\'eharbe first isolated a class of Rodin proof obligations---over Booleans, integers, and basic sets---amenable to a direct SMT translation~\cite{deharbe2010automatic}.
-The resulting SMT plug-in for Rodin~\cite{deharbe2012smt} industrialized two complementary encodings: a \emph{lambda-based} approach, which represents sets by their characteristic functions using the macro mechanism of SMT-LIB, and the \emph{ppTrans} approach~\cite{deharbe2014integrating}, which reuses the translator of Rodin's predicate prover to reduce set-theoretic constructs to first-order formulas over simple membership predicates.
-On a large sample of industrial and academic projects, adding SMT solvers to the Atelier~B provers reduced the number of sequents requiring human interaction to roughly one fourth.
+D\'eharbe first isolated a class of Rodin proof obligations---over Booleans,
+integers, and basic sets---that admitted a direct SMT
+translation~\cite{deharbe2010automatic}. The resulting SMT plug-in for
+Rodin~\cite{deharbe2012smt} industrialized two complementary encodings. A
+\emph{lambda-based} approach represents sets by characteristic functions using
+the macro mechanism of SMT-LIB, whereas the \emph{ppTrans}
+approach~\cite{deharbe2014integrating} reuses the translator of Rodin's
+predicate prover to reduce set-theoretic constructs to first-order formulas
+over simple membership predicates. On a large sample of industrial and academic
+projects, adding SMT solvers to the Atelier~B provers reduced the number of
+sequents requiring human interaction to roughly one-fourth.
 
 \paragraph*{Atelier~B and BWare.}
-On the classical B side, the BWare project~\cite{delahaye2014bware} built a proof platform routing Atelier~B obligations, through Why3, to SMT solvers and first-order provers, with the Why3 encoding of Mentr\'e et al.~\cite{mentre2012discharging} as its front door.
-A distinctive requirement of BWare was that provers deliver \emph{proof objects} that can be checked independently.
-This requirement was met by Zenon Modulo~\cite{delahaye2013zenon}, an extension of the tableau prover Zenon~\cite{bonichon2007zenon} with typed proof search and deduction modulo, in which the axioms of B's set theory are turned into rewrite rules rather than clauses~\cite{bury2015automated}; the prover outputs certificates for the Dedukti universal proof checker, so that every proof found can be rechecked by a small trusted kernel~\cite{halmagrand2016automated}.
-This line of work is the closest ancestor, in spirit, of the certification goal pursued in this thesis, with a crucial difference of scope discussed below: what is certified is each individual proof \emph{within} the axiomatized B theory, not the adequacy of that theory---or of the translation into it---with respect to B's semantics.
+For classical B, the BWare project~\cite{delahaye2014bware} built a proof
+platform that routes Atelier~B obligations through Why3 to SMT solvers and
+first-order provers. Its entry point is the Why3 encoding of Mentr\'e et
+al.~\cite{mentre2012discharging}. A distinctive requirement of BWare was that
+provers deliver independently checkable \emph{proof objects}.
+
+Zenon Modulo~\cite{delahaye2013zenon} met this requirement. It extends the
+tableau prover Zenon~\cite{bonichon2007zenon} with typed proof search and
+deduction modulo, turning the axioms of B's set theory into rewrite rules rather
+than clauses~\cite{bury2015automated}. The prover outputs certificates for the
+Dedukti universal proof checker, allowing a small trusted kernel to recheck
+every proof found~\cite{halmagrand2016automated}. In spirit, this line of work is
+the closest ancestor of the certification goal pursued in this thesis, but
+there is a crucial difference in scope: it certifies each individual proof
+\emph{within} the axiomatized B theory, not the adequacy of that theory---or of
+the translation into it---with respect to B's semantics.
 
 \paragraph*{ProB.}
-The ProB toolset~\cite{leuschel2008prob} approaches B from the complementary direction of animation, model checking, and constraint solving, where the object is not to prove obligations but to find models and counterexamples.
-The encoding questions are nevertheless the same.
-ProB's kernel has been complemented by SAT-based model finding~\cite{plagge2012validating} and by two generations of Z3 integrations: first through a translation covering set comprehensions and other higher-order constructs, the two solvers exchanging intermediate results~\cite{krings2016smt}; then through a constructive lambda-based translation together with a CDCL(\(T\))-style solver implemented directly over ProB's own constraint kernel~\cite{schmidt2022smt}.
-B2SAT~\cite{leuschel2024b2sat} completes the picture with a direct, low-level reduction of finite B constraint problems to propositional satisfiability.
+The ProB toolset~\cite{leuschel2008prob} approaches B from the complementary
+direction of animation, model checking, and constraint solving, where the goal
+is not to prove obligations but to find models and counterexamples. The
+encoding questions are nevertheless the same. ProB's kernel has been
+complemented by SAT-based model finding~\cite{plagge2012validating} and by two
+generations of Z3 integration. The first uses a translation that covers set
+comprehensions and other higher-order constructs, with the two solvers
+exchanging intermediate results~\cite{krings2016smt}. The second combines a
+constructive lambda-based translation with a CDCL(\(T\))-style solver
+implemented directly over ProB's own constraint
+kernel~\cite{schmidt2022smt}. B2SAT~\cite{leuschel2024b2sat} completes the
+picture with a direct, low-level reduction of finite B constraint problems to
+propositional satisfiability.
 
 \paragraph*{\tlaplus.}
-The encoding problem has been studied with particular depth for \tlaplus~\cite{lamport2002specifying}, whose mathematical language combines \emph{untyped} Zermelo--Fraenkel set theory with choice, functions as primitive objects rather than sets of pairs, and arithmetic, underneath the Temporal Logic of Actions.
-The \tlaplus Proof System (TLAPS)~\cite{cousineau2012tlaproofs} dispatches obligations to saturation provers, to an Isabelle encoding, and to SMT solvers.
-Merz and Vanzetto developed the SMT backend through a series of encodings: a typed translation guided by type inference~\cite{merz2012smt}, then untyped and many-sorted encodings, injecting the set-theoretic universe into a single sort while recovering sorted reasoning where possible~\cite{merz2018encoding}, with type synthesis recast as constraint solving over refinement types in Vanzetto's thesis~\cite{vanzetto2014proof}.
-The backend was recently redesigned by Defourn\'e with soundness as the explicit priority: the type-synthesis machinery, judged too complex to be trusted, was replaced by a direct first-order axiomatization of \tlaplus's set theory equipped with carefully chosen \emph{triggers} guiding quantifier instantiation, at essentially no cost in automation~\cite{defourne2023encoding}.
-That redesign is a telling data point for this thesis: even within a single mature system, the translation itself---not the solver---came to be regarded as the weakest link.
+The encoding problem has been studied in particular depth for
+\tlaplus~\cite{lamport2002specifying}. Its mathematical language combines
+\emph{untyped} Zermelo--Fraenkel set theory with choice, functions as primitive
+objects rather than sets of pairs, and arithmetic, all beneath the Temporal
+Logic of Actions. The \tlaplus Proof System
+(TLAPS)~\cite{cousineau2012tlaproofs} dispatches obligations to saturation
+provers, an Isabelle encoding, and SMT solvers.
+
+Merz and Vanzetto developed the SMT backend through a series of encodings. The
+work progressed from a typed translation guided by type
+inference~\cite{merz2012smt} to untyped and many-sorted encodings that inject the
+set-theoretic universe into a single sort while recovering sorted reasoning
+where possible~\cite{merz2018encoding}. Vanzetto's thesis recast type synthesis
+as constraint solving over refinement types~\cite{vanzetto2014proof}. Defourn\'e
+later redesigned the backend with soundness as the explicit priority. The new
+design replaces type-synthesis machinery judged too complex to trust with a
+direct first-order axiomatization of \tlaplus's set theory, equipped with
+carefully chosen \emph{triggers} to guide quantifier instantiation, at
+essentially no cost in automation~\cite{defourne2023encoding}. This redesign is
+a telling data point for the thesis: even within a mature system, the
+translation itself---not the solver---came to be regarded as the weakest link.
 
 \paragraph*{Kindred formalisms.}
-Alloy~\cite{jackson2012software} restricts itself to a first-order relational logic precisely so that its analyzer can reduce verification questions to SAT within finite bounds~\cite{torlak2007kodkod}; El~Ghazi and Taghdiri later lifted Alloy assertions to unbounded proofs via SMT~\cite{elghazi2011relational}.
-For Z, whose mathematical language closely prefigures B's, the Z/EVES system~\cite{saaltink1997zeves} combined rewriting and decision procedures long before the SMT era.
+Alloy~\cite{jackson2012software} restricts itself to first-order relational
+logic so that its analyzer can reduce verification questions to SAT within
+finite bounds~\cite{torlak2007kodkod}. El~Ghazi and Taghdiri later lifted Alloy
+assertions to unbounded proofs through SMT~\cite{elghazi2011relational}. For Z,
+whose mathematical language closely prefigures B's, the Z/EVES
+system~\cite{saaltink1997zeves} combined rewriting and decision procedures long
+before the SMT era.
 
-Across all these systems the pattern is uniform: the encodings embody substantial logical insight, their soundness is argued---sometimes meticulously---on paper, and the translators that implement them are complex, evolving, and unverified programs standing between the specification and the prover.
+Across these systems, the pattern is uniform: the encodings embody substantial
+logical insight, their soundness is argued---sometimes meticulously---on paper,
+and the translators that implement them are complex, evolving, unverified
+programs that stand between the specification and the prover.
 
 \subsection{Trusting the automation: certificates, reconstruction, and hammers}
 \label{subsec:rw-certificates}
 
-The question of trusting automated provers was posed early and sharply within interactive theorem proving, where a foreign proof must not compromise the assistant's kernel.
-Barendregt and Barendsen distinguished the \emph{autarkic} answer---verify the external tool once and for all---from the \emph{skeptical} one---have it produce, on every run, a certificate that a small checker validates~\cite{barendregt2002autarkic}, the latter being an instance of the general paradigm of certifying algorithms~\cite{mcconnell2011certifying}.
+The question of trusting automated provers arose early in interactive theorem
+proving, where a foreign proof must not compromise the assistant's kernel.
+Barendregt and Barendsen distinguished an \emph{autarkic} answer---verify the
+external tool once and for all---from a \emph{skeptical} one---require the tool
+to produce, on every run, a certificate validated by a small
+checker~\cite{barendregt2002autarkic}. The latter is an instance of the general
+paradigm of certifying algorithms~\cite{mcconnell2011certifying}.
 
 The skeptical approach dominates practice.
-Isabelle's Sledgehammer~\cite{paulson2010sledgehammer} translates goals to first-order provers and, since its extension to SMT solvers~\cite{blanchette2013extending}, reconstructs their answers inside the kernel~\cite{boehme2010z3,barbosa2020scalable}.
-The proof format of veriT has since been standardized as Alethe~\cite{schurr2021alethe}, now emitted by cvc5 as well, checkable independently by the Carcara checker and elaborator~\cite{andreotti2023carcara}, and reconstructible in the Lambdapi proof assistant~\cite{coltellacci2026reconstruction}; cvc5 also exports proofs in other formats, including LFSC~\cite{stump2013lfsc} and Lean, at configurable granularity~\cite{barbosa2022flexible}.
-In the Rocq ecosystem, SMTCoq validates SAT and SMT certificates through a checker programmed and \emph{proved correct} inside Rocq itself~\cite{armand2011modular,ekici2017smtcoq}; hammers in the same spirit exist for Rocq and HOL Light~\cite{czajka2018coqhammer,kaliszyk2014flyspeck}.
-Dedukti~\cite{boespflug2012lambdapi,assaf2023dedukti} pushes the skeptical logic to its limit as a universal checker in which the proofs of many systems---including, as seen above, Zenon Modulo's proofs of B obligations---can be re-expressed and revalidated.
-The autarkic route has been demonstrated as well, with a fully verified SAT solver with watched literals extracted from Isabelle~\cite{fleury2018sat}, though verifying a full SMT solver of competitive strength remains out of reach.
+Isabelle's Sledgehammer~\cite{paulson2010sledgehammer} translates goals to
+first-order provers and, since its extension to SMT
+solvers~\cite{blanchette2013extending}, reconstructs their answers inside the
+kernel~\cite{boehme2010z3,barbosa2020scalable}. The proof format of veriT has
+since been standardized as Alethe~\cite{schurr2021alethe}, which cvc5 also
+emits. Alethe proofs can be checked independently by the Carcara checker and
+elaborator~\cite{andreotti2023carcara} or reconstructed in the Lambdapi proof
+assistant~\cite{coltellacci2026reconstruction}. At configurable levels of
+granularity, cvc5 can also export proofs in other formats, including
+LFSC~\cite{stump2013lfsc} and Lean~\cite{barbosa2022flexible}.
 
-The Lean~4 ecosystem, in which this thesis is developed, has recently acquired the same infrastructure: Duper, a proof-producing superposition prover native to Lean~\cite{clune2024duper}; Lean-auto, a sound translation from Lean's dependent type theory to automated provers~\cite{qian2025leanauto}; lean-smt, which runs cvc5 and reconstructs its Alethe proofs as Lean terms~\cite{mohamed2025leansmt}; and bv\_decide, a bit-blasting decision procedure whose implementation is itself verified in Lean~\cite{boeving2025bvdecide}.
+In the Rocq ecosystem, SMTCoq validates SAT and SMT certificates through a
+checker programmed and \emph{proved correct} inside Rocq
+itself~\cite{armand2011modular,ekici2017smtcoq}. Hammers in the same spirit
+exist for Rocq and HOL Light~\cite{czajka2018coqhammer,kaliszyk2014flyspeck}.
+Dedukti~\cite{boespflug2012lambdapi,assaf2023dedukti} pushes the skeptical logic
+to its limit as a universal checker in which proofs from many
+systems---including, as seen above, Zenon Modulo's proofs of B obligations---can
+be re-expressed and revalidated. The autarkic route has also been demonstrated:
+a fully verified SAT solver with watched literals has been extracted from
+Isabelle~\cite{fleury2018sat}. Verifying a complete SMT solver of competitive
+strength, however, remains out of reach.
+
+The Lean~4 ecosystem, in which this thesis is developed, has recently acquired
+similar infrastructure: Duper, a proof-producing superposition prover native
+to Lean~\cite{clune2024duper}; Lean-auto, a sound translation from Lean's
+dependent type theory to automated provers~\cite{qian2025leanauto}; lean-smt,
+which runs cvc5 and reconstructs its Alethe proofs as Lean
+terms~\cite{mohamed2025leansmt}; and bv\_decide, a bit-blasting decision
+procedure whose implementation is itself verified in
+Lean~\cite{boeving2025bvdecide}.
 
 One structural remark matters for what follows.
-In a hammer, the translation from the assistant's logic to the prover's need not be trusted: an unsound encoding can at worst produce an alien proof that fails to replay, never a false theorem.
-The pipelines of \Cref{subsec:rw-set-encodings} enjoy no such safety net.
-When Atelier~B or Rodin accepts a solver's \emph{unsat} verdict, the obligation is marked discharged; if the encoding that produced the SMT problem was unsound, a false obligation is silently certified, and no downstream certificate checking---which scrutinizes the solver's reasoning, not the translation---can detect it.
-In these pipelines, the encoding is not merely part of the trusted base; it is its most exposed component.
+In a hammer, the translation from the assistant's logic to the prover's need not
+be trusted: an unsound encoding can, at worst, produce an external proof that
+fails to reconstruct, never a false theorem. The pipelines of
+\Cref{subsec:rw-set-encodings} enjoy no such safety net. When Atelier~B or Rodin
+accepts a solver's \emph{unsat} verdict, the obligation is marked as discharged.
+If the encoding that produced the SMT problem was unsound, a false obligation
+is silently certified, and no downstream certificate checker can detect the
+problem because it scrutinizes the solver's reasoning, not the translation. In
+these pipelines, the encoding is not merely part of the trusted base; it is the
+most exposed component.
 
 \subsection{Certifying the translation itself}
 \label{subsec:rw-certified-translation}
 
-The remaining question---how to establish the correctness of the translation, rather than of the prover---has a classical analogue in compilation.
-Translation validation checks each individual run of a translator a posteriori~\cite{pnueli1998translation}; verified translation proves the translator correct once and for all, as CompCert did for a realistic C compiler by programming and verifying it in Rocq~\cite{leroy2009compcert}.
-Deductive verification has largely ignored both options for its own translators: the encodings of F\(^\star\) into Z3~\cite{fstar}, of Why3 to its many back-ends, and of the B-family tools surveyed above are all trusted.
-Even the redesign of the TLAPS encoding undertaken with soundness as its explicit priority~\cite{defourne2023encoding} remains an informal argument about a nontrivial implementation, in which subtle defects have since been uncovered.
+The remaining question---how to establish the correctness of the translation
+rather than that of the prover---has a classical analogue in compilation.
+Translation validation checks each individual run of a translator \emph{a
+posteriori}~\cite{pnueli1998translation}; verified translation proves the
+translator correct once and for all. CompCert took the latter approach for a
+realistic C compiler by implementing and verifying it in
+Rocq~\cite{leroy2009compcert}. Deductive verification has largely ignored both
+options for its own translators: the encodings from F\(^\star\) into
+Z3~\cite{fstar}, from Why3 into its many backends, and from the B-family tools
+surveyed above are all trusted. Even the redesign of the TLAPS encoding, which
+made soundness an explicit priority~\cite{defourne2023encoding}, rests on an
+informal argument about a nontrivial implementation in which subtle defects
+have since been uncovered.
 
-This manuscript takes the verified-translation route, applied for the first time, to our knowledge, to an SMT encoding of a set-theoretic specification language.
-The encoder \beer{} is an executable Lean~4 program whose soundness is a theorem: source and target are interpreted in a single universe of ZFC sets, and the encoding provably preserves denotations~\cite{trelat2025beer}, as developed in \Cref{ch:zflean,ch:b,ch:smt,ch:loosening,ch:beer}.
-For the translation, this is the autarkic route: the encoder is verified once and for all.
-It combines naturally with the skeptical treatment of the solver, whose verdict can be validated by reconstructing its certificate in Lean in the style of lean-smt (\Cref{ch:barrel}), closing the chain from proof obligation to checked proof.
+This manuscript applies verified translation, to our knowledge for the first
+time, to an SMT encoding of a set-theoretic specification language. The encoder
+\beer{} is an executable Lean~4 program whose soundness is a theorem: the source
+and target languages are interpreted in a single universe of ZFC sets, and the
+encoding provably preserves denotations~\cite{trelat2025beer}, as developed in
+\Cref{ch:zflean,ch:b,ch:smt,ch:loosening,ch:beer}. For the translation, this is
+the autarkic route: the encoder is verified once and for all. It can be combined
+naturally with a skeptical treatment of the solver, whose verdict could be
+validated by reconstructing its certificate in Lean in the style of lean-smt.
+Such a combination would close the chain from proof obligation to checked
+proof.

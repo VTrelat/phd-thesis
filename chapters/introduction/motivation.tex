@@ -3,8 +3,8 @@
 
 During the three years in which this thesis was written, the practical meaning
 of \emph{machine-assisted reasoning} changed. In my own work, general-purpose
-artificial intelligence (AI) assistants moved from short, relatively local
-exchanges to sustained sessions over sizeable programs and formal developments,
+artificial intelligence (AI) assistants moved from brief, isolated exchanges
+to sustained sessions involving sizable programs and formal developments,
 proposing multi-step solutions and responding repeatedly to feedback from
 compilers and proof assistants. These tools, initially peripheral to the
 research process, became part of its daily practice. This transition gives the
@@ -28,11 +28,11 @@ hypothesis generation, experimental planning, programming, and other parts of
 the scientific workflow~\cite{stanfordAIIndex2026,gottweis2026coscientist}.
 Whether or not the strongest predictions about autonomous research are
 realized, it is prudent to expect research to accommodate a growing volume of
-machine-generated claims and artefacts.
+machine-generated claims and artifacts.
 
 This expansion of capability does not remove the problem of reliability; it
 makes it more pressing. Striking results in mathematics, coding, and scientific
-question answering coexist with brittle behaviour on apparently simpler tasks
+question answering coexist with brittle behavior on apparently simpler tasks
 and with poor performance on end-to-end scientific
 replication~\cite{stanfordAIIndex2026}. A generated answer may be correct,
 subtly wrong, or correct for reasons unrelated to the explanation that
@@ -51,12 +51,12 @@ sentences~\cite{deMoura2026floc}:
 \end{quotation}
 
 These lines capture the perspective adopted in this thesis: formal verification
-can provide an independent criterion for accepting AI-generated artefacts,
+can provide an independent criterion for accepting AI-generated artifacts,
 while AI can reduce the effort required to construct formally checked ones.
 This reciprocity renews the relevance of formal methods. At their broadest,
 formal methods are not synonymous with the familiar slogan of ``proving
-software correct.'' They provide languages and calculi in which artefacts,
-assumptions, and arguments can be made precise. The artefact may be a program,
+software correct.'' They provide languages and calculi in which artifacts,
+assumptions, and arguments can be made precise. The artifact may be a program,
 a hardware design, a communication protocol, a system model, or a mathematical
 theory; the claim may concern safety, consistency, refinement, equivalence,
 security, or some other property. What unites these applications is the attempt
@@ -70,7 +70,8 @@ is itself part of the trust placed in the result. Formal methods are valuable
 because they make these dependencies more visible and more sharply delimited.
 They turn the question ``Do we trust this answer?'' into more concrete
 questions: what exactly was stated, from which assumptions was it derived, what
-mechanism checked the derivation, and which components remain trusted?
+mechanism checked the derivation, and which components remain in the trusted
+base?
 
 Generative AI and formal methods can therefore be complementary. A human, an
 LLM, or a search procedure may suggest an invariant, a program, or a proof. A
@@ -86,21 +87,23 @@ does not depend on trusting the model's account of its own reasoning.
 This thesis adopts that separation as a guiding principle. Its ambition is to
 construct a trustworthy reasoning chain in which increasingly powerful forms
 of automation---including AI-assisted proof construction---can be used without
-making the validity of a result depend on the opacity of the tool that proposed it.
-A methodological account of how LLMs were themselves used during this work is given in
-\Cref{sec:intro-llm-use}.
+making the validity of a result depend on the opacity of the tool that proposed
+it. \Cref{sec:intro-llm-use} provides a methodological account of how LLMs were
+used during this work.
 
 \subsection{Two modes of machine-assisted reasoning}
 \label{subsec:intro-itp-atp}
 
-Computer-assisted proof is commonly organized around two complementary kinds of
-system. An \emph{automated theorem prover} (ATP) receives a conjecture and
+Computer-assisted proof is commonly organized around two complementary types of
+systems. An \emph{automated theorem prover} (ATP) receives a conjecture and
 searches for a proof with little or no guidance from its user. Modern
-satisfiability modulo theories (SMT) solvers such as Z3~\cite{demoura2008z3} and cvc5~\cite{barbosa2022cvc5} are particularly
+satisfiability modulo theories (SMT) solvers, such as
+Z3~\cite{demoura2008z3} and cvc5~\cite{barbosa2022cvc5}, are particularly
 effective ATPs for verification conditions: they combine propositional search
 with specialized procedures for equality, arithmetic, arrays, and other useful
-theories. Their main attraction is throughput: once an obligation has been
-translated into the solver's language, large batches can be attempted automatically.
+theories. Their main attraction is throughput: once obligations have been
+translated into the solver's language, large batches can be processed
+automatically.
 
 An \emph{interactive theorem prover} (ITP), or proof assistant, instead provides
 an environment in which definitions, statements, and proofs are developed
@@ -112,7 +115,7 @@ types, an extensible tactic and metaprogramming framework, and the large
 mathematical library Mathlib~\cite{mathlib4}. Its main attractions are
 expressiveness, direct access to the proof state, and the possibility of
 independently rechecking the resulting theorem. The corresponding cost is that
-proofs which lie beyond the available automation require insight and
+proofs that lie beyond the available automation require insight and
 maintenance.
 
 The distinction is therefore not simply ``automatic versus manual.'' ITPs
@@ -139,8 +142,8 @@ target statement unless its relationship with the source statement is itself
 justified. The more capable the backend becomes, the more important it is not to
 hide this boundary behind the success message of a tool.
 
-The work in this thesis originates from this tension between \emph{automation}
-and \emph{assurance}.
+This thesis originates in the tension between \emph{automation} and
+\emph{assurance}.
 Addressing it requires more than a new collection of prover heuristics: it
 requires a mathematical account of the languages being connected, an
 implementation architecture in which semantic claims can be stated and checked,
