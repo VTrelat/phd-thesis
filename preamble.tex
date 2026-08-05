@@ -30,6 +30,13 @@
 \usepackage{enumitem}
 \usepackage{dsfont}
 \usepackage[intoc,refpage]{nomencl}  % List of Notations (see \regnotation in macros.tex)
+% Must be set here, not in chapters/notations.tex: \label writes \nomname to the
+% .aux unexpanded, so \nameref{ch:list-of-notations} expands it at the *citing*
+% site.  Citations in the introduction precede \input{chapters/notations.tex},
+% where the old \renewcommand lived, and so printed nomencl's default
+% "Nomenclature".  nomencl processes its language options at load time (no
+% \AtBeginDocument), so overriding right after \usepackage is safe.
+\renewcommand{\nomname}{List of Notations}
 \usepackage{multicol}        % two-column layout for the notation index
 \usepackage{multiincludeonly}
 
@@ -107,6 +114,15 @@
   commentstyle={\ttfamily\footnotesize\color{commentcolor}},
   backgroundcolor=\color{beige!40}
 }
+
+% The List of Notations is an unnumbered \chapter* produced by \printnomenclature
+% (see chapters/notations.tex), so there is no counter for \label to capture.
+% We give it a private counter whose number is never printed: \Cref of a
+% listofnotations label expands to the plain hyperlinked title.  #2/#3 are
+% cleveref's hyperlink open/close, so the title itself becomes the link text.
+\newcounter{listofnotations}
+\crefformat{listofnotations}{#2List of Notations#3}
+\Crefformat{listofnotations}{#2List of Notations#3}
 
 \makeatletter
 % Make \cref/\Cref print "Listing N" for the auto-counter behind leanlisting.

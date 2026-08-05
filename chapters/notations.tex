@@ -3,7 +3,7 @@
 % notation throughout the manuscript.  Sort keys and chapter groups are derived
 % automatically; no manual sort key is required.
 
-\renewcommand{\nomname}{List of Notations}
+% \nomname is set in preamble.tex, not here -- see the comment there.
 
 % Page number: right-aligned, hyperlinked to the \hypertarget placed by
 % \regnotation at the call site.
@@ -80,5 +80,22 @@
   \fi
 }
 \makeatother
+
+% Anchor for cross-references.  The heading produced by \printnomenclature is
+% unnumbered (\chapter*), so there is no counter to \label: without help, the
+% label would capture whatever counter was stepped last (the final subsection).
+% \refstepcounter{listofnotations} gives it the private counter declared in
+% preamble.tex, whose \crefformat prints the plain title -- so \cref/\Cref work.
+% It also plants the hyperref anchor; \@currentlabelname must be set *after* it
+% (nameref's \refstepcounter hook clears it) for \nameref.
+% Reference with \cref/\Cref/\nameref/\hyperref[...]{...}; not bare \ref, which
+% prints the counter's (meaningless) value.
+\cleardoublepage
+\phantomsection
+\makeatletter
+\refstepcounter{listofnotations}
+\def\@currentlabelname{\nomname}
+\makeatother
+\label{ch:list-of-notations}
 
 \printnomenclature

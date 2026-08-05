@@ -1,28 +1,123 @@
-\section{Manuscript overview}
+\newcommand{\overviewcolorbox}[3]{%
+  \tikz[baseline=(label.base)]{
+    \node[
+      fill=#1,
+      draw=#1!75!cover-cream,
+      line width=1pt,
+      text=#2,
+      font=\small\sffamily\bfseries,
+      minimum width=18mm,
+      minimum height=1.7em,
+      inner xsep=4pt,
+      inner ysep=1.5pt,
+      outer sep=2pt,
+      rounded corners=3pt
+    ] (label) {#3};
+  }%
+}
+
+\section{Manuscript overview and conventions}
 \label{sec:manuscript-overview}
 
-\inlremark{This section is still WIP.}
+This section outlines the structure of the manuscript and the conventions used
+throughout.
 
+\subsection{Organization}
+The manuscript proceeds from common foundations to the automated and
+interactive reasoning routes introduced in \Cref{subsec:intro-itp-atp}.
+\Cref{ch:background} introduces the mathematical and technical material used
+throughout the thesis: axiomatic set theory, the B method, SMT solving, Lean,
+and the representation of syntax with binders. \Cref{ch:zflean} then develops
+\zflean, the set-theoretic library that provides the common semantic universe
+for the subsequent formalizations. The next two chapters define the languages
+on either side of the verified translation. \Cref{ch:b} formalizes the relevant
+fragment of the B mathematical language, while \Cref{ch:smt} gives a parallel
+account of the target fragment of SMT-LIB~2.7; both chapters cover syntax,
+typing, and denotational semantics.
+
+The following chapters build the reasoning tools themselves.
+\Cref{ch:loosening} introduces type loosening, which reconciles the different
+representations that a single set-theoretic value may require in the typed
+target language. \Cref{ch:beer} uses these foundations to present \beer, the
+verified automated encoding of B proof obligations into SMT-LIB.
+\Cref{ch:barrel} develops the complementary interactive route through
+\barrel, which brings B proof obligations into Lean. \Cref{ch:evaluation}
+assesses the resulting tools. The concluding chapter summarizes the results,
+their limitations, and the directions they open.
+
+\subsection{Mathematical presentation}
 This manuscript deliberately adopts a mathematical register: it presents the
-encoding and its metatheory through definitions, typing judgments, and
-denotations rather than through the Lean code that realizes them. The artifact
-behind the thesis is nonetheless an executable, formally verified program, and
-some implementation concerns are inseparable from its correctness argument.
-Chief among these is the \emph{monadic} structure of the encoder: it threads a
-typing context, allocates fresh names, and accumulates the emitted SMT script.
-We make this structure explicit where it bears on a design decision or a proof,
-chiefly in
+encodings and their metatheory through definitions, typing judgments, and
+denotations rather than by reproducing the Lean code that realizes them. The
+artifact behind the thesis is nonetheless an executable, formally verified
+program, and some implementation concerns are inseparable from its correctness
+argument. Chief among these is the \emph{monadic} organization of the encoder:
+it threads a typing context, allocates fresh names, and accumulates the emitted
+SMT script. We make this organization explicit where it bears on a design
+decision or a proof, chiefly in
 \Cref{sec:lean-implementation-architecture,sec:binders-names-contexts}, and keep
 the state it manipulates implicit elsewhere.
 
+\subsection{Color conventions}
+Color provides a consistent visual guide to the kind of material being read.
+The manuscript uses the following conventions throughout:
 
-\paragraph{Notation.}
-We fix two notational conventions used throughout the thesis.
-We write \(\regnotation{\coloneq}\) for \emph{definitional
-assignment}---binding a name to a term or giving the body of a definition---and
-distinguish it from propositional equality \(=\) and from the metatheoretic
-symbol \(\regnotation{\triangleq}\), which is read ``is defined as'' and used in
-displayed mathematics.
+\smallskip
+\begin{description}[
+    style=multiline,
+    nosep,
+    leftmargin=30mm,
+    labelwidth=18mm,
+    labelsep=5mm,
+    align=left
+  ]
+  \item[\overviewcolorbox{pink}{white}{Pink}]
+    Theorems, lemmas, and corollaries.
+  \item[\overviewcolorbox{orange}{white}{Orange}]
+    Definitions of mathematical objects, relations, and judgments.
+  \item[\overviewcolorbox{green}{white}{Green}]
+    Examples of definitions and constructions.
+  \item[\overviewcolorbox{blue}{dark-blue}{Blue}]
+    Remarks, facts, proofs, and internal cross-references.
+  \item[\overviewcolorbox{beige}{cover-cream}{Beige}]
+    Notes, encoding rules, and source-code listings.
+\end{description}
 
-When a proof component is unused or irrelevant in a given context, we write
-``\(\regnotation{\irrelprf}\),'' following Lean notation.
+Internal cross-references, citations, and external web addresses are clickable.
+Definition and theorems generally have a direct counterpart in the formal
+Lean artifact, indicated in their upper-right corner as lists one or more Lean declaration
+names pointing to the generated Lean documentation at the corresponding
+declaration, and allowing the reader to inspect the machine-checked statement and
+its implementation. The same convention is occasionally used for declaration
+names in running text. These links provide a route into the artifact, thereby
+increasing trust in the informal content of the manuscript, allowing the reader
+to check every single result it claims.
+
+\subsection{Notations}
+\paragraph{Superscripts.}
+The notation distinguishes systematically between the languages and levels of
+representation used in the thesis. A superscript \(B\) marks concrete B-related
+constructs like \(\bop{\vdash}\) and \(\mapletB\),
+while \(B'\) marks their abstract counterparts \(\baop{\vdash}\) and \(\baop{\mapsto}\);
+similarly, superscript \(S\) and \(S'\) mark concrete and abstract SMT-related constructs, \eg
+\(\sop{\vdash}\) and \(\lamS\), and their abstract counterparts \(\saop{\vdash}\) and \(\saop{\lambda}\).
+A superscript \(Z\) identifies
+operations or values in the shared ZFC semantic universe, \eg \(\addZ\) and \(\lamZ\).
+These superscripts are category tags, not exponents, and serve as visual
+disambiguation helpers. Object-language variables are typeset in bold gray,
+as in \(\var{x}\); other specialized conventions are introduced at their first use.
+
+\paragraph{Definitional equality.}
+We write \(\regnotation{\coloneq}\) for \emph{definitional assignment}---for
+example, when binding a name to a term or giving the body of a definition. This
+is distinct both from propositional equality \(=\) and from the metatheoretic
+symbol \(\regnotation{\triangleq}\), read ``is defined as,'' which is used in
+displayed mathematics. When a proof component is unused or irrelevant in a
+given context, we sometimes replace it by ``\(\regnotation{\irrelprf}\),'' following
+Lean notation.
+
+\paragraph{List of all notations.}
+The first defining occurrence of each registered symbol is recorded in the
+\nameref{ch:list-of-notations} (p.~\pageref{ch:list-of-notations}). Entries are grouped by chapter and retain
+their order of introduction; each page number links back to the point at which
+the symbol is first defined.
