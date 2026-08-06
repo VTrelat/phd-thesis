@@ -1,3 +1,36 @@
-\section{Limitations}
+\section{Scope and limitations}
 \label{sec:limitations}
 
+The formal B semantics covers the mathematical fragment required by \beer{},
+not the complete B method. Machines, substitutions, refinement, and
+proof-obligation generation are outside its scope, and the correspondence
+between this semantics and the reference account of B has not been mechanized.
+The SMT-LIB formalization likewise covers only the fragment required by the
+encoder, since formalizing the complete standard would require substantially
+more work. Accordingly, the soundness theorem relates the formal source and
+target models developed in this manuscript; further links are needed to obtain
+an end-to-end result for a B machine processed by Atelier~B.
+
+Coverage also remains limited. The verified \beer{} encoder does not support,
+among other constructs, cardinality, minimum, maximum, or substantial parts of
+the sequence language. Unsupported inputs are rejected, preserving soundness at
+the cost of applicability.
+\barrel{} similarly supports a useful but incomplete fragment.
+The evaluation in \Cref{ch:evaluation} uses a corpus of industrial proof
+obligations, including very large instances, and provides evidence on realistic
+and demanding workloads. Its conclusions remain tied to the studied corpus and
+refinement example.
+
+The verified \beer{} encoder is only one part of its execution path. In
+addition to Lean, the current toolchain trusts the decoder of Atelier~B
+proof-obligation files and its elaborations, the printer from abstract
+scripts to concrete SMT-LIB, and the solver's unsatisfiability answer.
+The composition of the term-level contracts into a complete script theorem is
+also a manuscript-level argument rather than a final mechanized theorem.
+
+For \barrel{}, Lean's kernel checks the generated theorem, but Atelier~B's
+proof-obligation generation and the faithfulness of the shallow B-to-Lean
+embedding remain trusted. Kernel checking can reject an invalid derivation of a
+Lean proposition; it cannot establish that this proposition is the correct
+translation of the original B obligation. These boundaries limit the present
+claims, but also identify precisely which links remain to be verified.

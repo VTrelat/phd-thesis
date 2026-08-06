@@ -1,2 +1,34 @@
-\section{Future work}
+\section{Perspectives}
 \label{sec:future-work}
+
+\subsection{Toward verified proof-obligation generation}
+
+A semantics of B machines and refinement, together with a verified
+proof-obligation generator, would connect the term-level models developed in
+this thesis to the correctness of complete B developments. Implementing this
+generator in Lean would directly benefit \barrel{}: proof obligations could be
+produced over its shallow embedding, while Lean automation could discharge
+routine well-definedness conditions as they are generated. Establishing the
+semantic correspondence of the shallow embedding would complement the kernel's
+guarantee about completed proofs and further reduce the trusted base. The same
+infrastructure could serve the automated route and support an embedded B
+language for constructing and verifying machines directly in Lean.
+
+\subsection{Strengthening interactive proof}
+
+Broader language coverage in \barrel{} must be accompanied by a richer lemma
+library. Proof-producing procedures for recurring set, relational, invariant,
+and refinement arguments could increase automation without enlarging the
+trusted base. Together with proof-obligation generation tailored to Lean, this
+would let the system exploit well-definedness information earlier and present
+users with fewer routine side goals.
+
+\barrel{} already combines automatic discharge of routine obligations with
+interactive proof of the remaining ones. This architecture is also a natural
+foundation for AI-assisted reasoning: an AI assistant may propose invariants,
+lemmas, or proof scripts, while Lean's kernel remains responsible for
+acceptance.
+
+These directions strengthen the same principle developed throughout this
+thesis: powerful automation can be incorporated into a reasoning workflow while
+the scope and basis of each accepted result remain explicit.
