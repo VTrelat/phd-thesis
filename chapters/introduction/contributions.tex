@@ -136,10 +136,13 @@ A central design problem is the treatment of B's partial operators. Their Lean
 encodings require explicit evidence of well-definedness. \barrel turns this
 evidence into additional goals before exposing the main proof obligation, so
 ill-typed or ill-defined instantiations are rejected by construction rather
-than left to prover discipline. Lightweight automation discharges routine
-well-definedness goals, leaving invariant and refinement arguments available
-for interactive proof. \Cref{ch:barrel} presents the architecture, embedding,
-metaprogramming interface, and representative development.
+than left to prover discipline. Equal well-definedness goals are shared across
+an import, and proof-producing automation combines B-specific lemmas with
+Lean's \texttt{grind} tactic before leaving the remaining invariant and
+refinement arguments for interactive proof. Obligation-local resource limits
+and a live infoview panel make this workflow usable on large proof-obligation
+files. \Cref{ch:barrel} presents the architecture, embedding, metaprogramming
+interface, and representative developments.
 
 The ``kernel-checked'' tag in \Cref{fig:intro-reasoning-routes} states the precise
 scope of the guarantee. Lean checks the proof of each generated theorem, while

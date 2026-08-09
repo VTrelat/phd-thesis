@@ -16,15 +16,16 @@ language for constructing and verifying machines directly in Lean.
 
 \subsection{Strengthening interactive proof}
 
-Broader language coverage in \barrel{} must be accompanied by a richer lemma
-library. Proof-producing procedures for recurring set, relational, invariant,
-and refinement arguments could increase automation without enlarging the
-trusted base. Together with proof-obligation generation tailored to Lean, this
-would let the system exploit well-definedness information earlier and present
-users with fewer routine side goals.
+\barrel{} now shares repeated well-definedness theorems across an import,
+combines its B-specific tactics with \texttt{grind}, confines timeouts and
+recoverable encoder failures to one obligation, and reports live progress in
+Lean's infoview. Further engineering can broaden the mathematical fragment and
+raise the remaining stack and memory ceilings without changing this
+architecture. Proof-obligation generation tailored to Lean would go further:
+it could exploit well-definedness information before duplication is introduced
+by the external POG representation.
 
-\barrel{} already combines automatic discharge of routine obligations with
-interactive proof of the remaining ones. This architecture is also a natural
+The combination of automatic discharge and interactive proof is also a natural
 foundation for AI-assisted reasoning: an AI assistant may propose invariants,
 lemmas, or proof scripts, while Lean's kernel remains responsible for
 acceptance.

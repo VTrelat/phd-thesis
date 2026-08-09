@@ -16,10 +16,11 @@ among other constructs, cardinality, minimum, maximum, or substantial parts of
 the sequence language. Unsupported inputs are rejected, preserving soundness at
 the cost of applicability.
 \barrel{} similarly supports a useful but incomplete fragment.
-The evaluation in \Cref{ch:evaluation} uses a corpus of industrial proof
-obligations, including very large instances, and provides evidence on realistic
-and demanding workloads. Its conclusions remain tied to the studied corpus and
-refinement example.
+The evaluation in
+\Cref{subsec:barrel-minsearch-results,subsec:barrel-industrial-scale} uses a
+refinement chain and a corpus of industrial proof obligations, including very
+large instances, and provides evidence on realistic and demanding workloads.
+Its conclusions remain tied to the studied corpus and example.
 
 The verified \beer{} encoder is only one part of its execution path. In
 addition to Lean, the current toolchain trusts the decoder of Atelier~B
