@@ -1,2 +1,413 @@
-\section{BEer results}
+\section{Results}
 \label{sec:beer-results}
+
+\subsection{Global picture}
+\label{sec:beer-results-global}
+
+\Cref{fig:eval-global} shows the strict outcome of every goal slot.
+End to end, ppTrans proves \bmPptAll\,\% of the corpus against \beer{}'s \bmBeerAll\,\%---but neither deficit is purely a solver result.
+On \beer{}'s side, \bmNoScript\,\% of all goals never reached cvc5: the encoder failed or exhausted its budget on the enclosing file, or---in a small per-goal remainder---on the goal itself.
+On ppTrans's side, \bmPptKilled\,\% of all goals were killed at the \(300\)\,s wall with the solver still running.
+These two populations decide the comparison, and they are the ones the verdict-only scoring silently deletes, one from each side.
+They are not symmetric: of the \bmPOTotal{} goals ppTrans alone proves under strict scoring, roughly three quarters are goals \beer{} emitted no script for---encoder \emph{coverage}, not encoding quality, is \beer{}'s binding constraint.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[base, xbar stacked, height=3.1cm, width=.95\linewidth,
+  xmin=0, xmax=100, xlabel={share of all \bmGoals{} goals (\%)},
+  xlabel near ticks,
+  ytick=data, yticklabels from table={\gstack}{label},
+  y tick label style={font=\small\bfseries},
+  enlarge y limits=0.55, grid=none,
+  legend style={at={(0.5,-0.8)}, anchor=north, legend columns=4},
+  bar width=16pt,
+  nodes near coords style={font=\scriptsize\bfseries, anchor=center},
+  ]
+  \addplot[fill=beercol, draw=none, point meta=explicit symbolic,
+           nodes near coords, nodes near coords style={text=white}]
+    table[x=unsat, y=idx, meta=lunsat]{\gstack};
+  \addplot[fill=beigec!30, draw=none, point meta=explicit symbolic,
+           nodes near coords]
+    table[x=unknown, y=idx, meta=lunknown]{\gstack};
+  \addplot[fill=pinkc!70, draw=none, point meta=explicit symbolic,
+           nodes near coords, nodes near coords style={text=white}]
+    table[x=noscript, y=idx, meta=lnoscript]{\gstack};
+  \addplot[fill=beigec, draw=none, point meta=explicit symbolic,
+           nodes near coords]
+    table[x=killed, y=idx, meta=lkilled]{\gstack};
+  \legend{\texttt{unsat}, \texttt{unknown}, no script, killed at the wall}
+\end{axis}
+\end{tikzpicture}
+\caption{Strict outcome of every goal slot.}
+\label{fig:eval-global}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[base, xbar stacked, height=2.6cm, width=.93\linewidth,
+  % the four shares are rounded to 1 dp and sum to 100.1; at xmax=100 the
+  % last segment overran the axis and pgfplots dropped its label
+  xmin=0, xmax=100.4, xtick={0,10,...,100}, xlabel near ticks,
+  xlabel={\small share of the goals both pipelines answered (\%)},
+  ytick=\empty, ymin=-0.5, ymax=0.5,
+  grid=none, bar width=20pt,
+  legend style={at={(0.5,-0.95)}, anchor=north, legend columns=4},
+  nodes near coords style={font=\scriptsize\bfseries, white, anchor=center,
+                           /pgf/number format/assume math mode=true},
+  ]
+  \addplot[fill=greenc, draw=none, point meta=explicit,
+           nodes near coords={\pgfmathprintnumber[fixed,precision=1]
+                              {\pgfplotspointmeta}\,\%}]
+    coordinates {(\bmBoth,0)[\bmBoth]};
+  \addplot[fill=pinkc, draw=none, point meta=explicit,
+           nodes near coords={\pgfmathprintnumber[fixed,precision=1]
+                              {\pgfplotspointmeta}\,\%}]
+    coordinates {(\bmBeerOnly,0)[\bmBeerOnly]};
+  \addplot[fill=beercol, draw=none, point meta=explicit,
+           nodes near coords={\pgfmathprintnumber[fixed,precision=1]
+                              {\pgfplotspointmeta}\,\%}]
+    coordinates {(\bmPptOnly,0)[\bmPptOnly]};
+  \addplot[fill=beigec!35, draw=none, point meta=explicit,
+           nodes near coords={\pgfmathprintnumber[fixed,precision=1]
+                              {\pgfplotspointmeta}\,\%},
+           nodes near coords style={font=\scriptsize\bfseries, black,
+                                    anchor=center,
+                                    /pgf/number format/assume math mode=true}]
+    coordinates {(\bmNeither,0)[\bmNeither]};
+  \legend{both, \beer{} only, ppTrans only, neither}
+\end{axis}
+\end{tikzpicture}
+\caption{The four-way split of the goals both pipelines answered
+  (verdict-only scoring).}
+\label{fig:eval-fourway}
+\end{figure}
+
+The two scorings tell different stories, and the pair of readings is the first substantive result: strictly, \beer{} is 17.9 points behind; restricted to the goals both pipelines actually answered, it is within 3.2 points (\bmBeerH\,\% against \bmPptH\,\%).
+Both are true statements about different questions.
+\Cref{fig:eval-fourway} splits that shared population four ways: \bmBoth\,\% of it is proved by both encodings, and each side proves goals the other cannot---\bmBeerOnly\,\% for \beer{} alone against \bmPptOnly\,\% for ppTrans alone.
+The two encodings are thus far from nested: even under strict scoring, their union proves \bmSUnion\,\% of the corpus, almost six points beyond the best single pipeline, so a portfolio of the two is strictly stronger than either.
+The sign of the residual gap deserves its own sentence: even where both scripts are answered, the higher-order one proves slightly fewer goals, and \bmNeither\,\% of the shared population resists both.
+Higher-order SMT solving is a young capability~\cite{barbosa2019hosmt}, not yet efficient for goals of this shape---and size.
+
+\begin{figure}[t]
+\centering
+\begingroup
+% Align the outcome hues with \Cref{fig:eval-fourway}: both = green,
+% BEer-only = pink, ppTrans-only = blue.  The generated status_cross.tex
+% carries the workbench's original color names, so they are remapped locally.
+\colorlet{cellboth}{greenc}\colorlet{cellbeer}{pinkc}\colorlet{cellppt}{beercol}
+\colorlet{beercol}{cellboth}\colorlet{greenc}{cellbeer}\colorlet{pptcol}{cellppt}
+\begin{tikzpicture}
+\begin{axis}[base, height=4.2cm, width=.6\linewidth,
+  xmin=-0.5, xmax=2.5, ymin=-0.5, ymax=2.5,
+  xtick={0,1,2},
+  xticklabels={\texttt{unsat}, \texttt{unknown}, timeout},
+  ytick={0,1,2},
+  yticklabels={\texttt{unsat}, \texttt{unknown}, timeout},
+  xlabel={ppTrans}, ylabel={\beer{}},
+  y tick label style={font=\scriptsize}, x tick label style={font=\scriptsize},
+  grid=none, y dir=reverse, axis on top,
+  ]
+  % hue = which of the four outcomes the cell is, shade = its magnitude.
+  % A single-hue ramp made a win and a loss look identical.
+  \input{benchmarks/data/status_cross.tex}
+\end{axis}
+\end{tikzpicture}
+
+\medskip
+{\scriptsize
+\tikz\fill[beercol!55] (0,0) rectangle (0.28,0.16); both prove \quad
+\tikz\fill[greenc!55] (0,0) rectangle (0.28,0.16); \beer{} only \quad
+\tikz\fill[pptcol!55] (0,0) rectangle (0.28,0.16); ppTrans only \quad
+\tikz\fill[beigec!55] (0,0) rectangle (0.28,0.16); neither}
+\endgroup
+
+\caption{Outcome pairs, as shares of the \bmEncoded{} goals \beer{} encoded.}
+\label{fig:eval-matrix}
+\end{figure}
+
+\Cref{fig:eval-matrix} crosses the two outcomes goal by goal, over the goals \beer{} encoded; \emph{timeout} there is the \(300\)\,s per-goal wall, distinct from the \smtinl{unknown} that cvc5 returns at its own \(5\)\,s budget, and the verdict-only scoring keeps exactly its top-left \(2\times2\) block.
+Two of its cells matter beyond their size.
+First, no goal is \smtinl{sat} on one side and \smtinl{unsat} on the other; indeed cvc5 answered \smtinl{sat} on no script at all.
+A hard disagreement would mean an unsound encoding or a misaligned join, so its absence over 1.6 million solved scripts is a useful, if weak, empirical complement to \Cref{ch:beer}: the unverified translator and its unverified baseline at least never contradict each other.
+Second, the \emph{timeout} row and column are wildly asymmetric: \beer{} essentially never hits the wall, while ppTrans burns it on more than a tenth of the goals it shares with \beer{}---and on \bmBeerWinsPptKilled{} of those, \beer{} had already proved the goal, in a median of about five seconds.
+
+Time and size, the two cost questions, are settled by \Cref{fig:eval-time,fig:eval-ratio}.
+On the \bmBothCount{} goals both pipelines prove, the two solving-time distributions track each other closely: \beer{} is faster on \bmBeerFaster\,\% of goals, the median per-goal ratio is \bmRatioMed\(\times\) (medians of \bmBeerMed{} against \bmPptMed{}\,ms), and \(80\,\%\) of the ratios fall within a factor of about \(2\times\) either way.
+The higher-order scripts are larger, by \bmSizeMed\(\times\) in the median (\bmBeerSizeMed{} against \bmPptSizeMed\,KB)---the representation blow-up anticipated in \Cref{sec:beer-discussion}, each cast contributing a helper variable and a quantified specification.
+Aggregate solver cost tells the operational story more bluntly: discharging the corpus took cvc5 roughly \(840\) hours on \beer{}'s scripts against \(9\,500\) hours on ppTrans's, almost all of the difference burned at the \(300\)\,s wall on goals that produced no verdict.
+A user without a generous per-goal wall gets \beer{}'s answers, or ppTrans's silence, on that tenth of the corpus.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+% x and y span the same range, so a square axis box puts the diagonal at 45
+% degrees and makes "above the line" mean what it looks like it means.
+\begin{axis}[base, scale only axis, width=6cm, height=6cm,
+  % truncated at 10^4: it holds all but 0.5 % of the mass and the remainder is
+  % a thin BEer tail that stretched the box to no purpose.  Marks past the
+  % limit are clipped by the axis; the diagonal is not, so it stops here too.
+  xmode=log, ymode=log, xmin=8, xmax=10000, ymin=8, ymax=10000,
+  xlabel={\beer{} (ms)}, ylabel={ppTrans (ms)},
+  % no white underlay: it would erase the ridge, which sits on the diagonal
+  after end axis/.code={%
+    \draw[black, densely dashed, line width=.6pt]
+      (axis cs:8,8) -- (axis cs:10000,10000);},
+  ]
+  % Overplotted translucent marks, composited into one raster image: n
+  % coincident marks of opacity a give 1-(1-a)^n at a fixed price, where
+  % 300000 vector marks are out of reach.  Axis, ticks and diagonal stay
+  % vector.
+  \addplot graphics[xmin=8, xmax=10000, ymin=8, ymax=10000]
+    {benchmarks/data/scatter_cloud.png};
+\end{axis}
+\end{tikzpicture}
+\caption{Per-goal solving time on the goals both pipelines prove: one
+  translucent mark per goal, pink above the diagonal where ppTrans took
+  longer, blue below it where \beer{} did.}
+\label{fig:eval-time}
+\end{figure}
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[base, width=.7\linewidth, height=6cm,
+  xlabel={\beer{} / ppTrans}, ylabel={goals (\%, cumulative)},
+  xmin=-5, xmax=5, ymin=0, ymax=100,
+  xtick={-4,-2,0,2,4},
+  xticklabels={$\tfrac{1}{16}\times$,$\tfrac14\times$,$1\times$,$4\times$,$16\times$},
+  legend style={at={(0.02,0.98)}, anchor=north west},
+  ]
+  \addplot[beerline] table[x=log2ratio, y=cdf]{benchmarks/data/ratio_ecdf.dat};
+  \addplot[pptline] table[x=log2ratio, y=cdf]{benchmarks/data/size_ecdf.dat};
+  \draw[beigec!90, dashed] (axis cs:0,0) -- (axis cs:0,100);
+  \legend{solving time, script size}
+\end{axis}
+\end{tikzpicture}
+\caption{Cumulative distributions of the per-goal time ratio, over the goals
+  both prove, and of the script-size ratio, over the goals both encode.}
+\label{fig:eval-ratio}
+\end{figure}
+
+\FloatBarrier
+\subsection{Where the difference lives}
+\label{sec:beer-results-where}
+
+The global numbers say the two encodings are close where both run; this section asks where they differ, by cutting the verdict-only population along the structural axes of \Cref{sec:benchmark-corpus}.
+
+% Two independent figures on one row: each minipage carries its own \caption,
+% so they are numbered as separate figures, not subfigures.  `[t]` plus a
+% leading \vspace{0pt} aligns the tops of the two boxes rather than their
+% baselines, and `scale only axis` in both makes `height` the plot box itself,
+% so the rotated labels on the right no longer shrink its plot.
+\begin{figure}[t]
+\begin{minipage}[t]{0.38\linewidth}
+\vspace{0pt}
+\centering
+\begin{tikzpicture}
+\begin{axis}[bars, scale only axis, width=4.5cm, height=5cm, bar width=8pt,
+  xticklabels from table={\byorder}{label},
+  xlabel={POW-nesting depth of the type},
+  legend style={at={(0.98,0.98)}, anchor=north east, legend columns=2},
+  ]
+  \addplot[beer] table[x=idx, y=beerh]{\byorder};
+  \addplot[ppt]  table[x=idx, y=pptransh]{\byorder};
+  \legend{\beer{}, ppTrans}
+\end{axis}
+\end{tikzpicture}
+\caption{Success by type order, verdict-only: each bucket's denominator is
+  the goals of that order both pipelines answered.}
+\label{fig:eval-order}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.6\linewidth}
+\vspace{0pt}
+\centering
+\begin{tikzpicture}
+\begin{axis}[bars, scale only axis, width=7cm, height=5cm, bar width=8pt,
+  xticklabels from table={\bysubj}{label},
+  x tick label style={font=\scriptsize, rotate=30, anchor=north east},
+  legend style={at={(0.98,0.98)}, anchor=north east, legend columns=2},
+  ]
+  \addplot[beer] table[x=idx, y=beerh]{\bysubj};
+  \addplot[ppt]  table[x=idx, y=pptransh]{\bysubj};
+  \legend{\beer{}, ppTrans}
+\end{axis}
+\end{tikzpicture}
+\caption{Success by subject class, verdict-only.}
+\label{fig:eval-subject}
+\end{minipage}
+\end{figure}
+
+\Cref{fig:eval-order} cuts by type order.
+The natural conjecture---that a higher-order encoding pulls ahead as types deepen and behind on flat goals---survives only in part.
+Where both sides answer, the encodings perform comparably at order 0 and from order 2 upward; the entire verdict-only gap occurs at order 1 (\(-7.1\) points), where sets-and-relations are most prevalent in the corpus.
+The restriction must be read alongside: it removes a quarter of the order-0 goals but \(70\,\%\) of the order-\(\ge 4\) ones, precisely because deep goals are where \beer{} and ppTrans give up (\(43.4\,\%\) and \(36.7\,\%\) of them, respectively), leaving 3\,921 of 12\,950 goals in the surviving deep bucket.
+Under strict scoring, which counts all of those as failures, \beer{} is behind at every order; \Cref{tab:eval-order} carries both readings.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[bars, height=5.8cm, width=\linewidth, bar width=8pt,
+  xticklabels from table={\byfeat}{label},
+  x tick label style={font=\scriptsize, rotate=32, anchor=north east},
+  legend style={at={(0.98,0.98)}, anchor=north east, legend columns=2},
+  ]
+  \addplot[beer] table[x=idx, y=beerh]{\byfeat};
+  \addplot[ppt]  table[x=idx, y=pptransh]{\byfeat};
+  \legend{\beer{}, ppTrans}
+\end{axis}
+\end{tikzpicture}
+\caption{Success among the goals containing a given construct, verdict-only;
+  the classes overlap and are ordered by \beer{}'s advantage.}
+\label{fig:eval-construct}
+\end{figure}
+
+\Cref{fig:eval-subject,fig:eval-construct} locate the differences by subject and by construct, and they fall on either side of a clean line.
+\beer{} is ahead wherever the difficulty of a goal is a \emph{counting}, an \emph{integer}, or a \emph{set treated as an object}: pure arithmetic (\(+9.0\)), sequences (\(+3.6\)), pure set theory (\(+1.5\)), and above all cardinality, where its advantage is nearly a factor of two (\(33.9\,\%\) against \(17.5\,\%\)).
+It is behind wherever a \emph{function is applied}: the functions subject class (\(-9.6\)) and the function-application construct class (\(-7.4\)) carry the largest deficits, with transitive closure (\(-8.2\)) beside them---a class to read with care, since only 634 of its goals survive the restriction, ppTrans having been killed on \(45.8\,\%\) of the goals containing a closure.
+Both signs are legible in the design of \Cref{ch:beer,ch:loosening}.
+On the winning side, characteristic predicates keep the set algebra shallow---union is a pointwise disjunction, not an axiom about a fresh set---and integers stay native, so arithmetic reasoning never crosses an encoding layer.
+On the losing side, every application of an encoded function passes through the option-valued machinery and, when representations disagree, through a cast whose helper variable and quantified specification are precisely the blow-up measured in \Cref{fig:eval-ratio}; ppTrans's uniform membership relation has no such seam.
+The propositional deficit (\(-5.7\)) fits neither pattern and is examined next.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{axis}[base, height=7.9cm, width=.72\linewidth,
+  colormap name=divergent, colorbar,
+  point meta min=-40, point meta max=40,
+  colorbar style={font=\scriptsize, width=8pt,
+                  ylabel={\beer{} $-$ ppTrans (points)}},
+  xmin=-0.5, xmax=1.5, ymin=-0.5, ymax=6.5,
+  xtick={0,1}, xticklabels={first-order, higher-order},
+  ytick=data, yticklabels from table={\bysubj}{label},
+  y tick label style={font=\scriptsize},
+  grid=none, y dir=reverse,
+  nodes near coords, nodes near coords style={font=\scriptsize,
+    anchor=south, yshift=0.5pt,
+    /pgf/number format/fixed, /pgf/number format/precision=0,
+    /pgf/number format/print sign},
+  ]
+  \addplot[matrix plot*, point meta=explicit, mesh/cols=2,
+           mesh/ordering=x varies]
+    table[x=x, y=y, meta=deltah] {\crosstab};
+  % second pass: the population behind each cell, so a large advantage on a
+  % handful of goals cannot be mistaken for a result
+  \addplot[only marks, mark=none, point meta=explicit, forget plot,
+    nodes near coords, nodes near coords style={font=\tiny, creamc!80!black,
+      anchor=north, yshift=-0.5pt, /pgf/number format/int detect,
+      /pgf/number format/print sign=false,
+      /pgf/number format/1000 sep={\,}}]
+    table[x=x, y=y, meta=nh] {\crosstab};
+\end{axis}
+\end{tikzpicture}
+\caption{Verdict-only advantage by subject and order class: pink is \beer{}
+  ahead, blue ppTrans ahead, and gray figures are the cell's population and the corresponding delta.}
+\label{fig:eval-cross}
+\end{figure}
+
+\Cref{fig:eval-cross} crosses subject with the higher-order class of \Cref{sec:benchmark-corpus}, and its gradient is the sharpest design validation in the campaign.
+On six of the seven subjects, \beer{} does relatively better on the higher-order goals than on the first-order ones of the same subject, and on four it is ahead outright there---though the \(+70\) of the higher-order arithmetic cell rests on 161 goals and is not quotable.
+The characteristic predicate representation was adopted for exactly these goals---sets as objects, quantification over sets---and that is where it delivers; symmetrically, most of \beer{}'s remaining deficit sits in the first-order cells, where ppTrans's reduction is at home and \beer{} pays its representational overhead without collecting its dividend.
+The propositional row is the outlier, but its higher-order cell holds only 88 goals, and the class's deficit is not concentrated in deep set structure; consistently, its exclusive-win rate is the lowest of any class (\Cref{sec:beer-results-alone}): on goals with no set structure to exploit, the higher-order machinery has nothing to pay for its overhead with.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 1, horizontal sep=1.5cm},
+  base, width=.45\linewidth, height=5cm, ymin=0, ymax=100,
+  ylabel={goals proved (\%)}]
+
+\nextgroupplot[xtick=data, xticklabels from table={\bynodes}{label},
+  xlabel={goal size (AST nodes)}, title={by size},
+  x tick label style={font=\tiny, rotate=25, anchor=north east},
+  legend style={at={(0.98,0.98)}, anchor=north east}]
+  \addplot[beerline, mark=*, mark size=1.5pt] table[x=idx, y=beerh]{\bynodes};
+  \addplot[beercol, line width=1.1pt, mark=*, mark size=1.5pt]
+    table[x=idx, y=pptransh]{\bynodes};
+  \legend{\beer{}, ppTrans}
+
+\nextgroupplot[xtick=data, xticklabels from table={\byquant}{label},
+  xlabel={quantifiers in the goal}, title={by quantifier count},
+  x tick label style={font=\tiny}]
+  \addplot[beerline, mark=*, mark size=1.5pt] table[x=idx, y=beerh]{\byquant};
+  \addplot[beercol, line width=1.1pt, mark=*, mark size=1.5pt]
+    table[x=idx, y=pptransh]{\byquant};
+\end{groupplot}
+\end{tikzpicture}
+\caption{Success by goal size and by explicit quantifier count, verdict-only.}
+\label{fig:eval-size-quant}
+\end{figure}
+
+Finally, \Cref{fig:eval-size-quant} rules out the two lazy explanations.
+Neither raw goal size nor the number of quantifiers the \emph{source} goal binds separates the encodings: the gap is 2.8 points on the smallest goals, stays between 1 and 12 points across four orders of magnitude of size, and between 3 and 7.3 points across the quantifier range.
+What the solver struggles with is the quantified structure each encoding \emph{introduces}---casts and bounded universals on one side, membership axioms on the other---which is invisible in these two axes and entirely visible in the construct cuts above.
+
+\FloatBarrier
+\subsection{Where \beer{} wins alone}
+\label{sec:beer-results-alone}
+
+Everything above measures a deficit.
+This section takes the opposite cut: the \bmBOHTotal{} goals \beer{} proves and ppTrans does not, and asks what they are made of.
+Verdict-only throughout, which means every one of these is a goal ppTrans answered \smtinl{unknown} on: an encoding-quality win.
+The strict picture is consistent: of the \bmBOTotal{} strict \beer{}-exclusive wins, \bmBOUnknown\,\% are goals ppTrans answered \smtinl{unknown} on, and only \bmBOKilled\,\% are resource wins at the wall.
+The unit below is \emph{lift}: the rate of \beer{}-exclusive wins inside a class over the overall rate of \bmBOHRate\,\%, so a lift above 1 marks a class carrying more of those wins than its size would predict.
+Lift says nothing about volume---a class can have a high rate and still contribute few goals---so the class sizes are tabulated alongside in \Cref{tab:eval-construct,tab:eval-subject}.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}
+\begin{groupplot}[group style={group size=2 by 1, horizontal sep=2.4cm},
+  base, width=.42\linewidth, height=6.6cm, y dir=reverse, ytick=data]
+
+\nextgroupplot[xbar, xmin=0, xmax=22, bar width=5pt,
+  enlarge y limits=0.06,
+  yticklabels from table={\byfeatbo}{label},
+  y tick label style={font=\scriptsize},
+  xlabel={\beer{}-exclusive wins in the class (\%)},
+  title={by construct},
+  ]
+  \addplot[beer] table[x=beeronly, y=idx]{\byfeatbo};
+  \draw[beigec!90, densely dashed] (axis cs:\bmBOHRate,-1)
+                            -- (axis cs:\bmBOHRate,12);
+
+\nextgroupplot[xbar, xmin=0, xmax=22, bar width=5pt, enlarge y limits=0.06,
+  yticklabels from table={\bysubjbo}{label},
+  y tick label style={font=\scriptsize},
+  xlabel={\beer{}-exclusive wins in the class (\%)},
+  title={by subject},
+  ]
+  \addplot[beer] table[x=beeronly, y=idx]{\bysubjbo};
+  \draw[beigec!90, densely dashed] (axis cs:\bmBOHRate,-1)
+                            -- (axis cs:\bmBOHRate,7);
+\end{groupplot}
+\end{tikzpicture}
+\caption{Rate of \beer{}-exclusive wins by class, verdict-only; the dashed
+  line is the overall rate. The two panels classify differently, so their
+  rates are not comparable across the gap.}
+\label{fig:eval-bo}
+\end{figure}
+
+\Cref{fig:eval-bo} ranks the classes by that rate, repeating   the pattern of \Cref{sec:beer-results-where} from the opposite direction.
+Among constructs, cardinality leads at \(20.2\,\%\)---lift 2.8, nearly triple the baseline---followed by set-typed bound variables (\(9.3\,\%\)) and arithmetic (\(8.8\,\%\)); among subjects, pure arithmetic leads at \(10.7\,\%\) (lift 1.5), then arith+sets (\(8.6\,\%\)) and relational (\(8.5\,\%\)).
+At the other ends sit function application (\(5.2\,\%\), lift 0.7) and, well below anything else, propositional goals (\(1.6\,\%\), lift 0.2).
+
+\FloatBarrier
+
+The wins are broadly spread but not uniformly: \bmBOFiles{} files contribute at least one.
+Three of the heaviest contributors\footnote{\texttt{0039/00060}, \texttt{0039/00040}, and \texttt{0032/00046}.} report identical figures and are near-certainly the same machine appearing three times in the corpus, to be counted once.
+File \texttt{0033/00039} shows the exclusive wins are not confined to \beer{}'s favored classes: 2\,307 of its 3\,715 answered goals---\(62\,\%\) of the file, against ppTrans's \(35\,\%\)---are \beer{}'s alone, and they are order-1 function applications, the very class \beer{} loses on average.
+A class-level deficit is an average, not a verdict on every goal in the class.
+And the files this scoring \emph{removes} are the mirror lesson: on \texttt{0002/00006} and \texttt{0024/00011}, ppTrans strictly proves barely \(2\,\%\) while \beer{} clears them in seconds, yet they cannot appear in a verdict-only ranking at all, because almost none of their goals got a ppTrans verdict to compare against.
+
+\FloatBarrier
+\subsection{Summary}
+\label{sec:beer-results-summary}
+
+The campaign answers the four questions of \Cref{sec:evaluation-goals} as follows.
+End to end, the pipeline proves \bmBeerAll\,\% of the corpus against the industrial baseline's \bmPptAll\,\%.
+The arithmetic of the gap is dominated by the \bmNoScript\,\% of goals that never reach the solver---mostly the \texttt{Struct} files \beer{} does not aim to support---but its root cause is the solver: higher-order SMT solving is not yet efficient for this kind of industrial problems.
+Where both pipelines deliver a script and a verdict, the higher-order encoding stands within 3.2 points of a baseline refined over decades, with exclusive wins on both sides and a combined union of \bmSUnion\,\%, so the two encodings are complements rather than substitutes.
+Structurally, the higher-order encoding is ahead precisely where its design aimed: counting, arithmetic, and sets treated as objects, with a systematic relative advantage on higher-order goals; it pays for this on function application, where cast specifications concentrate.

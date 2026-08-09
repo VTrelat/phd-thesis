@@ -1,0 +1,10 @@
+x y beerstat pptstat n pct
+0 0 unsat unsat 301926 44.0028
+1 0 unsat unknown 43381 6.3224
+2 0 unsat killed 11598 1.6903
+0 1 unknown unsat 62506 9.1096
+1 1 unknown unknown 197712 28.8146
+2 1 unknown killed 68900 10.0415
+0 2 killed unsat 33 0.0048
+1 2 killed unknown 96 0.014
+2 2 killed killed 0 0

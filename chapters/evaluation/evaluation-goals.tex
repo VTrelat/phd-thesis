@@ -1,2 +1,30 @@
 \section{Evaluation goals}
 \label{sec:evaluation-goals}
+
+The object of this chapter is the automated pipeline as a whole: a B proof obligation goes in, an SMT script comes out, and a solver either discharges the goal or does not.
+Its design rests on two decisions defended in the preceding chapters---representing sets by characteristic predicates and functions by function values rather than by a first-order membership axiomatization (\Cref{ch:beer}), and reconciling the representations this creates through type loosening (\Cref{ch:loosening}).
+Both decisions were justified there on semantic and proof-theoretic grounds; whether they help an actual solver is an empirical question, and this chapter answers it through four concrete assessments:
+
+\begin{description}[font=\normalfont\emph]
+  \item[Effectiveness:] of all proof obligations in the corpus, how many does the pipeline discharge end to end, and what stops it on the rest?
+  \item[Quality:] when both encoders produce a script and the solver reaches a verdict on both, which encoding serves the solver better?
+  \item[Structure:] which classes of goals favor which encoding---and do the design choices of \Cref{ch:loosening,ch:beer} pay off where they were predicted to?
+  \item[Cost:] what do the higher-order scripts cost in solver time and script size?
+\end{description}
+
+\paragraph*{Baseline.}
+The comparison point is \emph{ppTrans}, the translator distributed with Atelier~B~\cite{lecomte2024proving} and the industrial reference for discharging B proof obligations with SMT solvers~\cite{deharbe2014integrating}.
+It occupies the opposite pole of the design space surveyed in \Cref{ch:introduction}: set-theoretic constructs are compiled away into first-order formulas over simple membership predicates, so no set, function, or relation survives as a first-class value.
+Running both translators on the same goals, with the same solver under identical settings, therefore compares the two encoding philosophies rather than two solvers.
+
+\paragraph*{Measured artifact.}
+The questions above instead concern the encoding \emph{design} at full scale, so we measure the variant that implements the encoding rules of \Cref{ch:beer}, extended to the constructs the verified fragment excludes and optimized more aggressively.
+The encoder under test is therefore \textsc{Zero-Proof} \beer{} (\Cref{sec:beer-zero-proof}).
+The distinction is kept explicit throughout: the measured binary shares the design, but its implementation is not fully covered by the soundness theorem of \Cref{sec:beer-soundness}.
+
+\paragraph*{Solver.}
+Both scripts are discharged by cvc5~\cite{barbosa2022cvc5}, the reference implementation of higher-order SMT solving~\cite{barbosa2019hosmt}.
+
+\begin{note}
+The interactive route through \barrel{} is not evaluated here: a proof-assistant integration is exercised by users rather than by a corpus sweep, and \Cref{ch:barrel} discusses it qualitatively.
+\end{note}
