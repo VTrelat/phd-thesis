@@ -1,2 +1,295 @@
-\section{Lean metaprogramming}
+\section{Generating the Lean theorems}
 \label{sec:barrel-lean-metaprogramming}
+
+An obligation read from a proof obligation file has already been assembled into a single
+implication; what remains is to translate it into a Lean proposition, to supply the
+well-definedness evidence that \Cref{sec:barrel-wd} makes mandatory, to attempt a proof,
+and to contain the failures.
+
+\subsection{Flattening and dependent conjunction}
+\label{subsec:barrel-normalization}
+
+Two normalizations are applied before elaboration; only the second is motivated by the
+treatment of partiality.
+
+The first is cosmetic.
+A proof obligation arrives with its hypotheses bundled into conjunctions, and an implication
+whose antecedent is an \(n\)-ary conjunction is rewritten into a chain of implications,
+\[
+  (H_1 \andB \dots \andB H_n) \impB G
+  \quad\rightsquigarrow\quad
+  H_1 \impB \dots \impB H_n \impB G .
+\]
+The two are equivalent, but the second form yields a Lean goal whose hypotheses are
+separate binders, so a user proof does not begin with a sequence of administrative
+conjunction eliminations.
+
+The second is not.
+A B conjunction is translated by a \emph{dependent} conjunction,
+\[
+  P \mathbin{\land'} Q \;\triangleq\; \exists\, (h : P),\ Q\,h ,
+\]
+and an implication by a genuine dependent \(\forall\).
+The reason is that the well-definedness evidence required by the right conjunct may only be
+derivable from the left one.
+The B assertion
+\[
+  f \inB A \pfunB B \andB f(\var{x}) \inB B
+\]
+is a case in point: the term denoting \(f(\var{x})\) needs a proof that \(f\) is functional,
+which follows from the first conjunct and from nothing else in sight.
+With a non-dependent conjunction the second component would have to be translated in a
+context where the first is unavailable, and the encoding would not even be well typed.
+Translating the right-hand side under a hypothesis naming the left-hand side removes the
+problem entirely, and does so uniformly for conjunction, implication, and the guard of a
+lambda abstraction.
+
+Nothing new is introduced by \(\land'\): it is Lean's existential quantifier, given an
+infix notation and a matching pretty-printer.
+Writing the existential as such would have been equally correct and strictly less readable,
+since every B conjunction would then appear as \(\exists\,(h : P),\ Q\,h\) in the
+generated goals, and a reader comparing a goal with its B source would have to undo the
+encoding at each connective.
+The notation also degrades gracefully: when \(Q\) does not use \(h\), the binder is
+suppressed and the goal shows \(P \mathbin{\land'} Q\), one prime away from the B
+predicate it translates.
+
+\subsection{Reifying well-definedness holes}
+\label{subsec:barrel-reification}
+
+The encoder must produce well-definedness evidence while it is still building the term
+that needs it, and at that moment the evidence does not exist.
+It therefore leaves a hole.
+A hole of this kind---a \emph{metavariable}---carries two things: the proposition that must
+eventually fill it, and the variables and hypotheses that were in scope where it was
+created, which is by construction the context of the occurrence.
+Once the enclosing proposition has been built, each remaining hole is \emph{reified}: its
+proposition is universally closed over that context and declared as a theorem in its own
+right, and the hole is filled by that theorem applied to the very hypotheses under which
+the partial operator occurred.
+
+\Cref{fig:barrel-reification} follows the mechanism on the obligation
+\[
+  \forallB \var{S} \inB \mathsf{FIN}_1(\ZintB) \cdot
+    \bigl( (\forallB \var{x} \inB \var{S} \cdot \var{x} \leB 0) \impB \minB(\var{S}) \leB 0 \bigr),
+\]
+whose single partial occurrence is the minimum.
+
+\begin{figure}[t]
+  \centering
+  \tikzsetnextfilename{barrel-reification}
+  \begin{tikzpicture}[
+      every node/.style={font=\small},
+      stage/.style={draw=venn-dark, line width=.9pt, rounded corners=3pt,
+        fill=beige!40, align=left, inner sep=7pt, text width=8cm,
+        anchor=north west},
+      tag/.style={draw=none, font=\scriptsize\sffamily, text=cover-cream,
+        anchor=south west},
+      side/.style={draw=none, font=\small\itshape, text=blue,
+        align=left, anchor=west, text width=5.0cm},
+      flow/.style={-{Stealth[length=5pt,width=4pt]}, line width=.9pt, draw=blue},
+    ]
+    \node[stage] (s1) at (0,0)
+      {\(\forall\, (\var{S} : \mathtt{Set}\ \mathbb{Z})\;
+          (h_{f} : \var{S} \in \mathtt{FIN_1}\ \mathbb{Z})\;
+          (h_{\le} : \forall\, \var{x} \in \var{S},\ \var{x} \le 0),\)\\[2pt]
+       \hspace*{1.2em}\(\mathtt{min}\ \var{S}\ \boxed{?m} \le 0\)};
+    \node[tag] at (s1.north west) {encoder output};
+
+    \node[stage] (s2) at (0,-3.0)
+      {\(\mathtt{wd_0} : \forall\, \var{S}\ h_{f}\ h_{\le},\ \mathtt{min.WD}\ \var{S}\)};
+    \node[tag] at (s2.north west) {reified theorem};
+
+    \node[stage] (s3) at (0,-5.3)
+      {\(\forall\, \var{S}\ h_{f}\ h_{\le},\
+          \mathtt{min}\ \var{S}\ (\mathtt{wd_0}\ \var{S}\ h_{f}\ h_{\le}) \le 0\)};
+    \node[tag] at (s3.north west) {completed proposition};
+
+    \draw[flow] (s1.south) -- (s2.north);
+    \draw[flow] (s2.south) -- (s3.north);
+
+    \node[side] at (9.3,-2.05)
+      {\(?m\) has type \(\mathtt{min.WD}\ \var{S}\) in the context
+       \(\var{S}, h_{f}, h_{\le}\); close its type over that context};
+    \node[side] at (9.3,-4.75)
+      {assign \(?m \coloneq \mathtt{wd_0}\ \var{S}\ h_{f}\ h_{\le}\)};
+  \end{tikzpicture}
+  \caption{Reification of a well-definedness metavariable. The hole left by the encoder
+    carries its own local context; closing its type over that context turns it into a
+    standalone theorem statement, and the main proposition is completed by applying that
+    theorem to the very hypotheses under which the partial operator occurred.}
+  \label{fig:barrel-reification}
+\end{figure}
+
+\FloatBarrier
+
+Nested partial operators are handled in the same way: a hole opened while translating the
+argument of another partial operator simply has the larger context.
+A proposition that still contains an unfilled hole is rejected rather than kept.
+The main proposition and each of its reified conditions are named after the tag Atelier~B
+gave the obligation, of the shape \(\mathit{Machine}.\mathit{Tag}\_i\) and
+\(\mathit{Machine}.\mathit{Tag}\_i.\mathtt{wd}\_j\); a proposition becomes a declaration in
+the environment as soon as it has a proof, carrying a docstring that records the source
+artifact and the reason string of the obligation.
+
+The order in which these declarations are created is not free.
+A principal proposition mentions the constants naming its definedness conditions, so those
+conditions must be declared first, and the discharger therefore processes the reified
+conditions of an obligation before the obligation itself.
+What it fails to prove is collected in two groups---the artifact's open definedness
+conditions, then its open principal obligations---and that is the order in which
+\leaninl{prove_obligations_of} asks for proofs, a detail the user meets again in
+\Cref{sec:barrel-interface}.
+
+\subsection{Sharing well-definedness conditions}
+\label{subsec:barrel-wd-sharing}
+
+Reifying every occurrence separately is faithful, but it amplifies a duplication that is
+already present upstream.
+When Atelier~B splits a conjunctive invariant, it emits one obligation per conjunct while
+repeating the common hypotheses; every partial expression inside those hypotheses is then
+encountered again in each obligation, and the same well-definedness proposition would be
+declared---and proved---many times.
+
+The discharger therefore keeps, for the duration of an import, the well-definedness
+theorems it has already created, and identifies a new condition with an old one up to
+\(\alpha\)-equivalence, falling back on definitional equality.
+When a match is found, the hole is filled with the existing theorem instead of creating a
+new goal.
+
+Three properties of this mechanism matter.
+It spans the whole import, and it covers conditions that were left open as well as those
+already proved, so an interactive proof is never requested twice for the same condition.
+It is equality-based, not subsumption-based: \barrel{} does not attempt to discover that
+one condition follows from a differently stated, stronger theorem, which would add an
+open-ended proof-search problem to goal generation.
+Finally, it preserves a simple dependency structure, since every partial occurrence still
+points to one theorem of exactly the type its operator demands.
+The quantitative effect is reported in \Cref{subsec:barrel-minsearch-results}: on the case
+study it removes more than half of the generated goals, and leaves the principal
+obligations untouched.
+
+\subsection{Proof-producing automation and the trust boundary}
+\label{subsec:barrel-automation}
+
+Before anything is shown to the user, the discharger runs the tactic
+\leaninl{barrel_solve} on every distinct proposition---well-definedness conditions and
+principal obligations alike.
+The tactic is a small ordered cascade: it strips leading binders, tries \leaninl{trivial},
+then the B-specific well-definedness tactics, and finally Lean's \leaninl{grind} procedure.
+The well-definedness tactics are backtracking searches over lemma collections identified by
+label attributes---\leaninl{wd_min}, \leaninl{wd_max}, \leaninl{wd_app} and
+\leaninl{wd_card}, with two auxiliary collections \leaninl{pfun} and \leaninl{tfun} for the
+function-space side conditions that those searches generate.
+The collections cover four of the five partial operators; \(\mathsf{size}\), which the
+case study does not exercise, has none, and its conditions fall through to
+\leaninl{grind}.
+\Cref{lst:barrel-automation-lemmas} shows representative members of the first collection,
+together with a computation lemma of the kind that lets \leaninl{grind} make progress on a
+goal once its definedness bookkeeping has been discharged.
+
+\begin{leanlisting}[title={Representative lemmas driving \barrel{}'s automation.},
+    label={lst:barrel-automation-lemmas}, float=t]
+@[grind ., wd_min]
+theorem min.WD_singleton {α} [PartialOrder α] {a : α} : min.WD {a}
+
+@[wd_min]
+theorem min.WD_of_finite {α} [LinearOrder α] {S A : Set α}
+    (h : S ∈ FIN₁ A) : min.WD S
+
+@[grind ., wd_min]
+theorem min.WD_interval {lo hi : ℤ} (h : lo ≤ hi) :
+    min.WD (lo .. hi)
+
+@[grind ., simp]
+theorem interval.min_eq {lo hi : ℤ} (h : lo ≤ hi) :
+    min (lo .. hi) (min.WD_interval h) = lo
+\end{leanlisting}
+
+The division of work is deliberate.
+The tagged tactics remove the bookkeeping introduced by explicit proof arguments, which is
+the part of a goal that no general-purpose tactic can be expected to handle, since it is
+specific to the encoding.
+Once that layer is gone, an obligation is a statement about sets, relations, orders, and
+integers, and general automation applies.
+Users may invoke the same tactics manually, mix them with standard Lean tactics, and add
+their own lemmas to the label collections, so a development can extend the default
+reasoning without replacing the discharger.
+
+Each translation and each automatic attempt runs under its own resource budget rather than
+a share of one budget for the whole import, and exhausting a budget is a local failure: the
+obligation joins the list left to the user and processing continues.
+Encoding errors are contained in the same way---an obligation that uses a construct outside
+the supported fragment is reported as a warning and skipped, while its neighbors are still
+attempted.
+Without this containment a single divergent tactic call would abort the import of the
+whole file; it is what puts industrial files within reach at all
+(\Cref{subsec:barrel-industrial-scale}).
+
+The automation layer is proof-producing: a successful attempt installs only a term that
+Lean's kernel accepts, and a failed or timed-out attempt leaves an ordinary interactive
+goal.
+There is one qualification.
+A goal that already depends on an admission is closed by re-admitting it rather than
+rejected, and the discharger counts such outcomes separately from genuine proofs; the
+``auto-solved'' figure reported by the interface is the sum of the two, and the admitted
+ones are rendered distinctly.
+
+That guarantee stops at the propositions \barrel{} emits, and
+\Cref{fig:barrel-trust} makes the boundary explicit.
+Everything to the left of it is trusted: Atelier~B's generation of the obligation for a
+source import, the reader that parses the resulting file, the encoder that turns B syntax
+into Lean terms, and the faithfulness of the shallow model of \Cref{sec:barrel-embedding}
+to B's semantics.
+Everything to the right is checked: a completed, admission-free script yields a proof term
+verified by Lean's kernel, and neither the tactics nor the interface of
+\Cref{sec:barrel-interface} has to be trusted for that verification to hold.
+Importing an existing proof-obligation file removes the external programs from a particular
+run, but says nothing about how that file was produced.
+
+\begin{figure}[t]
+  \centering
+  \tikzsetnextfilename{barrel-trust}
+  \begin{tikzpicture}[
+      every node/.style={font=\small},
+      item/.style={draw=venn-dark, line width=.8pt, rounded corners=2pt, fill=beige!40,
+        align=center, inner sep=4pt, minimum height=1.0cm, text width=2.5cm},
+      edgelbl/.style={draw=none, font=\scriptsize, anchor=south},
+      flow/.style={-{Stealth[length=5pt,width=4pt]}, line width=.9pt, draw=venn-dark},
+      band/.style={draw=none, font=\footnotesize\sffamily, anchor=north},
+    ]
+    \fill[orange!8, rounded corners=3pt] (-7.70,-1.02) rectangle (3.55,0.58);
+    \fill[green!8,  rounded corners=3pt] (3.75,-1.02) rectangle (7.85,0.58);
+
+    \node[item] (src)  at (-6.20,0) {B artifact};
+    \node[item] (pog)  at (-2.05,0) {proof\\obligation};
+    \node[item] (prop) at ( 2.05,0) {Lean\\proposition};
+    \node[item] (thm)  at ( 6.20,0) {kernel-checked\\theorem};
+
+    \draw[flow] (src) -- (pog);
+    \draw[flow] (pog) -- (prop);
+    \draw[flow] (prop) -- (thm);
+
+    \node[edgelbl] at (-4.125,.66) {\texttt{bxml}, \texttt{pog}};
+    \node[edgelbl] at ( 0.000,.66) {read, encode};
+    \node[edgelbl] at ( 4.125,.66) {automation, \texttt{next}};
+
+    \node[band, text=orange] at (-2.075,-.60) {trusted};
+    \node[band, text=green]  at ( 5.800,-.60) {checked by the kernel};
+  \end{tikzpicture}
+  \caption{Trust boundary of \barrel{}. Generating the obligation and translating it into a
+    Lean proposition are trusted; establishing that proposition is checked.}
+  \label{fig:barrel-trust}
+\end{figure}
+
+\FloatBarrier
+
+Within this boundary, two guarantees hold.
+The first is structural: a partial B operator cannot occur in a translated term without
+explicit well-definedness evidence, whether that evidence is produced during import or by a
+user's tactic script.
+The second is proof-theoretic: every theorem accepted without an admission has a checked
+proof of its encoded statement, and its axiom dependencies can be listed.
+What is \emph{not} guaranteed is that Atelier~B generated the right obligation, or that the
+encoder produced the intended Lean proposition; removing those assumptions is the subject
+of \Cref{subsec:barrel-verified-generator}.

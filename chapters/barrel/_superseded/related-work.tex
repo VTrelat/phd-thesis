@@ -1,0 +1,35 @@
+\section{Related Work}
+\label{sec:barrel-related-work}
+
+Several projects have connected the B family of methods to interactive theorem
+provers in order to move proof obligations into a logic with a small,
+independently checkable kernel.  An early translation from B to PVS uses type
+synthesis to recover the parent-set information needed by the typed target
+logic \cite{Bodeveix2002BtoPVS}.  Work in Isabelle/HOL has concentrated on
+Event-B: Schmalz formalized its logic, including partial functions and
+definitional extensions, in an Isabelle plugin for Rodin
+\cite{Schmalz2012RodinIsabelle}, while Ballenghien and Wolff more recently
+presented Event-B as a shallow domain-specific language hosted in Isabelle/HOL
+\cite{Wolff2024EB_Isabelle}.  These developments either target Event-B and
+Rodin or emphasize a formalization of the source logic rather than an
+interactive backend for Atelier~B POG files.
+
+Atelier~B obligations have also been exported to automatic provers.  The
+multi-prover approach of Mentr\'e et al. and the SMT translation of Deharbe et
+al. illustrate this route \cite{mentre2012discharging,deharbe2010automatic}.
+The \beer backend developed in this thesis follows the same broad strategy but
+adds a verified encoding into SMT-LIB for its supported fragment
+\cite{trelat2025beer}.  Such backends are well suited to high-throughput
+automatic discharge; their target languages are not intended to become the
+interactive proof environment in which a user develops auxiliary mathematics.
+
+\barrel is complementary.  It retains Atelier~B's modelling and
+proof-obligation generation stages, consumes the resulting POG, and maps every
+supported obligation to an ordinary Lean proposition over Mathlib's typed
+sets, relations, orders, and arithmetic.  Its distinctive concern is the
+interactive stage: generated statements preserve recognizable B notation,
+partial operators carry explicit well-definedness evidence, and successful
+proofs become named, kernel-checked Lean theorems.  The goal is therefore not
+to formalize B anew, nor to replace automatic backends, but to make Lean and
+its library available as a modern second prover for an existing Atelier~B
+development.

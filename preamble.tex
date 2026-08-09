@@ -62,6 +62,20 @@
 
 \setcounter{tocdepth}{1}
 
+% Reserve more room for the page-number column in the ToC/LoF/LoT. LaTeX
+% (and KOMA-Script, which reuses the same mechanism) boxes each entry's page
+% number into a fixed-width \hbox of width \@pnumwidth (default 1.55em) --
+% tuned for 2-digit numbers in a narrow serif face. Once the thesis passes
+% page 100, bold 3-digit numbers on chapter-level entries (and some
+% wide-digit numbers on regular entries) no longer fit in Fira Sans, which
+% is what produces the overfull-hbox black bars in the ToC. Widening
+% \@pnumwidth (and \@tocrmarg, the matching right margin used by dotted
+% entries) fixes this for any page count the thesis will reach.
+\makeatletter
+\renewcommand{\@pnumwidth}{2.3em}
+\renewcommand{\@tocrmarg}{3.3em}
+\makeatother
+
 \definecolor{beige}{RGB}{254, 248, 236}
 \definecolor{cover-cream}{RGB}{125, 104, 86} % rgb(125, 104, 86)
 \definecolor{blue}{RGB}{0, 153, 173}

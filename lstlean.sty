@@ -26,7 +26,7 @@ morekeywords=[1]{
 		attribute, local, set_option, extends, include, omit, class,
 		raw, replacing,
 		calc, have, by, in, at, let, forall, Pi, fun,
-		if, dif, then, else, assume, obtain, from, register_simp_ext, unless, break, continue,
+		if, dif, then, else, assume, from, register_simp_ext, unless, break, continue,
 		mutual, do, def, run_cmd, const,
 		partial, mut, where, macro, syntax, deriving, unsafe,
 		return, try, catch, for, macro_rules, declare_syntax_cat, abbrev},
@@ -37,12 +37,13 @@ morekeywords=[2]{Sort, Type, Prop},
 morekeywords=[3]{
 		assumption,
 		apply, intro, intros, rintro, all_goals,
-		generalize, clear, revert, done, exact,
+		generalize, clear, revert, exact,
 		refine, repeat, cases, rcases, rewrite, rw,
 		simp, simp_all, contradiction,
 		constructor, injection, grind, ring,
 		congr, ext,
-		induction, show, suffices, exists,
+		induction, show, suffices, exists, obtain,
+		generalize_proofs,
 		zrel, zpfun, zfun
 	},
 % modifiers, taken from lean-syntax.el
@@ -129,6 +130,8 @@ literate=
 {⊢}{{\ensuremath{\vdash}}}1
 {⟨}{{\ensuremath{\langle}}}1
 {⟩}{{\ensuremath{\rangle}}}1
+{‹}{{\guilsinglleft}}1
+{›}{{\guilsinglright}}1
 {←}{{\ensuremath{\leftarrow}}}1
 % {<-}{{\ensuremath{\leftarrow}}}1
 % {→}{{\ensuremath{\rightarrow}}}
@@ -252,9 +255,9 @@ extendedchars=true,
 	^^^^2088^^^^2089%
 	%% Superscripts
 	^^^^207b%
-	%% Misc maths 
+	%% Misc maths
 	^^^^2200^^^^2203^^^^2192^^^^2227^^^^2228^^^^22c0^^^^22c1%
-	^^^^27e8^^^^27e9%
+	^^^^27e8^^^^27e9^^^^2983^^^^2984^^^^2039^^^^203a%
 	^^^^1d2e^^^^1dbb^^^^^^01d4ab^^^^^^01d4b1^^^^^^01d7d9%
 	^^^^2286^^^^2205^^^^2208^^^^222a%
 	^^00}

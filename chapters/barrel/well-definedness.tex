@@ -1,0 +1,154 @@
+\section{Partiality and well-definedness}
+\label{sec:barrel-wd}
+
+This is the section in which the encoding differs most from the B method's own treatment of
+partial operators.
+\Cref{subsec:barrel-partial-operators} explains how definedness evidence is turned into a
+proof argument, and what that buys; \Cref{subsec:barrel-own-wd} explains why \barrel{}
+recomputes such evidence instead of importing the conditions Atelier~B can generate.
+
+\subsection{Well-definedness as a proof argument}
+\label{subsec:barrel-partial-operators}
+
+Lean has no primitive notion of partiality: a declared function is total on its domain
+type.
+A partial B operator must therefore be turned into a total Lean function, and there are
+essentially three ways to do so.
+One may return an arbitrary value outside the intended domain; the resulting theorems are
+then true of the Lean definition but not of the B operator it is meant to denote, and
+nothing in the statement records the discrepancy.
+One may restrict the argument type by a subtype, which changes the shape of every
+surrounding expression.
+Or one may keep the argument types unchanged and add a proof of definedness as an extra
+argument.
+\barrel{} takes the third option.
+
+For each partial operator, a proposition named \leaninl{WD} states the evidence the operator
+needs, and the operator takes an inhabitant of that proposition as an explicit argument.
+It may then use classical choice to return the value whose existence the evidence
+establishes.
+\Cref{lst:barrel-partial-definitions} shows the pattern on minimum and relational
+application.
+
+\begin{leanlisting}[title={Proof-relevant encodings of the minimum of a set and of
+    relational application.}, label={lst:barrel-partial-definitions}, float=t]
+structure min.WD {α} [PartialOrder α] (S : Set α) : Prop where
+  isBoundedBelow : ∃ x ∈ S, ∀ y ∈ S, x ≤ y
+
+noncomputable abbrev min {α} [PartialOrder α]
+    (S : Set α) (wd : min.WD S) : α :=
+  Classical.choose wd.isBoundedBelow
+
+structure app.WD {α β} (f : SetRel α β) (x : α) : Prop where
+  isPartialFunction : f ∈ tfun (dom f) (ran f)
+  isInDomain        : x ∈ dom f
+
+noncomputable abbrev app {α β}
+    (f : SetRel α β) (x : α) (wd : app.WD f x) : β :=
+  Classical.choose wd.isInDomain
+\end{leanlisting}
+
+The consequence is structural rather than methodological.
+The Lean term denoting \(\appB f\,x\) has type \(\beta\) only when its third argument has
+type \leaninl{app.WD f x}; there is no term \leaninl{app f x} to write down.
+A well-definedness condition is thus not displayed \emph{next to} the main theorem: its
+proof occurs \emph{inside} that theorem's statement.
+The evidence may be obtained automatically, interactively, or by reusing an earlier
+theorem, but it cannot be omitted, and it cannot be introduced later by a proof step that
+forgot to check it.
+
+\Cref{tab:barrel-wd-predicates} lists the five partial operators of the supported fragment
+together with the evidence each of them requires.
+Four consume that evidence through \leaninl{Classical.choose}; the field names are
+historical and slightly understate their contents.
+For the minimum, \leaninl{isBoundedBelow} asserts the existence of a least element, not
+merely of a lower bound, which is what makes the chosen value unique.
+For application, the second field alone---membership of \(x\) in \(\domB(f)\), that is,
+\(\existsB y \cdot (x,y) \inB f\)---already yields a value by choice; the first field,
+which says that \(f\) is a total function \emph{on its own domain} and is how functionality
+of a relation is phrased in this model, is what makes that value \emph{the} image of \(x\).
+Cardinality is the exception and is worth noting, because it shows that the proof argument
+is not a mere guard: from \leaninl{S.Finite} the definition builds a \leaninl{Fintype}
+instance for \leaninl{S} and returns the cardinality of the resulting finite set, so the
+proof genuinely participates in the elaboration of the value.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{lll}
+    \toprule
+    B operator & Lean operator & Well-definedness evidence \\
+    \midrule
+    \(\minB(S)\)      & \leaninl{min}  & \(S\) has a least element \\
+    \(\maxB(S)\)      & \leaninl{max}  & \(S\) has a greatest element \\
+    \(\cardB{S}\)     & \leaninl{card} & \(S\) is finite \\
+    \(f(x)\)          & \leaninl{app}  & \(f \inB \domB(f) \tfunB \ranB(f)\) and \(x \inB \domB(f)\) \\
+    \(\mathsf{size}(s)\) & \leaninl{size} & \(s\) is a sequence over its own range \\
+    \bottomrule
+  \end{tabular}
+  \caption{Partial operators of the supported fragment and the well-definedness evidence
+    they take as an argument.}
+  \label{tab:barrel-wd-predicates}
+\end{table}
+
+\subsection{Why \barrel{} regenerates its own conditions}
+\label{subsec:barrel-own-wd}
+
+Atelier~B is perfectly capable of emitting well-definedness obligations, and does so on
+request.
+\barrel{} nonetheless recomputes them from the Lean term it is constructing, for three
+reasons.
+
+First, the evidence must be a \emph{subterm} of the main proposition, not a sibling of it.
+The proof-obligation file records well-definedness goals as separate obligations, with no
+term-level link between a particular occurrence of a partial operator and the side goal
+meant to justify it; recovering that link would mean re-deriving, from the text of the
+obligations, the association that the encoder is in the middle of establishing anyway.
+Worse, the two sets of conditions are stated over different objects, since Atelier~B's
+generator simplifies its side goals and drops hypotheses it judges irrelevant, so the
+resulting formula is generally not the proposition that \barrel{}'s operator signature
+demands.
+
+Second, the imported conditions would be attached to the goal only.
+An expression introduced during an interactive proof---a witness for an existential, an
+instantiation of a universally quantified hypothesis---never passes through
+proof-obligation generation again.
+Any discipline based on precomputed side goals is therefore silent about the terms a user
+writes, which is exactly the situation examined in \Cref{sec:barrel-atelier-comparison}.
+
+Third, reinstalling an imported condition would require the context in which the occurrence
+was encountered.
+Well-definedness obligations are emitted after the goals that need them, they are
+identified only by their textual description, and a condition may depend on a preceding
+conjunct of the very goal it belongs to.
+The assertion
+\[
+  \existsB \var{G} \cdot \bigl(\var{G} \inB A \tfunB B \andB \var{G}(\var{x}) \inB B \bigr)
+\]
+produces the definedness condition
+\[
+  \forallB \var{G} \cdot \bigl(\var{G} \inB A \tfunB B \impB
+    \var{x} \inB \domB(\var{G}) \andB \var{G} \inB \domB(\var{G}) \pfunB \ranB(\var{G}) \bigr),
+\]
+whose hypothesis is the first conjunct of the source assertion.
+That context is available during encoding and nowhere else, and is precisely what the
+reification mechanism of \Cref{subsec:barrel-reification} captures.
+
+\begin{remark}
+  Recomputing does not mean disagreeing.
+  For integer extrema, Atelier~B phrases definedness as non-emptiness together with a
+  finiteness condition on an intersection with the naturals or with their complement, while
+  \barrel{} uses the order-theoretic condition that the set has a least or greatest
+  element, which also applies to reals and to any partially ordered carrier.
+  The library proves the two characterizations equivalent for the integer extrema---the
+  only operators for which such a bridging theorem exists. For the minimum,
+  \[
+    \mathtt{min.WD}\ S
+    \quad\iff\quad
+    S \neq \varnothing
+      \;\land\; S \cap (\mathtt{INTEGER} \mathbin{\backslash} \mathtt{NATURAL})
+        \in \mathtt{FIN}\ \mathtt{INTEGER},
+  \]
+  and symmetrically for the maximum, with \(\mathtt{NATURAL}\) in place of its complement.
+  What differs is not the mathematical content but where the condition is anchored.
+\end{remark}

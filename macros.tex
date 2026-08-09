@@ -143,10 +143,15 @@
 \newcommand{\tfunB}{\mathbin{\,\bop{→}}}
 \newcommand{\injpfunB}{\mathbin{\,\bop{⤔}}}
 \newcommand{\injtfunB}{\mathbin{\,\bop{↣}}}
+% Plain (unsuperscripted) total-injection arrow: used by the `b` listings
+% literate table in preamble.tex, which maps ↣ to \tinj.
+\newcommand{\tinj}{\rightarrowtail}
 \newcommand{\surjpfunB}{\mathbin{\,\bop{⤀}}}
 \newcommand{\surjtfunB}{\mathbin{\,\bop{↠}}}
-\newcommand{\bijpfunB}{\mathbin{\,\bop{⤖}}}
-\newcommand{\bijtfunB}{\mathbin{\,\bop{⤗}}}
+% U+2917 ⤗ carries the vertical stroke that marks partiality throughout this family
+% (cf. ⤔ vs ↣ and ⤀ vs ↠); U+2916 ⤖ has no stroke and is the total bijection.
+\newcommand{\bijpfunB}{\mathbin{\,\bop{⤗}}}
+\newcommand{\bijtfunB}{\mathbin{\,\bop{⤖}}}
 \newcommand{\cupB}{\mathbin{\,\bop{\cup}}}
 \newcommand{\capB}{\mathbin{\,\bop{\cap}}}
 \newcommand{\appB}{\mathord{\bop{@}\mkern-1mu}}

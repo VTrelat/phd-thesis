@@ -1,3 +1,71 @@
-\section{Motivation}
-\label{sec:barrel-motivation}
+\section{Introduction}
+\label{sec:barrel-introduction}
 
+\Cref{ch:beer} developed the automated route of \Cref{fig:intro-reasoning-routes}: a
+verified encoder that turns a B proof obligation into an SMT-LIB script and hands it to a
+solver.
+That route is one-shot: either the solver answers \texttt{unsat}, or it does not, and the
+failure says nothing about the cause.
+The obligations it leaves behind are typically the ones carrying the mathematical content
+of a refinement, and they have to be taken up by hand.
+Atelier~B answers that need with its own interactive prover.
+This chapter follows the complementary route and asks what is gained by replacing that
+stage---and only that stage---with a general-purpose proof assistant.
+
+\barrel{} is a Lean~4 library, developed jointly with Ghilain Bergeron, that consumes the
+artifacts Atelier~B already produces~\cite{bergeron2026barrel,bergeron2026barrelAFADL}.
+It imports a machine, refinement, implementation, or system---or a previously generated
+proof obligation file---translates every supported obligation into a Lean proposition,
+attempts each one with proof-producing automation, and leaves the propositions it cannot
+close as ordinary Lean goals.
+Nothing upstream changes: the user still writes and type-checks the B artifact with
+Atelier~B, and Atelier~B still generates the obligations.
+What changes is that a discharged obligation becomes a named theorem whose proof term the
+kernel has checked and whose axiom dependencies can be listed.
+Two design decisions shape the rest of the chapter.
+
+\paragraph*{Partiality is made structural.}
+Many B operators are partial: \(\minB(S)\) denotes a least element only if one exists, and
+\(\appB f\,x\) is meaningful only when \(f\) is functional and \(x\) lies in its domain.
+As recalled in \Cref{sec:b-wd}, the B method reads such an operator as a bounded Hilbert
+choice and keeps the goal logic total, emitting a separate well-definedness (WD) obligation
+for each partial occurrence; these obligations are generated globally, so the correspondence
+between an occurrence and the side condition meant to justify it is left implicit.
+\barrel{} takes the opposite stance.
+Every partial operator is a Lean function that takes a proof of its definedness as an
+explicit argument, so the translated term cannot be built without that evidence---or, when
+the evidence does not exist, cannot be built without an admission that the tooling then
+reports.
+Well-definedness stops being a side obligation and becomes a typing constraint;
+\Cref{sec:barrel-wd} develops this and \Cref{sec:barrel-atelier-comparison} shows what it
+rules out.
+
+\paragraph*{The embedding is typed and relational.}
+\Cref{ch:b,ch:zflean} interpret B in an untyped universe of ZFC sets, which is the right
+setting for a soundness proof relating two object languages.
+\barrel{} has no such proof to state, and can therefore exploit a resource that
+Atelier~B provides for free: the \emph{parent sets} its static well-formedness discipline
+already infers for every expression (\Cref{sec:b-typing}).
+These are exactly the type annotations needed to land in Mathlib's typed set theory, where
+the existing body of results about sets, relations, orders, finiteness, and arithmetic
+applies directly.
+The two routes therefore diverge immediately below the proof obligation, and they stay
+apart: nothing in the interactive route obliges a B function to be anything other than what
+it is set-theoretically, a functional relation.
+
+The chapter does not restate the B method, its refinement discipline, or its mathematical
+language: these are covered in \Cref{sec:b-method} and formalized in \Cref{ch:b}, and the
+Lean features used below are those of \Cref{sec:lean}.
+\Cref{sec:barrel-architecture} places \barrel{} in the Atelier~B workflow;
+\Cref{sec:barrel-embedding,sec:barrel-wd} present the typed model of B and the treatment of
+partial operators; \Cref{sec:barrel-lean-metaprogramming} explains how obligations become
+theorems and delimits the trust boundary;
+\Cref{sec:barrel-example,sec:barrel-interface} work through a refinement chain, an
+industrial-scale import, and the proof interface.
+\Cref{sec:barrel-atelier-comparison} states the guarantee the encoding provides,
+\Cref{sec:barrel-related-work} positions the tool, and \Cref{sec:barrel-discussion}
+concludes.
+The division of work between the two of us follows these layers: the metaprogramming of
+\Cref{sec:barrel-lean-metaprogramming}, which turns an obligation into a Lean declaration,
+is largely Ghilain Bergeron's, while the typed model of B and the library of facts it rests
+on, the automation, and the proof interface are my own.

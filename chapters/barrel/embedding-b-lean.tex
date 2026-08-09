@@ -1,3 +1,190 @@
-\section{Embedding of B in Lean}
+\section{A typed shallow embedding of B}
+\label{sec:barrel-embedding}
 \label{sec:embedding-b-lean}
 
+The mathematical language of B is untyped: every value is a set, and the function spaces of
+\Cref{subsec:b-mathematical-language} are sets of pairs satisfying further conditions.
+Nothing in that language forces an interpretation in a typed logic.
+Atelier~B, however, superimposes a static well-formedness discipline: every identifier and
+every expression is assigned a \emph{parent set}, so that the two arguments of integer
+addition must both have parent set \texttt{INTEGER}, a set is homogeneous, and an
+expression such as an integer plus a Boolean is rejected before any proof obligation is
+generated.
+This discipline---the informal counterpart of the type system formalized in
+\Cref{sec:b-typing}---supplies precisely the information a typed target logic needs.
+\barrel{} consumes it, and interprets B in typed higher-order logic rather than
+reconstructing an untyped universe of sets.
+
+\subsection{Types, carriers, and relational operators}
+
+Each B carrier becomes a Lean type and each B set becomes a Mathlib \leaninl{Set} over that
+type; the core of the mapping is given in \Cref{tab:barrel-type-embedding}.
+The embedding is \emph{shallow}: after import, a supported B operator is a Lean definition,
+not a constructor of an inductive syntax tree.
+Since \(\mathtt{Set}\ \alpha\) is definitionally \(\alpha \to \mathtt{Prop}\) and
+\(\mathtt{SetRel}\ \alpha\ \beta\) is a set of pairs, a translated proposition is an
+ordinary statement about ordinary Mathlib objects, and the library's results about sets,
+orders, finiteness, and arithmetic apply to it without any bridging layer.
+B's homogeneity is reflected directly in the single element type of \leaninl{Set}.
+One entry of the table deserves comment: a B Boolean expression becomes an inhabitant of
+\leaninl{Prop} rather than of \leaninl{Bool}, and \texttt{BOOL} is the full set of
+propositions.
+Proof obligations are statements, not computations, so the classical, non-computational
+reading is the useful one, and it lets a B predicate be used directly where Lean expects a
+proposition instead of being routed through a decidability instance.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{lll}
+    \toprule
+    B expression & Lean type & Lean value \\
+    \midrule
+    \texttt{INTEGER}                       & \leaninl{Int}   & \leaninl{Set.univ} \\
+    \texttt{NATURAL}, \texttt{NATURAL1}    & \leaninl{Int}   & \(\{n \mid 0 \le n\}\), resp.\ \(\{n \mid 1 \le n\}\) \\
+    \texttt{NAT}, \texttt{NAT1}             & \leaninl{Int}   & \(\{n \mid 0 \le n \le \mathtt{MAXINT}\}\), resp.\ \(\{n \mid 1 \le n \le \mathtt{MAXINT}\}\) \\
+    \texttt{INT}                           & \leaninl{Int}   & \(\{n \mid \mathtt{MININT} \le n \le \mathtt{MAXINT}\}\) \\
+    \texttt{BOOL}                          & \leaninl{Prop}  & \leaninl{Set.univ} \\
+    \texttt{REAL}                          & \leaninl{Real}  & \leaninl{Set.univ} \\
+    a set over a carrier \(\alpha\)        & \leaninl{Set α} & --- \\
+    \(A \prodB B\)                         & \(\alpha \times \beta\) & --- \\
+    \(\powB(A)\)                           & \leaninl{Set (Set α)} & --- \\
+    \(A \bop{\leftrightarrow} B\)          & \leaninl{Set (SetRel α β)} & --- \\
+    \bottomrule
+  \end{tabular}
+  \caption{Core of the B-to-Lean type mapping. The bounded carriers use the
+    implementation limits \(\mathtt{MAXINT} = 2^{31}-1\) and
+    \(\mathtt{MININT} = -\mathtt{MAXINT}\); \texttt{INT} is the only carrier that uses
+    \(\mathtt{MININT}\).}
+  \label{tab:barrel-type-embedding}
+\end{table}
+
+Functions keep their relational B representation.
+\Cref{lst:barrel-relations} shows how the corresponding sets are defined: a relation space
+is the powerset of a product, a partial function space carves out the functional relations,
+and the derived spaces are intersections of the previous ones.
+The full correspondence is summarized in \Cref{tab:barrel-relational}.
+The library attaches the expected B notation to the relation and function spaces and to
+the restriction operators, so that a generated obligation still reads as a B statement, and a
+few symbols keep their names (\leaninl{dom}, \leaninl{ran}, the extrema).
+
+\begin{leanlisting}[title={Representative B relational operators.},
+    label={lst:barrel-relations}, float=t]
+abbrev rels {α β} (A : Set α) (B : Set β) : Set (SetRel α β) :=
+  𝒫 (Set.prod A B)
+
+abbrev pfun {α β} (A : Set α) (B : Set β) : Set (SetRel α β) :=
+  { f ∈ rels A B | ∀ ⦃x y z⦄, (x, y) ∈ f → (x, z) ∈ f → y = z }
+
+abbrev tfun {α β} (A : Set α) (B : Set β) : Set (SetRel α β) :=
+  { f ∈ pfun A B | ∀ x ∈ A, ∃ y ∈ B, (x, y) ∈ f }
+
+abbrev injTFun {α β} (A : Set α) (B : Set β) : Set (SetRel α β) :=
+  injPFun A B ∩ tfun A B
+
+abbrev domSubtr {α β} (E : Set α) (R : SetRel α β) : SetRel α β :=
+  { z ∈ R | z.1 ∉ E }
+\end{leanlisting}
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{ll@{\hspace{2.2em}}|@{\hspace{2.2em}}ll}
+    \toprule
+    B & Lean & B & Lean \\
+    \midrule
+    \(A \bop{\leftrightarrow} B\) & \leaninl{rels}     & \(\domB(R)\)            & \leaninl{dom} \\
+    \(A \pfunB B\)                & \leaninl{pfun}     & \(\ranB(R)\)            & \leaninl{ran} \\
+    \(A \tfunB B\)                & \leaninl{tfun}     & \(R^{-1}\)              & \leaninl{SetRel.inv} \\
+    \(A \injpfunB B\)             & \leaninl{injPFun}  & \(\Image{R}{X}\)        & \leaninl{SetRel.image} \\
+    \(A \injtfunB B\)             & \leaninl{injTFun}  & \(E \domRestrB R\)      & \leaninl{domRestr} \\
+    \(A \surjpfunB B\)            & \leaninl{surjPFun} & \(E \domSubtrB R\)      & \leaninl{domSubtr} \\
+    \(A \surjtfunB B\)            & \leaninl{surjTFun} & \(R \ranRestrB E\)      & \leaninl{codomRestr} \\
+    \(A \bijpfunB B\)             & \leaninl{bijPFun}  & \(R \ranSubtrB E\)      & \leaninl{codomSubtr} \\
+    \(A \bijtfunB B\)             & \leaninl{bijTFun}  & \(R_1 \overloadB R_2\)  & \leaninl{overload} \\
+    \bottomrule
+  \end{tabular}
+  \caption{B relational vocabulary and its counterpart in \barrel{}'s model. The two
+    halves are independent; each is a pair of columns.}
+  \label{tab:barrel-relational}
+\end{table}
+
+\subsection{Everything stays relational}
+\label{subsec:barrel-relational}
+
+A B lambda abstraction is compiled to its \emph{graph}---the set of pairs
+\(((x_1,\cdots,x_n), y)\) such that the guard holds and \(y\) is the value of the body---and
+not to a Lean function.
+A functional relation is therefore never turned into an inhabitant of an arrow type, and
+relational application remains an operation on sets of pairs rather than function
+application in the metalanguage.
+
+This is where the automated and interactive routes differ most visibly.
+\Cref{ch:loosening} was needed because a first-order SMT solver reasons far better about a
+function symbol than about a characteristic predicate over a product sort, so \beer{} must
+be able to move a value between representations and prove that nothing is lost.
+No such pressure exists here: the target logic is higher-order, the library of facts is
+stated over \leaninl{Set} and \leaninl{SetRel} in exactly the shape B produces, and the
+user---not a solver---chooses how to decompose a goal.
+Keeping a single representation therefore removes an entire layer of machinery and keeps
+generated statements recognizable: an imported obligation about \(f \inB A \pfunB B\) is a
+statement about a set of pairs, just as it is in the B source.
+
+\begin{remark}
+  The price of this choice is that no automatic procedure exploits functionality the way a
+  solver exploits a function symbol.
+  Functionality has to be used through lemmas---that a total function's domain is its
+  declared source, that application of a functional relation yields a pair of that
+  relation, that the image of a singleton is the singleton of the image---which is why the
+  supporting library, rather than the operator definitions, is where most of \barrel{}'s
+  proof effort has gone.
+\end{remark}
+
+\subsection{The supported fragment}
+\label{subsec:barrel-coverage}
+
+\Cref{tab:barrel-fragment} lists the constructs currently handled; entries in bold are the
+partial operators, which are the subject of \Cref{sec:barrel-wd}.
+The fragment covers the set-and-relation core, the finiteness idioms, and the integer
+arithmetic that appear in the case study of \Cref{sec:barrel-example} and in the industrial
+files used for the scaling experiments.
+It is not the whole B mathematical language: relational composition, direct and parallel
+products, transitive closures, generalized union and intersection, quantified sums and
+products, permutations, trees, and sequence operations beyond \(\mathsf{size}\) are outside
+it.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{p{.18\linewidth}p{.73\linewidth}}
+    \toprule
+    Category & Supported constructs \\
+    \midrule
+    Logic & conjunction, disjunction, negation, implication, equivalence, equality and
+      disequality, the Boolean constants, universal and existential quantification \\
+    Sets & numeric and Boolean carriers, empty set and extension, maplet, Cartesian
+      product, union, intersection, difference, inclusion, powerset and non-empty
+      powerset, finite and non-empty finite powerset, comprehension, membership,
+      \textbf{cardinality} \\
+    Relations & identity, domain, range, relational image, domain and range restriction and
+      subtraction, inverse, overriding \\
+    Functions & the eight partial, total, injective, surjective and bijective function
+      spaces, lambda abstraction, \textbf{application} \\
+    Sequences & the sequence space \(\mathsf{seq}\), \textbf{size} \\
+    Arithmetic & integers and reals, intervals, comparisons, negation, addition,
+      subtraction, multiplication, division, modulo, exponentiation, \textbf{minimum},
+      \textbf{maximum} \\
+    \bottomrule
+  \end{tabular}
+  \caption{Mathematical fragment of B supported by \barrel{}. Operators in \textbf{bold}
+    are partial and therefore request well-definedness evidence.}
+  \label{tab:barrel-fragment}
+\end{table}
+
+Extending the fragment requires no architectural change.
+A new total symbol requires a typed Lean definition with its B notation, a case in the
+reader and in the encoder, and a small equational interface so that automation keeps
+working; a new partial symbol additionally requires its well-definedness predicate and the
+corresponding reification rule.
+Because encoding failures are isolated per obligation, an occurrence of an unsupported
+construct does not cost the rest of the file (\Cref{subsec:barrel-automation}).

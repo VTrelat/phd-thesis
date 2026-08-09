@@ -1,3 +1,175 @@
-\section{Architecture}
+\section{From proof obligations to Lean theorems}
 \label{sec:barrel-architecture}
 
+\barrel{} leaves Atelier~B's modeling and proof obligation generation stages untouched, and
+replaces only what happens downstream of them.
+\Cref{fig:barrel-architecture} separates the external generation step from the
+Lean-resident part of the pipeline.
+
+\begin{figure}[t]
+  \centering
+  \tikzsetnextfilename{barrel-architecture}
+  \resizebox{\textwidth}{!}{%
+    \begin{tikzpicture}[
+      node distance=.5cm,
+      every node/.style={
+        draw=dark-blue,
+        text=dark-blue,
+        very thick,
+        rounded corners=1mm,
+        align=center,
+        minimum height=3ex,
+      },
+      arr/.style={-{Stealth[length=6pt,width=5pt]}, very thick, draw=blue,
+        shorten >=2pt, shorten <=2pt},
+      note/.style={draw=none, text=blue, align=left}
+    ]
+      \node[draw=orange, text=orange, minimum width=2.35cm] (bmch)
+        {\texttt{.sys, .mch}\\\texttt{.ref, .imp}};
+      \node[above=of bmch, draw=orange, text=orange, minimum width=2.35cm] (bpog)
+        {\texttt{.pog}};
+      \node[draw=none, text=orange] at ($(bmch)!0.6!(bpog)$) {B files};
+
+      \node[draw=orange, dotted, very thick, fit=(bpog) (bmch)] (bfiles-frame) {};
+
+      \node[right=of bmch, draw=orange, text=orange] (bxml)
+        {BXML\\\texttt{.bxml}};
+      \node[right=of bxml, draw=orange, text=orange] (pog)
+        {POG\\\texttt{.pog}};
+
+      \node[draw=none, fit=(bfiles-frame) (bxml) (pog), inner sep=0pt]
+        (atelierb-box) {};
+      \path let
+        \p1 = (atelierb-box.north east),
+        \p2 = (atelierb-box.north west),
+        \n1 = {\x1-\x2}
+      in
+        node[draw=none, opacity=0.1] at (atelierb-box.center)
+          {\includegraphics[width=\n1]{assets/atelierb-pipeline.png}};
+      \node[draw=orange, dashed, very thick, fit=(atelierb-box),
+        label=above:{\textcolor{orange}{Atelier~B}}] (atelierb-frame) {};
+
+      \node[right=1cm of pog, draw=pink, text=pink] (barrel-import)
+        {parse + encode};
+      \node[right=of barrel-import, draw=dark-blue, text=dark-blue] (wd)
+        {WD conditions};
+      \path let
+        \p1 = (barrel-import.east),
+        \p2 = (barrel-import.west),
+        \p3 = ($(barrel-import)!0.5!(wd)$),
+        \p4 = (barrel-import),
+        \n1 = {\x1-\x2},
+        \n2 = {\x3-\x4}
+      in
+        node[
+          below=of barrel-import,
+          draw=pink,
+          text=pink,
+          minimum width=\n1
+        ] (barrel-auto) {automation}
+        node[
+          below=of barrel-auto,
+          xshift=\n2,
+          draw=pink,
+          text=pink,
+          minimum width=\n1
+        ] (barrel-goals) {Lean goals};
+
+      \draw[arr] (bmch) -- (bxml);
+      \draw[arr, rounded corners=4mm] (bpog) -| (pog);
+      \draw[arr] (bxml) -- (pog);
+      \draw[arr] (pog) -- (barrel-import);
+      \draw[arr] (barrel-import) -- (barrel-auto);
+      \draw[arr, draw=dark-blue, dashed] (barrel-import.north)
+        to[bend left=70] node[midway, draw=none] (wdlbl) {} (wd.north);
+      \draw[arr] (barrel-auto) -- (barrel-goals);
+
+      \draw[arr, draw=dark-blue, dashed, rounded corners=4mm] (wd.south)
+        |- node[midway, below, draw=none, text=dark-blue] (reification)
+          {reified as goals} (barrel-auto.east);
+
+      \node[draw=none,
+        fit=(barrel-import) (barrel-auto) (barrel-goals) (wd) (wdlbl) (reification),
+        inner sep=0pt] (barrel-box) {};
+      \path let
+        \p1 = (barrel-box.north),
+        \p2 = (barrel-box.south),
+        \n1 = {\y1-\y2}
+      in
+        node[draw=none, opacity=0.1] at (barrel-box.center)
+          {\includegraphics[height=\n1]{assets/barrel-pipeline.png}};
+      \node[draw=pink, very thick, dashed, fit=(barrel-box),
+        label=above:{\textcolor{pink}{\textsc{BARReL}}}] (barrel-frame) {};
+    \end{tikzpicture}%
+  }
+  \caption{\barrel{}'s architecture.}
+  \label{fig:barrel-architecture}
+\end{figure}
+
+\FloatBarrier
+
+
+\paragraph*{Two entry points.}
+A user may start from a source artifact---a machine (\texttt{.mch}), refinement
+(\texttt{.ref}), implementation (\texttt{.imp}), or system (\texttt{.sys})---in which case
+\barrel{} invokes Atelier~B's \texttt{bxml} and \texttt{pog} programs and caches their
+output.
+Alternatively, an existing proof obligation file may be imported directly, which skips the
+external programs altogether; this matters for reproducible builds and for corpora such as
+the one used in \Cref{sec:benchmark-corpus}, where only the obligations are distributed.
+One detail of the invocation is deliberate: Atelier~B's generator accepts a flag that
+additionally emits well-definedness obligations, and \barrel{} does not pass it, preferring
+to regenerate those conditions itself for the reasons given in
+\Cref{subsec:barrel-own-wd}.
+
+\paragraph*{The two commands.}
+The complete surface syntax consists of two commands, illustrated in
+\Cref{lst:barrel-workflow}.
+The command \leaninl{import $k$ $n$ from $d$} imports the artifact named \(n\) from
+directory \(d\), where the kind \(k\) is one of \leaninl{machine}, \leaninl{refinement},
+\leaninl{implementation}, \leaninl{system}, or \leaninl{pog}.
+The command \leaninl{prove_obligations_of $n$} then reopens the obligations of \(n\)
+that automation did not close, one per \leaninl{next} block.
+
+\begin{leanlisting}[title={Importing and proving a B refinement chain.},
+    label={lst:barrel-workflow}, float=t]
+import Barrel
+
+set_option barrel.atelierb "/path/to/atelierb"
+open B.Builtins
+
+import machine    MinSearch    from "specs/case_study"
+import refinement MinSearch_r1 from "specs/case_study"
+import refinement MinSearch_r2 from "specs/case_study"
+
+prove_obligations_of MinSearch
+next
+  -- proof of the first obligation left open by the automation
+  ...
+\end{leanlisting}
+
+Each \leaninl{next} block is paired, in order, with one proposition that the default
+automation did not discharge.
+Providing too few blocks, or too many, is an error; in the first case the obligations left
+without a block simply stay open.
+Every accepted block adds a named theorem to the environment
+(\Cref{subsec:barrel-reification}), so a proof remains traceable to its source operation
+and obligation family.
+Because these are ordinary declarations, they can be reused as lemmas in later proofs,
+inspected with Lean's dependency tools, and audited with \leaninl{#print axioms}.
+
+\paragraph*{The three difficulties.}
+Three difficulties stand between a proof-obligation file and a Lean theorem, and the rest
+of the chapter takes them in turn.
+The statement has to be reconstructed: the file records types, definitions, variables,
+hypotheses, and conclusions separately, and they have to be assembled into a single
+proposition of the form \(\forall \vec{v},\, H_1 \impB \dots \impB H_n \impB G\)
+(\Cref{subsec:barrel-normalization}).
+That proposition has to be expressed in a logic where partial operators are fully applied,
+which is where definedness evidence must be produced and where most of the design lies
+(\Cref{sec:barrel-wd,subsec:barrel-reification}).
+And the propositions have to be proved, or else presented in a form in which a user can
+prove them (\Cref{subsec:barrel-automation,sec:barrel-interface}).
+This is the order in which the difficulties arise, not a description of how the tool is put
+together: the chapter deliberately does not follow the software's own division into
+components.

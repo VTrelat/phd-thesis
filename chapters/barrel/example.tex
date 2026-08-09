@@ -1,3 +1,244 @@
-\section{Example}
+\section{Case study: a refinement chain for minimum search}
 \label{sec:barrel-example}
+\label{subsec:barrel-minsearch}
 
+This case study computes the minimum of a non-empty finite set of integers through an
+abstract machine and two refinements.
+It is small enough for every generated goal to be inspected, yet it exercises invariant
+preservation, data refinement, non-determinism, finite sets, and three of the five partial
+operators: \(\minB\), \(\cardB{\cdot}\), and relational application, together with the
+well-definedness conditions they induce.\footnote{The B identifiers are those of the
+artifact, so that every listing can be reproduced from it. In the Lean goals, hypothesis
+names have been made mnemonic; the encoder emits anonymous binders, which a user recovers
+with \leaninl{expose_names}.}
+
+\paragraph*{Abstract specification.}
+The machine of \Cref{lst:barrel-minsearch-machine} has a constant non-empty finite set
+\binl{SS}, a non-empty set \binl{done} of inspected elements, and a candidate \binl{mm}
+equal to the minimum of \binl{done}.
+The initialization picks one element.
+The operation \binl{step} non-deterministically adds a non-empty subset of the
+still-unexplored elements and recomputes the minimum, and \binl{search_min} returns the
+candidate once every element has been examined.
+
+\begin{blisting}[title={The abstract machine \texttt{MinSearch}.},
+    label={lst:barrel-minsearch-machine}, float=t]
+MACHINE MinSearch
+CONSTANTS  SS
+PROPERTIES SS ∈ FIN1(INTEGER)
+VARIABLES  done, mm
+INVARIANT
+  done ∈ FIN1(SS) ∧ mm ∈ SS ∧ mm = min(done)
+INITIALISATION
+  ANY xx WHERE xx ∈ SS THEN done := {xx} || mm := xx END
+OPERATIONS
+  mi <-- search_min = PRE done = SS THEN mi := mm END;
+
+  step =
+    IF done ≠ SS THEN
+      ANY add WHERE add ∈ FIN1(SS - done) THEN
+        done := done ∪ add || mm := min(done ∪ add)
+      END
+    END
+END
+\end{blisting}
+
+Atelier~B produces four principal obligations at this level,\footnote{Throughout this
+chapter \emph{obligation} denotes the unit that becomes one Lean theorem: what a
+\texttt{.pog} file records as a \emph{simple goal}, several of which the generator groups
+under a single proof-obligation element. \Cref{sec:benchmark-corpus} calls that unit a
+\emph{goal}; here the word is reserved for the Lean goals left to the user.} and the
+encoder encounters four occurrences of \(\minB\) while translating them.
+\Cref{lst:barrel-step-goal} shows the Lean goal corresponding to the first conjunct of
+invariant preservation for \binl{step}.
+The ellipsis after \leaninl{min done} is not an abbreviation introduced here: it stands for
+the proof argument required by the definition of
+\Cref{lst:barrel-partial-definitions}, and is filled by a well-definedness theorem
+generated during the same import.
+The principal goal therefore cannot be stated before that dependency has been
+resolved---which is why the discharger declares definedness theorems first, and why
+\leaninl{prove_obligations_of} asks for their proofs before those of the obligations that
+use them.
+
+\begin{leanlisting}[title={Invariant preservation, with the elided
+    well-definedness argument shown as \(\irrelprf\).},
+    label={lst:barrel-step-goal}, float=t]
+SS done add : Set ℤ
+mm xx       : ℤ
+h_SS        : SS ∈ FIN₁ INTEGER
+h_done      : done ∈ FIN₁ SS
+h_mem       : mm ∈ SS
+h_min       : mm = B.Builtins.min done $\irrelprf$
+h_ne        : done ≠ SS
+h_add       : add ∈ FIN₁ (SS \ done)
+$\vdash$ done ∪ add ∈ FIN₁ SS
+\end{leanlisting}
+
+Of the eight resulting propositions, one repeats a condition already generated and is
+resolved by reuse, six are discharged automatically, and a single goal---the one displayed
+above---is left to the user.
+It is proved in two lines, by combining a \barrel{} lemma about unions of non-empty finite
+subsets with the elementary inclusion of a set difference in its left operand:
+
+\begin{leanlisting}[title={The only interactive obligation of the abstract machine.},
+    label={lst:barrel-minsearch-proof}]
+next -- Operation_step_2: done ∪ add ∈ FIN₁ SS
+  intros
+  exact FIN₁.of_union ‹_› (FIN₁.mono Set.sdiff_subset ‹_›)
+\end{leanlisting}
+
+\paragraph*{First refinement: reducing non-determinism.}
+The first refinement restricts \binl{step} to adding a single fresh element and updates the
+candidate only when that element is smaller, as shown in
+\Cref{lst:barrel-minsearch-r1}.
+Although the concrete update no longer calls \(\minB\), the refinement and
+invariant-preservation obligations still relate the new state to the abstract equation
+\binl{mm = min(done)}, so definedness facts about the minimum remain part of every proof.
+
+\begin{blisting}[title={The refined operation \texttt{step} in \texttt{MinSearch\_r1}.},
+    label={lst:barrel-minsearch-r1}, float=t]
+step =
+  IF done ≠ SS THEN
+    ANY xx WHERE xx ∈ SS - done THEN
+      done := done ∪ {xx} || IF xx < mm THEN mm := xx END
+    END
+  END
+\end{blisting}
+
+This level yields nineteen principal obligations and forty-two occurrences of a partial
+operator.
+Thirty-two of the latter repeat a condition already seen, so ten distinct
+well-definedness theorems remain; all ten are automatic, and five principal obligations are
+left interactive.
+
+\paragraph*{Second refinement: scanning an explicit table.}
+The second refinement introduces a concrete injective enumeration
+\binl{tab ∈ 1..nn >-> SS}, an index \binl{ii}, and a current candidate \binl{mmc}.
+Its gluing invariant identifies the abstract set \binl{done} with the image
+\binl{tab[1..ii]}, identifies \binl{mm} with \binl{mmc}, and states that \binl{mmc} is a
+lower bound for every scanned entry (\Cref{lst:barrel-minsearch-r2}).
+
+\begin{blisting}[title={The second refinement \texttt{MinSearch\_r2}.},
+    label={lst:barrel-minsearch-r2}, float=t]
+REFINEMENT MinSearch_r2
+REFINES MinSearch_r1
+CONSTANTS  nn, tab
+PROPERTIES
+  SS ∈ FIN1(INTEGER) ∧ nn ∈ NAT1 ∧ nn = card(SS) ∧
+  tab ∈ 1..nn >-> SS ∧ ran(tab) = SS
+VARIABLES  ii, mmc
+INVARIANT
+  ii ∈ 1..nn ∧ mmc ∈ SS ∧ done = tab[1..ii] ∧ mm = mmc ∧
+  mmc ∈ tab[1..ii] ∧ ∀jj.(jj ∈ 1..ii ⇒ mmc ≤ tab(jj))
+INITIALISATION
+  ii := 1 || mmc := tab(1)
+OPERATIONS
+  mi <-- search_min = PRE ii = nn THEN mi := mmc END;
+
+  step =
+    IF ii < nn THEN
+      ii := ii + 1;
+      IF tab(ii) < mmc THEN mmc := tab(ii) END
+    END
+END
+\end{blisting}
+
+This level combines refinement reasoning with repeated occurrences of cardinality and of
+relational application, and is where duplication is most visible: twenty-one principal
+obligations come with one hundred occurrences of a partial operator, of which seventy-four
+repeat an earlier condition.
+The twenty-six remaining well-definedness theorems are all automatic, and every one of the
+twenty-one interactive goals is a refinement argument rather than a definedness one.
+
+\subsection{Driving the chain and its outcome}
+\label{subsec:barrel-minsearch-results}
+
+The whole development is driven by the ordinary Lean commands of
+\Cref{lst:barrel-minsearch-lean}.
+
+\begin{leanlisting}[title={Driving the refinement chain with \barrel{}.},
+    label={lst:barrel-minsearch-lean}, float=t]
+import machine    MinSearch    from "specs/case_study"
+import refinement MinSearch_r1 from "specs/case_study"
+import refinement MinSearch_r2 from "specs/case_study"
+
+prove_obligations_of MinSearch
+next ...  --  1 remaining goal
+
+prove_obligations_of MinSearch_r1
+next ...  --  5 remaining goals
+
+prove_obligations_of MinSearch_r2
+next ...  -- 21 remaining goals
+\end{leanlisting}
+
+\Cref{tab:barrel-minsearch-results} collects the figures.
+The \emph{raw} column counts principal obligations plus occurrences of a partial operator,
+that is, the number of theorem-sized goals a purely occurrence-based translation produces.
+The \emph{distinct} column is what remains after the sharing of
+\Cref{subsec:barrel-wd-sharing} and is the number of statements actually offered to
+automation; the last two columns partition it and therefore describe the proof work a user
+sees.
+
+\begin{table}[t]
+  \centering
+  \small
+  \begin{tabular}{lrrrrr}
+    \toprule
+    Artifact & Raw & Reused & Distinct & Automatic & Interactive \\
+    \midrule
+    \texttt{MinSearch}     &   8 &   1 &  7 &  6 &  1 \\
+    \texttt{MinSearch\_r1} &  61 &  32 & 29 & 24 &  5 \\
+    \texttt{MinSearch\_r2} & 121 &  74 & 47 & 26 & 21 \\
+    \midrule
+    Total                  & 190 & 107 & 83 & 56 & 27 \\
+    \bottomrule
+  \end{tabular}
+  \caption{Proof-obligation statistics for the \texttt{MinSearch} chain. ``Raw'' counts
+    principal obligations together with every occurrence of a partial operator; ``distinct''
+    is what remains after equal well-definedness conditions have been shared.}
+  \label{tab:barrel-minsearch-results}
+\end{table}
+
+Two effects are visible.
+Sharing removes 107 of the 146 occurrence-level conditions, so the user is never asked
+about the same definedness fact twice within an import; the 39 distinct conditions that
+survive are all discharged automatically.
+Automation additionally proves 17 of the 44 principal obligations, leaving 27 interactive
+proofs.
+The comparison is with \barrel{}'s own occurrence-based translation, which would have
+presented the same chain as 190 separate goals; it measures what sharing and the widened
+automation contribute, not a difference with any other tool.
+
+Atelier~B's own well-definedness counts for the three artifacts are 4, 2 and 9.
+These are not comparable one-to-one: its generator introduces such conditions while
+analyzing the machine, before conjunct splitting duplicates hypotheses, and simplifies them
+on the way out, whereas \barrel{} first meets definedness at each encoded occurrence and
+then identifies equal Lean propositions.
+For the integer extrema, the two formulations are provably equivalent
+(\Cref{subsec:barrel-own-wd}); what differs is where the condition is anchored.
+
+\subsection{Industrial-scale imports}
+\label{subsec:barrel-industrial-scale}
+
+The refinement chain tests proof engineering rather than scale.
+Whether an industrial proof-obligation file can be brought into Lean at all is a separate
+question, and the answer is yes: on the public corpus of Atelier~B
+obligations~\cite{deharbe2022pog} described in \Cref{sec:benchmark-corpus}, the file
+\texttt{0020/00003.pog}---3.4~MB of XML, 2\,526 obligations---imports in its entirety in
+31~minutes.
+No construct falls outside the fragment of \Cref{subsec:barrel-coverage}, so nothing is
+skipped, and the 2\,434 automatic attempts that fail do so where they occur instead of
+aborting the command (\Cref{subsec:barrel-automation}).
+What is left is an ordinary Lean development, its goals grouped by source operation and
+addressable one \leaninl{next} block at a time.
+
+Two caveats keep this in proportion.
+The file contains no partial operator, so it exercises the reader, the encoder, and the
+isolation machinery, but not the reification and sharing of
+\Cref{subsec:barrel-reification,subsec:barrel-wd-sharing}; the case study is what tests
+those.
+And the 92 obligations closed automatically---3.6\,\%, against 17 of the 44 principal
+obligations of the chain---are not the measure of the exercise: discharging obligations
+unaided is the automated route's business (\Cref{ch:beer}), whereas here the task is to
+deliver them in a form a user can work on.
