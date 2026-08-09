@@ -3,27 +3,32 @@
 
 \paragraph*{Protocol.}
 Every \texttt{.pog} file is translated twice, by \beer{} (revision \texttt{83fda63}, built with Lean~4.27.0) and by the ppTrans translator of Atelier~B~24.04.2.
-Both emit exactly one \smtinl{check-sat} per goal, in the order the goals appear in the file, and each goal becomes a self-contained script solved in its own process---no incremental mode, no state shared between goals---so answer \(k\) on one side and answer \(k\) on the other describe the same obligation.
-Files where the two goal counts differ are excluded from the join rather than silently misaligned.
-Each script is discharged by cvc5~1.3.4 with model-based quantifier instantiation (\texttt{-{}-mbqi}; \Cref{sec:ar-smt}) and a per-\smtinl{check-sat} budget of \(5\)\,s (\texttt{-{}-tlimit-per=5000}), the configuration under which \beer{}'s scripts are intended to run (\Cref{sec:beer-po-running-example}).
+Both emit exactly one \smtinl{check-sat} command per goal, in the order in which the goals appear in the file.
+Each goal becomes a self-contained script solved in its own process---with no incremental mode and no state shared between goals---so the \(k\)-th answer on each side describes the same goal.
+Files for which the two goal counts differ are excluded from the join rather than silently misaligned.
+Each script is processed by cvc5~1.3.4 with model-based quantifier instantiation (\texttt{-{}-mbqi}; \Cref{sec:ar-smt}) and a per-\smtinl{check-sat} budget of \(5\)\,s (\texttt{-{}-tlimit-per=5000}), the configuration under which \beer{}'s scripts are intended to run (\Cref{sec:beer-po-running-example}).
 The budget is soft---cvc5 checks it between phases---so each solver process is additionally killed at a \(300\)\,s wall; the encoders themselves run under a \(1\,800\)\,s budget per file.
-\beer{}'s shipped prelude requests unsat cores, which ppTrans never does and which costs cvc5 real time, so the option is stripped and both encodings are solved under identical solver settings.
+\beer{}'s shipped prelude requests unsat cores, whereas ppTrans does not; because producing them costs cvc5 time, the request is stripped so that both encodings are solved under identical solver settings.
 
 \paragraph*{Hardware.}
-The campaign ran on the \texttt{gros} cluster of Grid'5000\footnote{\url{https://www.grid5000.fr}} (Nancy): identical nodes with one Intel Xeon Gold 5220 processor, running one solver instance per physical core.
+The campaign ran on identical nodes of the \texttt{gros} cluster at Grid'5000\footnote{\url{https://www.grid5000.fr}} in Nancy, each equipped with one Intel Xeon Gold 5220 processor.
+One solver instance ran per physical core.
 All timings quoted below are from this configuration.
 
 \paragraph*{Scored population.}
-Three files had their sweep stopped partway and contribute only the goals actually measured; in total, \bmFiles{} of the corpus's 5\,421 files contribute at least one scored goal, for \bmGoals{} goals.
-Deliberately \emph{not} set aside: the goals \beer{}'s encoder produced no script for, and the goals on which a solver was killed at the wall.
-The first is encoder coverage---dominated by the files using Atelier~B's \texttt{Struct} records, a construct specific to Atelier~B rather than to the B language of the B-Book~\cite{abrial1996bbook}, which \beer{} does not aim to support---and the second is a failure to discharge within the budget; both are real outcomes of running the tool.
+The sweeps of three files stopped partway through and contribute only the goals actually measured; in total, \bmFiles{} of the corpus's 5\,421 files contribute at least one scored goal, for \bmGoals{} goals.
+The scored population deliberately retains both goals for which \beer{}'s encoder produced no script and goals on which a solver was killed at the wall.
+The first outcome reflects encoder coverage and is dominated by files using Atelier~B's \texttt{Struct} records.
+These records are specific to Atelier~B rather than part of the B language described in the B-Book~\cite{abrial1996bbook}, and \beer{} does not aim to support them.
+The second outcome is a failure to discharge a goal within the budget.
+Both are real outcomes of running the tool.
 
 \paragraph*{Two scorings.}
-Every result in this chapter uses one of two scoring rules, and confusing them changes every conclusion, so they are fixed here once.
+Every result in this chapter uses one of two scoring rules, and confusing them changes every conclusion, so they are defined once here.
 
 \begin{description}[font=\normalfont\itshape]
   \item[strict] All \bmGoals{} goals; a goal counts as \emph{proved} iff cvc5 answered \smtinl{unsat}.
-    A goal \beer{} could not encode, and a goal ppTrans burned the \(300\)\,s wall on, both count as failures to prove.
+    A goal for which no script was produced, or on which the solver exhausted the \(300\)\,s wall, counts as a failure to prove.
     This is what a user of either tool experiences end to end, and it is the headline scoring.
   \item[verdict-only] The \bmHead{} goals for which \emph{both} pipelines obtained a solver verdict (\smtinl{unsat} or \smtinl{unknown}).
     This isolates the quality of an encoding from the robustness and coverage of the encoder that produced it, at the cost of discarding \bmDropped{} goals---\(37\,\%\) of the corpus---and discarding them asymmetrically, since each side loses a different population.
@@ -31,4 +36,4 @@ Every result in this chapter uses one of two scoring rules, and confusing them c
 
 \Cref{sec:beer-results-global} reports both scorings, because the gap between them is itself a result.
 The structural analyses of \Cref{sec:beer-results-where,sec:beer-results-alone} are verdict-only throughout: they ask which encoding suits which kind of goal, and a goal that never reached the solver cannot answer that.
-Every figure names its scoring, and the reference tables closing the chapter carry both side by side.
+Every figure states its scoring rule or population, and the reference tables closing the chapter present both scorings side by side.

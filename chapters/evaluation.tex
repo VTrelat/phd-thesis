@@ -2,16 +2,18 @@
 \label{ch:evaluation}
 
 The preceding chapters built an encoding of B proof obligations into SMT-LIB and established its correctness.
-This chapter measures whether it is \emph{effective}: whether the higher-order, representation-aware design of \Cref{ch:loosening,ch:beer} actually helps an SMT solver discharge industrial proof obligations, compared against the first-order encodings tools use today.
-The measurement is one controlled campaign: every goal of a large public corpus of Atelier~B proof obligations~\cite{deharbe2022pog}, encoded by both \beer{} and Atelier~B's ppTrans translator, solved by cvc5 under identical settings, and compared goal by goal---\bmGoals{} goals from \bmFiles{} files.
+This chapter evaluates its \emph{effectiveness} by asking whether the higher-order, representation-aware design of \Cref{ch:loosening,ch:beer} helps an SMT solver discharge industrial proof obligations relative to the first-order encodings used by current tools.
+In one controlled campaign, we encoded every goal in a large public corpus of Atelier~B proof obligations~\cite{deharbe2022pog} with both \beer{} and Atelier~B's ppTrans translator, solved the resulting scripts with cvc5 under identical settings, and compared the outcomes goal by goal: \bmGoals{} goals from \bmFiles{} files.
 
-Its outcome is best stated as one sentence with two halves.
-As an \emph{encoding}, the higher-order design stands within a few points of the industrial baseline overall, ahead of it on arithmetic, cardinality, and higher-order goals, and proves tens of thousands of goals the baseline cannot; as a \emph{tool}, \beer{} remains well behind end to end, because higher-order SMT solving is not yet efficient for this kind of problem.
-Outperforming the baseline of existing tools is, however, not what \beer{} is built for: it exists to exercise the higher-order capabilities of modern SMT solvers on industrial proof obligations, and the campaign measures where those capabilities stand today.
-The chapter substantiates both halves, and keeps them apart: \Cref{sec:evaluation-goals} fixes the questions and the artifacts under test, \Cref{sec:benchmark-corpus,sec:experimental-setup} describe the corpus, the protocol, and the two scoring rules that separate the halves, \Cref{sec:beer-results} presents the results, and \Cref{sec:threats-to-validity} delimits their validity.
+Its outcome has two parts.
+As an \emph{encoding}, the higher-order design stands within a few points of the industrial baseline on the goals that both pipelines answer, leads on arithmetic and cardinality, matches the baseline on higher-order goals, and proves tens of thousands of goals that the baseline cannot.
+As an end-to-end \emph{tool}, however, \beer{} remains well behind because its encoder fails to cover or finish many files.
+Outperforming existing tools is not what \beer{} was built for: it exists to exercise the higher-order capabilities of modern SMT solvers on industrial proof obligations, and the campaign measures where those capabilities stand today.
+The chapter substantiates both parts and keeps them distinct: \Cref{sec:evaluation-goals} fixes the questions and the artifacts under test, \Cref{sec:benchmark-corpus,sec:experimental-setup} describe the corpus, the protocol, and the two scoring rules that separate them, \Cref{sec:beer-results} presents the results, and \Cref{sec:threats-to-validity} examines the threats to their validity.
 
 \input{chapters/evaluation/evaluation-goals.tex}
 \input{chapters/evaluation/benchmark-corpus.tex}
 \input{chapters/evaluation/experimental-setup.tex}
 \input{chapters/evaluation/beer-results.tex}
+\input{chapters/evaluation/threats.tex}
 \input{chapters/evaluation/reference-tables.tex}
