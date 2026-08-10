@@ -130,7 +130,7 @@ Higher-order SMT solving is a young capability~\cite{barbosa2019hosmt} and is no
 \Cref{fig:eval-matrix} crosses the two outcomes goal by goal over the goals that \beer{} encoded.
 There, \emph{timeout} denotes the \(300\)\,s per-goal wall, whereas \smtinl{unknown} is the verdict that cvc5 returns at its own \(5\)\,s budget; verdict-only scoring retains exactly the top-left \(2\times2\) block.
 No goal is \smtinl{sat} on one side and \smtinl{unsat} on the other; indeed, cvc5 never returned \smtinl{sat} for any script.
-A hard disagreement would indicate an unsound encoding or a misaligned join, so its absence across more than 1.6 million solver runs is weak empirical support for \Cref{ch:beer}: both translators are unverified, so agreement between them is not evidence that either is correct.
+A hard disagreement would indicate an unsound encoding or a misaligned join, so its absence across more than 1.6 million solver runs is a check that \Cref{ch:beer} passes. It is a weak one: neither translator is verified, and agreement between two unverified tools cannot establish that either is correct.
 The \emph{timeout} row and column are asymmetric: \beer{} essentially never hits the wall, whereas ppTrans exhausts it on more than a tenth of the goals it shares with \beer{}; on \bmBeerWinsPptKilled{} of those, \beer{} had already proved the goal in a median of about five seconds.
 
 The time and size components of cost are reported in \Cref{fig:eval-time,fig:eval-ratio}.
@@ -267,7 +267,7 @@ Under strict scoring, which counts all of those as failures, \beer{} is behind a
 \Cref{fig:eval-subject,fig:eval-construct} locate the differences by subject and by construct.
 \beer{} is ahead wherever a goal involves \emph{counting}, \emph{integer arithmetic}, or a \emph{set treated as an object}: pure arithmetic (\(+9.0\)), sequences (\(+3.6\)), pure set theory (\(+1.5\)), and above all cardinality, where its success rate is nearly twice the baseline's (\(33.9\,\%\) against \(17.5\,\%\)).
 It is behind wherever a \emph{function is applied}: the functions subject class (\(-9.6\)) and the function-application construct class (\(-7.4\)) carry the largest deficits, alongside transitive closure (\(-8.2\)).
-The latter class must be read with care: only 634 of its goals survive the restriction because ppTrans was killed on \(45.8\,\%\) of the goals containing a closure.
+The closure class must be read with care: only 634 of its goals survive the restriction because ppTrans was killed on \(45.8\,\%\) of the goals containing a closure.
 Both follow from the design of \Cref{ch:beer,ch:loosening}.
 On the winning side, characteristic predicates keep the set algebra shallow---union is a pointwise disjunction rather than an axiom about a fresh set---and integers stay native, so arithmetic reasoning never crosses an encoding layer.
 On the losing side, every application of an encoded function passes through the option-valued machinery and, when representations disagree, through a cast whose helper variable and quantified specification help explain the blow-up measured in \Cref{fig:eval-ratio}; ppTrans's uniform membership relation has no such intermediate layer.
@@ -346,7 +346,7 @@ This is consistent with its exclusive-win rate, the lowest of any class (\Cref{s
 \end{figure}
 
 Finally, \Cref{fig:eval-size-quant} does not support two simpler explanations.
-Neither raw goal size nor the number of quantifiers the \emph{source} goal binds separates the encodings: the gap ranges from 1 to 12 points across four orders of magnitude of size and from 3 to 7.3 points across the quantifier range.
+Neither raw goal size nor the number of quantifiers the \emph{source} goal binds reverses the ordering: \beer{} is behind in every size bucket, by 1 to 12 points across four orders of magnitude, and in every quantifier bucket, by 3 to 7.3 points.
 The more relevant distinction is the quantified structure each encoding \emph{introduces}---casts and bounded universals on one side, membership axioms on the other.
 The construct-based breakdowns reflect that structure more directly.
 
@@ -402,8 +402,8 @@ At the opposite end are function application (\(5.2\,\%\), a lift of 0.7) and, w
 
 The wins are broadly spread but not uniformly: \bmBOFiles{} files contribute at least one exclusive win.
 Three of the heaviest contributors\footnote{\texttt{0039/00060}, \texttt{0039/00040}, and \texttt{0032/00046}.} report identical figures and are almost certainly the same machine appearing three times in the corpus; they should therefore be treated as one when interpreting file-level concentration.
-File \texttt{0033/00039} shows the exclusive wins are not confined to \beer{}'s favored classes: 2\,307 of its 3\,715 answered goals---\(62\,\%\) of the file, against ppTrans's \(35\,\%\)---are \beer{}'s alone, and they are order-1 function applications, the class \beer{} loses on average.
-The files that this scoring \emph{removes} show the converse: on \texttt{0002/00006} and \texttt{0024/00011}, ppTrans proves barely \(2\,\%\) under strict scoring while \beer{} clears them in seconds, yet they cannot appear in a verdict-only ranking because almost none of their goals received a ppTrans verdict.
+File \texttt{0033/00039} shows the exclusive wins are not confined to \beer{}'s favored classes: 2\,307 of its 3\,715 answered goals---\(62\,\%\), against a \(35\,\%\) overall success rate for ppTrans---are \beer{}'s alone, and they are order-1 function applications, the class \beer{} loses on average.
+The files that this scoring \emph{removes} show the opposite selection effect: on \texttt{0002/00006} and \texttt{0024/00011}, ppTrans proves barely \(2\,\%\) under strict scoring while \beer{} clears them in seconds, yet they cannot appear in a verdict-only ranking because almost none of their goals received a ppTrans verdict.
 
 \FloatBarrier
 \subsection{Summary}

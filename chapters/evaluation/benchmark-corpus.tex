@@ -21,7 +21,9 @@ Function application is deliberately split from the relational algebra: it is th
 The relational fragment in the broad sense---the \emph{relational} and \emph{functions} classes together---covers \(64\,\%\) of the corpus, as expected of a language whose data model is relational.
 
 \paragraph*{Constructs.}
-A complementary, overlapping classification asks how each side fares \emph{among the goals containing} a given construct: cardinality, transitive closure, function application, a relation-typed subterm, an explicit binder (\emph{quantified} covers \(\forallB\), \(\existsB\), \(\lambdaB\), \(\Sigma\), \(\Pi\), generalized union and intersection, and set comprehensions; these constructs behave alike here), or a bound variable that is itself a set.
+A complementary, overlapping classification asks how each side fares \emph{among the goals containing} a given construct: cardinality, transitive closure, function application, integer arithmetic, a sequence operator, a set operator, a relation-typed subterm, an explicit binder, a bound variable that is itself a set, or a type of order at least 2.
+Here \emph{quantified} covers \(\forallB\), \(\existsB\), \(\lambdaB\), \(\Sigma\), \(\Pi\), generalized union and intersection, and set comprehensions, which behave alike.
+Three of these names recur on the subject and order axes, but the populations differ: a goal counts here if it \emph{contains} the construct, not if it is \emph{about} it.
 Only \bmQuantified{} goals bind a variable of their own; the quantifiers the solver must handle are overwhelmingly the ones each encoding \emph{introduces}.
 
 \paragraph*{Higher order.}
@@ -30,5 +32,5 @@ The property belongs to the B goal rather than to either encoding: it marks wher
 Slightly more than half of the corpus (\bmHOn{} goals) is higher-order in this sense.
 
 Goal sizes span four orders of magnitude, from a handful of AST nodes to tens of thousands.
-The corpus does, however, contain near-duplicates: at least one component appears three times verbatim under different projects.
+The corpus does, however, contain near-duplicates: at least one component appears three times verbatim.
 \Cref{sec:threats-to-validity} discusses the implications of this duplication.
