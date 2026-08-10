@@ -73,7 +73,7 @@ the partial operator occurred.
   \forallB \var{S} \inB \mathsf{FIN}_1(\ZintB) \cdot
     \bigl( (\forallB \var{x} \inB \var{S} \cdot \var{x} \leB 0) \impB \minB(\var{S}) \leB 0 \bigr),
 \]
-whose single partial occurrence is the minimum.
+whose only occurrence of a partial operator is the minimum.
 
 \begin{figure}[t]
   \centering
@@ -157,14 +157,14 @@ theorems it has already created, and identifies a new condition with an old one 
 When a match is found, the hole is filled with the existing theorem instead of creating a
 new goal.
 
-Three properties of this mechanism matter.
+The mechanism has three properties.
 It spans the whole import, and it covers conditions that were left open as well as those
 already proved, so an interactive proof is never requested twice for the same condition.
 It is equality-based, not subsumption-based: \barrel{} does not attempt to discover that
 one condition follows from a differently stated, stronger theorem, which would add an
 open-ended proof-search problem to goal generation.
-Finally, it preserves a simple dependency structure, since every partial occurrence still
-points to one theorem of exactly the type its operator demands.
+Finally, it preserves a simple dependency structure, since every occurrence of a partial
+operator still points to one theorem of exactly the type its operator demands.
 The quantitative effect is reported in \Cref{subsec:barrel-minsearch-results}: on the case
 study it removes more than half of the generated goals, and leaves the principal
 obligations untouched.
@@ -229,9 +229,9 @@ whole file; it is what puts industrial files within reach at all
 The automation layer is proof-producing: a successful attempt installs only a term that
 Lean's kernel accepts, and a failed or timed-out attempt leaves an ordinary interactive
 goal.
-There is one qualification.
-A goal that already depends on an admission is closed by re-admitting it rather than
-rejected, and the discharger counts such outcomes separately from genuine proofs; the
+One qualification applies: a goal that already depends on an admission is closed by
+re-admitting it rather than rejected, and the discharger counts such outcomes separately
+from genuine proofs; the
 ``auto-solved'' figure reported by the interface is the sum of the two, and the admitted
 ones are rendered distinctly.
 

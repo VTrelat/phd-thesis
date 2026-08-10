@@ -14,9 +14,9 @@ Lean has no primitive notion of partiality: a declared function is total on its 
 type.
 A partial B operator must therefore be turned into a total Lean function, and there are
 essentially three ways to do so.
-One may return an arbitrary value outside the intended domain; the resulting theorems are
-then true of the Lean definition but not of the B operator it is meant to denote, and
-nothing in the statement records the discrepancy.
+One may return an arbitrary value on arguments outside the intended domain; the resulting
+theorems are then true of the Lean definition but not of the B operator it is meant to
+denote, and nothing in the statement records the discrepancy.
 One may restrict the argument type by a subtype, which changes the shape of every
 surrounding expression.
 Or one may keep the argument types unchanged and add a proof of definedness as an extra
@@ -28,7 +28,11 @@ needs, and the operator takes an inhabitant of that proposition as an explicit a
 It may then use classical choice to return the value whose existence the evidence
 establishes.
 \Cref{lst:barrel-partial-definitions} shows the pattern on minimum and relational
-application.
+application. In both, the evidence is---up to unfolding---an existential statement, which is
+what \leaninl{Classical.choose} consumes (\Cref{sec:lean}): \leaninl{isBoundedBelow} is one
+as stated, and \leaninl{isInDomain} becomes one because \leaninl{dom f} is by definition
+\leaninl!{x | ∃ y, (x, y) ∈ f}!, so \leaninl{x ∈ dom f} unfolds to
+\leaninl{∃ y, (x, y) ∈ f}.
 
 \begin{leanlisting}[title={Proof-relevant encodings of the minimum of a set and of
     relational application.}, label={lst:barrel-partial-definitions}, float=t]
@@ -63,12 +67,11 @@ Four consume that evidence through \leaninl{Classical.choose}; the field names a
 historical and slightly understate their contents.
 For the minimum, \leaninl{isBoundedBelow} asserts the existence of a least element, not
 merely of a lower bound, which is what makes the chosen value unique.
-For application, the second field alone---membership of \(x\) in \(\domB(f)\), that is,
-\(\existsB y \cdot (x,y) \inB f\)---already yields a value by choice; the first field,
+For application, the second field alone already yields a value by choice; the first field,
 which says that \(f\) is a total function \emph{on its own domain} and is how functionality
 of a relation is phrased in this model, is what makes that value \emph{the} image of \(x\).
-Cardinality is the exception and is worth noting, because it shows that the proof argument
-is not a mere guard: from \leaninl{S.Finite} the definition builds a \leaninl{Fintype}
+Cardinality is the exception, and it shows that the proof argument is not a mere guard:
+from \leaninl{S.Finite} the definition builds a \leaninl{Fintype}
 instance for \leaninl{S} and returns the cardinality of the resulting finite set, so the
 proof genuinely participates in the elaboration of the value.
 
@@ -114,7 +117,10 @@ An expression introduced during an interactive proof---a witness for an existent
 instantiation of a universally quantified hypothesis---never passes through
 proof-obligation generation again.
 Any discipline based on precomputed side goals is therefore silent about the terms a user
-writes, which is exactly the situation examined in \Cref{sec:barrel-atelier-comparison}.
+writes. \barrel{} needs no second mechanism for them: by
+\Cref{subsec:barrel-partial-operators}, a term containing a partial operator does not
+elaborate until its definedness argument is supplied, wherever it is introduced.
+\Cref{sec:barrel-atelier-comparison} examines this situation.
 
 Third, reinstalling an imported condition would require the context in which the occurrence
 was encountered.

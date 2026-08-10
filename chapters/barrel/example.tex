@@ -75,8 +75,8 @@ $\vdash$ done ∪ add ∈ FIN₁ SS
 \end{leanlisting}
 
 Of the eight resulting propositions, one repeats a condition already generated and is
-resolved by reuse, six are discharged automatically, and a single goal---the one displayed
-above---is left to the user.
+resolved by reuse, six are discharged automatically, and a single goal---that of
+\Cref{lst:barrel-step-goal}---is left to the user.
 It is proved in two lines, by combining a \barrel{} lemma about unions of non-empty finite
 subsets with the elementary inclusion of a set difference in its left operand:
 
@@ -86,6 +86,8 @@ next -- Operation_step_2: done ∪ add ∈ FIN₁ SS
   intros
   exact FIN₁.of_union ‹_› (FIN₁.mono Set.sdiff_subset ‹_›)
 \end{leanlisting}
+
+\FloatBarrier
 
 \paragraph*{First refinement: reducing non-determinism.}
 The first refinement restricts \binl{step} to adding a single fresh element and updates the
@@ -200,7 +202,6 @@ sees.
   \label{tab:barrel-minsearch-results}
 \end{table}
 
-Two effects are visible.
 Sharing removes 107 of the 146 occurrence-level conditions, so the user is never asked
 about the same definedness fact twice within an import; the 39 distinct conditions that
 survive are all discharged automatically.
@@ -233,7 +234,7 @@ aborting the command (\Cref{subsec:barrel-automation}).
 What is left is an ordinary Lean development, its goals grouped by source operation and
 addressable one \leaninl{next} block at a time.
 
-Two caveats keep this in proportion.
+Two caveats apply.
 The file contains no partial operator, so it exercises the reader, the encoder, and the
 isolation machinery, but not the reification and sharing of
 \Cref{subsec:barrel-reification,subsec:barrel-wd-sharing}; the case study is what tests

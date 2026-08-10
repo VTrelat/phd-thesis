@@ -46,13 +46,15 @@ proposition instead of being routed through a decidability instance.
     \texttt{INT}                           & \leaninl{Int}   & \(\{n \mid \mathtt{MININT} \le n \le \mathtt{MAXINT}\}\) \\
     \texttt{BOOL}                          & \leaninl{Prop}  & \leaninl{Set.univ} \\
     \texttt{REAL}                          & \leaninl{Real}  & \leaninl{Set.univ} \\
-    a set over a carrier \(\alpha\)        & \leaninl{Set α} & --- \\
-    \(A \prodB B\)                         & \(\alpha \times \beta\) & --- \\
-    \(\powB(A)\)                           & \leaninl{Set (Set α)} & --- \\
-    \(A \bop{\leftrightarrow} B\)          & \leaninl{Set (SetRel α β)} & --- \\
+    a set over a carrier \(\alpha\)        & \leaninl{Set α} & the set itself \\
+    \(A \prodB B\)                         & \(\alpha \times \beta\) & \leaninl{Set.prod} \(A'\) \(B'\) \\
+    \(\powB(A)\)                           & \leaninl{Set (Set α)} & \(\mathcal{P}\,A'\) \\
+    \(A \bop{\leftrightarrow} B\)          & \leaninl{Set (SetRel α β)} & \leaninl{rels} \(A'\) \(B'\) \\
     \bottomrule
   \end{tabular}
-  \caption{Core of the B-to-Lean type mapping. The bounded carriers use the
+  \caption{Core of the B-to-Lean type mapping; \(A'\) denotes the Lean value of the B
+    expression \(A\), so the last three entries are schemas rather than
+    constants. The bounded carriers use the
     implementation limits \(\mathtt{MAXINT} = 2^{31}-1\) and
     \(\mathtt{MININT} = -\mathtt{MAXINT}\); \texttt{INT} is the only carrier that uses
     \(\mathtt{MININT}\).}
@@ -120,9 +122,11 @@ relational application remains an operation on sets of pairs rather than functio
 application in the metalanguage.
 
 This is where the automated and interactive routes differ most visibly.
-\Cref{ch:loosening} was needed because a first-order SMT solver reasons far better about a
-function symbol than about a characteristic predicate over a product sort, so \beer{} must
-be able to move a value between representations and prove that nothing is lost.
+\Cref{ch:loosening} was needed because of a working hypothesis about first-order SMT
+solvers: that they reason more effectively about a function symbol than about a
+characteristic predicate over a product sort. \Cref{sec:beer-results-where} bears it out on
+the automated route---the function-application class carries \beer{}'s largest deficit---so
+\beer{} must be able to move a value between representations and prove that nothing is lost.
 No such pressure exists here: the target logic is higher-order, the library of facts is
 stated over \leaninl{Set} and \leaninl{SetRel} in exactly the shape B produces, and the
 user---not a solver---chooses how to decompose a goal.

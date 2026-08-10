@@ -39,7 +39,7 @@ produced it.
   precomputed conditions.
 \end{remark}
 
-The corresponding step in \barrel{} is instructive precisely because it is not forbidden.
+\barrel{} does not forbid the corresponding step either.
 A user may write the same instantiation, as in \Cref{lst:barrel-derive-false-lean}: the
 witness \leaninl{min ∅ ?_} is accepted, and Lean simply asks for the missing
 second argument.
@@ -64,7 +64,7 @@ next
 assert_no_sorry DerivFalse.AssertionLemmas_0   -- fails, as it should
 \end{leanlisting}
 
-Two conclusions follow, and it is worth keeping them apart.
+Two conclusions follow, and they are distinct.
 The narrow one is that the ill-definedness cannot be hidden: it appears as a goal of a
 named type, it is counted as an admission by the interface of
 \Cref{sec:barrel-interface}, and it is detected by an axiom check.
@@ -156,12 +156,12 @@ reusable mathematics.
     \toprule
     Component & Lines \\
     \midrule
-    Syntax of B, reader, encoder, discharger, tactics & 1\,604 \\
-    Model of B and its supporting theorems            & 1\,357 \\
-    Proof interface                                   &    416 \\
+    Syntax, encoder, discharger, tactics & 1\,604 \\
+    Model of B and supporting theorems            & 1\,357 \\
+    Widget interface                                  &    416 \\
     \midrule
     Examples and tests                                &    533 \\
-    Vendored XML parser                               &    379 \\
+    XML parser                                        &    379 \\
     \midrule
     Total                                             & 4\,289 \\
     \bottomrule
@@ -206,9 +206,9 @@ The deep embedding of \Cref{ch:b} is the natural counterpart, and the connection
 formalization problem rather than a routine one: it must relate expressions built by Lean
 metaprogramming, whose meaning is fixed by Lean's own elaborator, to terms of an inductive
 syntax equipped with the denotation of \Cref{subsec:b-denote}.
-The two halves of this thesis meet at exactly that point---\beer{} proves its translation
-correct against that denotation, whereas \barrel{} trusts its own---and closing the gap
-would let the interactive route inherit the guarantee \beer{}'s encoder already carries.
+This is the point at which the two halves of the thesis meet: \beer{} proves its translation
+correct against that denotation, whereas \barrel{} trusts its own. Closing the gap would let
+the interactive route inherit the guarantee \beer{}'s encoder already carries.
 
 \subsection{Remaining engineering}
 
@@ -225,8 +225,8 @@ has produced until it ends.
 The third is the reach of the default automation: 3.6\,\% of the obligations of an
 industrial file, against 39\,\% of the principal obligations of the case study
 (\Cref{subsec:barrel-industrial-scale}).
-Closing that gap is not an architectural question but a matter of growing the B-specific
-lemma library in the directions industrial files actually use.
+Closing that gap requires growing the B-specific lemma library in the directions industrial
+files actually use, rather than any architectural change.
 
 Until the verified generator exists, the claim stays deliberately scoped.
 \barrel{} imports realistic B proof obligations into Lean, makes definedness evidence

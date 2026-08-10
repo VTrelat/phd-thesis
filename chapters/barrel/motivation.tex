@@ -29,7 +29,7 @@ Many B operators are partial: \(\minB(S)\) denotes a least element only if one e
 \(\appB f\,x\) is meaningful only when \(f\) is functional and \(x\) lies in its domain.
 As recalled in \Cref{sec:b-wd}, the B method reads such an operator as a bounded Hilbert
 choice and keeps the goal logic total, emitting a separate well-definedness (WD) obligation
-for each partial occurrence; these obligations are generated globally, so the correspondence
+for each occurrence of a partial operator; these obligations are generated globally, so the correspondence
 between an occurrence and the side condition meant to justify it is left implicit.
 \barrel{} takes the opposite stance.
 Every partial operator is a Lean function that takes a proof of its definedness as an

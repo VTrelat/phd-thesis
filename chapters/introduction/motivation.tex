@@ -36,9 +36,10 @@ question answering coexist with brittle behavior on apparently simpler tasks
 and with poor performance on end-to-end scientific
 replication~\cite{stanfordAIIndex2026}. A generated answer may be correct,
 subtly wrong, or correct for reasons unrelated to the explanation that
-accompanies it. Fluency makes these cases harder, not easier, to distinguish.
-As the cost of producing plausible answers falls, the scarce resource becomes a
-justification that deserves confidence.
+accompanies it. Fluency removes the surface cues by which an unreliable answer
+used to announce itself, so the three cases now arrive equally well presented.
+As the cost of producing plausible answers falls, justifications that deserve
+confidence gain in importance.
 
 Leonardo de Moura recently captured this reciprocal promise in three
 sentences~\cite{deMoura2026floc}:
@@ -64,7 +65,8 @@ to replace an appeal to plausibility with an explicit argument whose individual
 steps can be checked.
 
 Formalization does not create certainty from nothing. A theorem can faithfully
-establish the wrong requirement; an axiom can be inappropriate; a model can omit
+establish the wrong requirement, or the right one under hypotheses that nothing
+in practice satisfies; an axiom can be inappropriate; a model can omit
 an important aspect of the world; and the software that performs the checking
 is itself part of the trust placed in the result. Formal methods are valuable
 because they make these dependencies more visible and more sharply delimited.
@@ -84,12 +86,12 @@ assistant, so that successful searches yield formal proofs checked by Lean's
 kernel~\cite{hubert2026alphaproof}. The result is trustworthy because acceptance
 does not depend on trusting the model's account of its own reasoning.
 
-This thesis adopts that separation as a guiding principle. Its ambition is to
-construct a trustworthy reasoning chain in which increasingly powerful forms
-of automation---including AI-assisted proof construction---can be used without
-making the validity of a result depend on the opacity of the tool that proposed
-it. \Cref{sec:intro-llm-use} provides a methodological account of how LLMs were
-used during this work.
+This thesis adopts that separation as a guiding principle. It contributes no new
+automation; it works on the links that make automation acceptable, so that
+increasingly powerful proof-producing tools---including AI-assisted ones---can be
+used without making the validity of a result depend on the opacity of the tool
+that proposed it. \Cref{sec:intro-llm-use} separately accounts for how LLMs were
+used in producing this work.
 
 \subsection{Two modes of machine-assisted reasoning}
 \label{subsec:intro-itp-atp}
@@ -127,7 +129,7 @@ interaction, and trust are organized.
 \label{subsec:intro-bridge-trust}
 
 Using either kind of prover as a backend for an existing formalism requires a
-translation. The source and target languages---\eg B and SMT-LIB---may differ
+translation. The source and target languages---in this thesis, B and SMT-LIB---may differ
 in their type systems, primitive constructions, mathematical foundations, and
 representation of binders. Connecting them is therefore not merely a matter of
 printing the same formula in another syntax. The translation must choose

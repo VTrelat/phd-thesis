@@ -115,6 +115,9 @@ functional extensionality entails the law of excluded middle. A development may
 nonetheless remain within a \emph{computable} fragment by avoiding choice and the
 \leaninl{Classical} module; a definition that does depend on choice cannot be
 reduced by the kernel, which then requires it to be marked \leaninl{noncomputable}.
+The operator used in later chapters is \leaninl{Classical.choose}, which turns a proof of
+\leaninl{∃ x, p x} into a witness, together with \leaninl{Classical.choose_spec}, which
+states that the witness satisfies \leaninl{p}.
 
 \subsection{Lean as a functional programming language}
 \label{subsec:lean-programming}

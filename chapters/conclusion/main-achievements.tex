@@ -5,7 +5,7 @@ The first result is a common semantic account of the source and target
 languages. \zflean{} supplies the ZFC universe in which the B and SMT-LIB
 formalizations of \Cref{ch:b,ch:smt} are interpreted. Their syntax, typing, and
 denotations can therefore be related within one mathematical model. This turns
-the correctness of a the encoding from an informal comparison of formulas
+the correctness of the encoding from an informal comparison of formulas
 into a statement about preservation of meaning.
 
 The second result is that this preservation does not require a single fixed
@@ -26,8 +26,7 @@ instantiation cannot silently be used in a completed proof. Proof search may
 combine domain-specific lemmas, tactics, and manual steps, but every resulting
 theorem is checked by Lean's kernel.
 
-Together, these results answer the thesis's central question by locating
-assurance at the appropriate boundary. The automated route proves a semantic
-bridge before delegating search to an SMT solver; the interactive route checks
-the final derivation in Lean. Neither guarantee covers the complete toolchain,
-but each identifies what has been established and what must still be trusted.
+The automated route proves a semantic bridge before delegating search to an
+SMT solver; the interactive route checks the final derivation in Lean. Neither
+guarantee covers the complete toolchain, but each identifies what has been
+established and what must still be trusted.

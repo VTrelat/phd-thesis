@@ -116,9 +116,9 @@ A script may leave obligations without a \leaninl{next} block, in which case the
 gray (\Cref{fig:barrel-state-missing}\,(a)); or it may provide every block and close some of
 them with \leaninl{sorry}, in which case those cells are marked and left out of the proved
 count (\Cref{fig:barrel-state-missing}\,(b)).
-The distinction matters, since a syntactically complete development otherwise looks
-finished---though the guarantee rests on the axiom check of
-\Cref{sec:barrel-atelier-comparison} and not on a color.
+Without the distinction, a syntactically complete development would look finished; the
+guarantee itself rests on the axiom check of \Cref{sec:barrel-atelier-comparison}, not on a
+color.
 When blocks are missing, an action inserts a \leaninl{sorry}-closed skeleton for them, in the
 order \leaninl{prove_obligations_of} consumes the goals, which is not the order the map
 displays them.
