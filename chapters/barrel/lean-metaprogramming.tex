@@ -9,8 +9,7 @@ and to contain the failures.
 \subsection{Flattening and dependent conjunction}
 \label{subsec:barrel-normalization}
 
-Two normalizations are applied before elaboration; only the second is motivated by the
-treatment of partiality.
+Two normalizations are applied before elaboration.
 
 The first is cosmetic.
 A proof obligation arrives with its hypotheses bundled into conjunctions, and an implication
@@ -44,15 +43,14 @@ Translating the right-hand side under a hypothesis naming the left-hand side rem
 problem entirely, and does so uniformly for conjunction, implication, and the guard of a
 lambda abstraction.
 
-Nothing new is introduced by \(\land'\): it is Lean's existential quantifier, given an
-infix notation and a matching pretty-printer.
+\(\land'\) is Lean's existential quantifier, given an infix notation and a matching
+pretty-printer.
 Writing the existential as such would have been equally correct and strictly less readable,
 since every B conjunction would then appear as \(\exists\,(h : P),\ Q\,h\) in the
 generated goals, and a reader comparing a goal with its B source would have to undo the
 encoding at each connective.
-The notation also degrades gracefully: when \(Q\) does not use \(h\), the binder is
-suppressed and the goal shows \(P \mathbin{\land'} Q\), one prime away from the B
-predicate it translates.
+When \(Q\) does not use \(h\) the binder is suppressed, and the goal shows
+\(P \mathbin{\land'} Q\), one prime away from the B predicate it translates.
 
 \subsection{Reifying well-definedness holes}
 \label{subsec:barrel-reification}
@@ -124,7 +122,7 @@ whose only occurrence of a partial operator is the minimum.
 \FloatBarrier
 
 Nested partial operators are handled in the same way: a hole opened while translating the
-argument of another partial operator simply has the larger context.
+argument of another partial operator has the larger context.
 A proposition that still contains an unfilled hole is rejected rather than kept.
 The main proposition and each of its reified conditions are named after the tag Atelier~B
 gave the obligation, of the shape \(\mathit{Machine}.\mathit{Tag}\_i\) and
@@ -132,7 +130,6 @@ gave the obligation, of the shape \(\mathit{Machine}.\mathit{Tag}\_i\) and
 the environment as soon as it has a proof, carrying a docstring that records the source
 artifact and the reason string of the obligation.
 
-The order in which these declarations are created is not free.
 A principal proposition mentions the constants naming its definedness conditions, so those
 conditions must be declared first, and the discharger therefore processes the reified
 conditions of an obligation before the obligation itself.
@@ -206,7 +203,6 @@ theorem interval.min_eq {lo hi : ℤ} (h : lo ≤ hi) :
     min (lo .. hi) (min.WD_interval h) = lo
 \end{leanlisting}
 
-The division of work is deliberate.
 The tagged tactics remove the bookkeeping introduced by explicit proof arguments, which is
 the part of a goal that no general-purpose tactic can be expected to handle, since it is
 specific to the encoding.
@@ -223,7 +219,7 @@ Encoding errors are contained in the same way---an obligation that uses a constr
 the supported fragment is reported as a warning and skipped, while its neighbors are still
 attempted.
 Without this containment a single divergent tactic call would abort the import of the
-whole file; it is what puts industrial files within reach at all
+whole file, and industrial files would be out of reach
 (\Cref{subsec:barrel-industrial-scale}).
 
 The automation layer is proof-producing: a successful attempt installs only a term that
@@ -246,6 +242,7 @@ verified by Lean's kernel, and neither the tactics nor the interface of
 \Cref{sec:barrel-interface} has to be trusted for that verification to hold.
 Importing an existing proof-obligation file removes the external programs from a particular
 run, but says nothing about how that file was produced.
+\Cref{subsec:barrel-verified-generator} takes up the trusted side.
 
 \begin{figure}[t]
   \centering
@@ -290,6 +287,3 @@ explicit well-definedness evidence, whether that evidence is produced during imp
 user's tactic script.
 The second is proof-theoretic: every theorem accepted without an admission has a checked
 proof of its encoded statement, and its axiom dependencies can be listed.
-What is \emph{not} guaranteed is that Atelier~B generated the right obligation, or that the
-encoder produced the intended Lean proposition; removing those assumptions is the subject
-of \Cref{subsec:barrel-verified-generator}.

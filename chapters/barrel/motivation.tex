@@ -18,10 +18,10 @@ It imports a machine, refinement, implementation, or system---or a previously ge
 proof obligation file---translates every supported obligation into a Lean proposition,
 attempts each one with proof-producing automation, and leaves the propositions it cannot
 close as ordinary Lean goals.
-Nothing upstream changes: the user still writes and type-checks the B artifact with
-Atelier~B, and Atelier~B still generates the obligations.
-What changes is that a discharged obligation becomes a named theorem whose proof term the
-kernel has checked and whose axiom dependencies can be listed.
+The user still writes and type-checks the B artifact with Atelier~B, and Atelier~B still
+generates the obligations.
+A discharged obligation now becomes a named theorem whose proof term the kernel has checked
+and whose axiom dependencies can be listed.
 Two design decisions shape the rest of the chapter.
 
 \paragraph*{Partiality is made structural.}
@@ -53,9 +53,9 @@ The two routes therefore diverge immediately below the proof obligation, and the
 apart: nothing in the interactive route obliges a B function to be anything other than what
 it is set-theoretically, a functional relation.
 
-The chapter does not restate the B method, its refinement discipline, or its mathematical
-language: these are covered in \Cref{sec:b-method} and formalized in \Cref{ch:b}, and the
-Lean features used below are those of \Cref{sec:lean}.
+The B method, its refinement discipline, and its mathematical language are covered in
+\Cref{sec:b-method} and formalized in \Cref{ch:b}; the Lean features used below are those
+of \Cref{sec:lean}.
 \Cref{sec:barrel-architecture} places \barrel{} in the Atelier~B workflow;
 \Cref{sec:barrel-embedding,sec:barrel-wd} present the typed model of B and the treatment of
 partial operators; \Cref{sec:barrel-lean-metaprogramming} explains how obligations become

@@ -1,10 +1,8 @@
 \section{Partiality and well-definedness}
 \label{sec:barrel-wd}
 
-This is the section in which the encoding differs most from the B method's own treatment of
-partial operators.
-\Cref{subsec:barrel-partial-operators} explains how definedness evidence is turned into a
-proof argument, and what that buys; \Cref{subsec:barrel-own-wd} explains why \barrel{}
+The encoding of partial operators departs from the B method's own treatment:
+well-definedness evidence is turned into a proof argument, and \barrel{}
 recomputes such evidence instead of importing the conditions Atelier~B can generate.
 
 \subsection{Well-definedness as a proof argument}
@@ -52,9 +50,8 @@ noncomputable abbrev app {α β}
   Classical.choose wd.isInDomain
 \end{leanlisting}
 
-The consequence is structural rather than methodological.
 The Lean term denoting \(\appB f\,x\) has type \(\beta\) only when its third argument has
-type \leaninl{app.WD f x}; there is no term \leaninl{app f x} to write down.
+type \leaninl{app.WD f x}.
 A well-definedness condition is thus not displayed \emph{next to} the main theorem: its
 proof occurs \emph{inside} that theorem's statement.
 The evidence may be obtained automatically, interactively, or by reusing an earlier
@@ -97,8 +94,7 @@ proof genuinely participates in the elaboration of the value.
 \subsection{Why \barrel{} regenerates its own conditions}
 \label{subsec:barrel-own-wd}
 
-Atelier~B is perfectly capable of emitting well-definedness obligations, and does so on
-request.
+Atelier~B can emit well-definedness obligations, and does so on request.
 \barrel{} nonetheless recomputes them from the Lean term it is constructing, for three
 reasons.
 

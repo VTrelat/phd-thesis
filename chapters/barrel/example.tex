@@ -5,12 +5,8 @@
 This case study computes the minimum of a non-empty finite set of integers through an
 abstract machine and two refinements.
 It is small enough for every generated goal to be inspected, yet it exercises invariant
-preservation, data refinement, non-determinism, finite sets, and three of the five partial
-operators: \(\minB\), \(\cardB{\cdot}\), and relational application, together with the
-well-definedness conditions they induce.\footnote{The B identifiers are those of the
-artifact, so that every listing can be reproduced from it. In the Lean goals, hypothesis
-names have been made mnemonic; the encoder emits anonymous binders, which a user recovers
-with \leaninl{expose_names}.}
+preservation, data refinement, non-determinism, finite sets, and partial
+operators.
 
 \paragraph*{Abstract specification.}
 The machine of \Cref{lst:barrel-minsearch-machine} has a constant non-empty finite set
@@ -107,11 +103,9 @@ step =
   END
 \end{blisting}
 
-This level yields nineteen principal obligations and forty-two occurrences of a partial
-operator.
-Thirty-two of the latter repeat a condition already seen, so ten distinct
-well-definedness theorems remain; all ten are automatic, and five principal obligations are
-left interactive.
+This level yields 19 principal obligations and 42 occurrences of a partial operator.
+Of these occurrences, 32 repeat a condition already seen, so 10 distinct well-definedness
+theorems remain; all 10 are automatic, and 5 principal obligations are left interactive.
 
 \paragraph*{Second refinement: scanning an explicit table.}
 The second refinement introduces a concrete injective enumeration
@@ -146,11 +140,10 @@ END
 \end{blisting}
 
 This level combines refinement reasoning with repeated occurrences of cardinality and of
-relational application, and is where duplication is most visible: twenty-one principal
-obligations come with one hundred occurrences of a partial operator, of which seventy-four
-repeat an earlier condition.
-The twenty-six remaining well-definedness theorems are all automatic, and every one of the
-twenty-one interactive goals is a refinement argument rather than a definedness one.
+relational application: 21 principal obligations come with 100 occurrences of a partial
+operator, of which 74 repeat an earlier condition.
+The 26 remaining well-definedness theorems are all automatic, and every one of the 21
+interactive goals is a refinement argument rather than a definedness one.
 
 \subsection{Driving the chain and its outcome}
 \label{subsec:barrel-minsearch-results}
@@ -175,12 +168,9 @@ next ...  -- 21 remaining goals
 \end{leanlisting}
 
 \Cref{tab:barrel-minsearch-results} collects the figures.
-The \emph{raw} column counts principal obligations plus occurrences of a partial operator,
-that is, the number of theorem-sized goals a purely occurrence-based translation produces.
-The \emph{distinct} column is what remains after the sharing of
-\Cref{subsec:barrel-wd-sharing} and is the number of statements actually offered to
-automation; the last two columns partition it and therefore describe the proof work a user
-sees.
+The \emph{raw} column is the number of goals a purely occurrence-based translation would produce.
+The \emph{distinct} column is what the sharing of \Cref{subsec:barrel-wd-sharing} leaves for
+automation; the last two columns partition it.
 
 \begin{table}[t]
   \centering
@@ -209,37 +199,28 @@ Automation additionally proves 17 of the 44 principal obligations, leaving 27 in
 proofs.
 The comparison is with \barrel{}'s own occurrence-based translation, which would have
 presented the same chain as 190 separate goals; it measures what sharing and the widened
-automation contribute, not a difference with any other tool.
+automation contribute.
 
 Atelier~B's own well-definedness counts for the three artifacts are 4, 2 and 9.
-These are not comparable one-to-one: its generator introduces such conditions while
-analyzing the machine, before conjunct splitting duplicates hypotheses, and simplifies them
-on the way out, whereas \barrel{} first meets definedness at each encoded occurrence and
-then identifies equal Lean propositions.
+The two counts are produced differently: Atelier~B's generator introduces such conditions
+while analyzing the machine, before conjunct splitting duplicates hypotheses, and
+simplifies them on the way out, whereas \barrel{} first meets definedness at each encoded
+occurrence and then identifies equal Lean propositions.
 For the integer extrema, the two formulations are provably equivalent
-(\Cref{subsec:barrel-own-wd}); what differs is where the condition is anchored.
+(\Cref{subsec:barrel-own-wd}).
 
 \subsection{Industrial-scale imports}
 \label{subsec:barrel-industrial-scale}
 
-The refinement chain tests proof engineering rather than scale.
-Whether an industrial proof-obligation file can be brought into Lean at all is a separate
-question, and the answer is yes: on the public corpus of Atelier~B
-obligations~\cite{deharbe2022pog} described in \Cref{sec:benchmark-corpus}, the file
-\texttt{0020/00003.pog}---3.4~MB of XML, 2\,526 obligations---imports in its entirety in
-31~minutes.
-No construct falls outside the fragment of \Cref{subsec:barrel-coverage}, so nothing is
-skipped, and the 2\,434 automatic attempts that fail do so where they occur instead of
-aborting the command (\Cref{subsec:barrel-automation}).
+The refinement chain tests proof engineering; scale is a separate question.
+On the public corpus of Atelier~B obligations~\cite{deharbe2022pog} described in
+\Cref{sec:benchmark-corpus}, the file \texttt{0020/00003.pog}---3.4~MB of XML,
+2\,526 obligations---is imported in 31~minutes.
+Every construct in the file lies within the fragment of \Cref{subsec:barrel-coverage}, so
+the whole file is encoded, and the 2\,434 automatic attempts that fail do so where they
+occur instead of aborting the command (\Cref{subsec:barrel-automation}).
 What is left is an ordinary Lean development, its goals grouped by source operation and
 addressable one \leaninl{next} block at a time.
 
-Two caveats apply.
-The file contains no partial operator, so it exercises the reader, the encoder, and the
-isolation machinery, but not the reification and sharing of
-\Cref{subsec:barrel-reification,subsec:barrel-wd-sharing}; the case study is what tests
-those.
-And the 92 obligations closed automatically---3.6\,\%, against 17 of the 44 principal
-obligations of the chain---are not the measure of the exercise: discharging obligations
-unaided is the automated route's business (\Cref{ch:beer}), whereas here the task is to
-deliver them in a form a user can work on.
+The file contains no partial operator, so it does not exercise the reification and sharing of
+\Cref{subsec:barrel-reification,subsec:barrel-wd-sharing}; the case study is what tests those. It was purposely chosen as a representative example of ``hard'' industrial proof obligations.

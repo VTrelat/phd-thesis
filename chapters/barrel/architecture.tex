@@ -117,10 +117,9 @@ output.
 Alternatively, an existing proof obligation file may be imported directly, which skips the
 external programs altogether; this matters for reproducible builds and for corpora such as
 the one used in \Cref{sec:benchmark-corpus}, where only the obligations are distributed.
-One detail of the invocation is deliberate: Atelier~B's generator accepts a flag that
-additionally emits well-definedness obligations, and \barrel{} does not pass it, preferring
-to regenerate those conditions itself for the reasons given in
-\Cref{subsec:barrel-own-wd}.
+Atelier~B's generator accepts a flag that additionally emits well-definedness obligations,
+and \barrel{} does not pass it, preferring to regenerate those conditions itself for the
+reasons given in \Cref{subsec:barrel-own-wd}.
 
 \paragraph*{The two commands.}
 The complete surface syntax consists of two commands, illustrated in
@@ -151,7 +150,7 @@ next
 Each \leaninl{next} block is paired, in order, with one proposition that the default
 automation did not discharge.
 Providing too few blocks, or too many, is an error; in the first case the obligations left
-without a block simply stay open.
+without a block stay open.
 Every accepted block adds a named theorem to the environment
 (\Cref{subsec:barrel-reification}), so a proof remains traceable to its source operation
 and obligation family.
@@ -159,8 +158,7 @@ Because these are ordinary declarations, they can be reused as lemmas in later p
 inspected with Lean's dependency tools, and audited with \leaninl{#print axioms}.
 
 \paragraph*{The three difficulties.}
-Three difficulties stand between a proof-obligation file and a Lean theorem, and the rest
-of the chapter takes them in turn.
+Three difficulties stand between a proof-obligation file and a Lean theorem.
 The statement has to be reconstructed: the file records types, definitions, variables,
 hypotheses, and conclusions separately, and they have to be assembled into a single
 proposition of the form \(\forall \vec{v},\, H_1 \impB \dots \impB H_n \impB G\)
@@ -170,6 +168,5 @@ which is where definedness evidence must be produced and where most of the desig
 (\Cref{sec:barrel-wd,subsec:barrel-reification}).
 And the propositions have to be proved, or else presented in a form in which a user can
 prove them (\Cref{subsec:barrel-automation,sec:barrel-interface}).
-This is the order in which the difficulties arise, not a description of how the tool is put
-together: the chapter deliberately does not follow the software's own division into
+This is the order in which the difficulties arise, not the tool's own division into
 components.

@@ -4,7 +4,6 @@
 
 The mathematical language of B is untyped: every value is a set, and the function spaces of
 \Cref{subsec:b-mathematical-language} are sets of pairs satisfying further conditions.
-Nothing in that language forces an interpretation in a typed logic.
 Atelier~B, however, superimposes a static well-formedness discipline: every identifier and
 every expression is assigned a \emph{parent set}, so that the two arguments of integer
 addition must both have parent set \texttt{INTEGER}, a set is homogeneous, and an
@@ -26,9 +25,8 @@ Since \(\mathtt{Set}\ \alpha\) is definitionally \(\alpha \to \mathtt{Prop}\) an
 ordinary statement about ordinary Mathlib objects, and the library's results about sets,
 orders, finiteness, and arithmetic apply to it without any bridging layer.
 B's homogeneity is reflected directly in the single element type of \leaninl{Set}.
-One entry of the table deserves comment: a B Boolean expression becomes an inhabitant of
-\leaninl{Prop} rather than of \leaninl{Bool}, and \texttt{BOOL} is the full set of
-propositions.
+A B Boolean expression becomes an inhabitant of \leaninl{Prop} rather than of
+\leaninl{Bool}, and \texttt{BOOL} is the full set of propositions.
 Proof obligations are statements, not computations, so the classical, non-computational
 reading is the useful one, and it lets a B predicate be used directly where Lean expects a
 proposition instead of being routed through a decidability instance.
@@ -117,11 +115,9 @@ abbrev domSubtr {α β} (E : Set α) (R : SetRel α β) : SetRel α β :=
 A B lambda abstraction is compiled to its \emph{graph}---the set of pairs
 \(((x_1,\cdots,x_n), y)\) such that the guard holds and \(y\) is the value of the body---and
 not to a Lean function.
-A functional relation is therefore never turned into an inhabitant of an arrow type, and
-relational application remains an operation on sets of pairs rather than function
+Relational application therefore remains an operation on sets of pairs rather than function
 application in the metalanguage.
 
-This is where the automated and interactive routes differ most visibly.
 \Cref{ch:loosening} was needed because of a working hypothesis about first-order SMT
 solvers: that they reason more effectively about a function symbol than about a
 characteristic predicate over a product sort. \Cref{sec:beer-results-where} bears it out on

@@ -1,15 +1,14 @@
 \section{The proof interface}
 \label{sec:barrel-interface}
 
-Two things are invisible while a development is being built.
 A long import gives no sign of life, because Lean publishes a command's messages only when
 the command has finished; and the source text does not say how many obligations remain,
 which operation they belong to, or whether a script that looks complete still admits some of
 its goals.
 Loading \barrel{} therefore registers a panel in Lean's infoview that reports on both.
-It is strictly observational---nothing in the construction or the checking of a theorem
-depends on it, and it can be switched off---so it belongs to the comfort of the workflow and
-not to the trust argument of \Cref{subsec:barrel-automation}.
+It is strictly observational: no theorem's construction or checking depends on it, and it
+can be switched off, so it sits outside the trust argument of
+\Cref{subsec:barrel-automation}.
 The three states below are those of the refinement chain of \Cref{sec:barrel-example}, whose
 figures they make concrete.
 
@@ -33,9 +32,7 @@ figures they make concrete.
 
 \paragraph*{Loading.}
 Each artifact gets a card as soon as it is registered, and its bar fills as the discharger
-works through the file, so an import can be watched rather than waited out.
-In \Cref{fig:barrel-state-loading}, \texttt{MinSearch} is done at six of seven goals and
-\texttt{MinSearch\_r1} is still being imported.
+works through the file, so an import can be watched rather than waited out, as depicted in \Cref{fig:barrel-state-loading}.
 
 \begin{figure}[t]
   \centering
@@ -94,18 +91,19 @@ In \Cref{fig:barrel-state-loading}, \texttt{MinSearch} is done at six of seven g
       \node[machine] at (1.52,1.09) {MinSearch\_r1};
       \begin{scope}
         \clip[rounded corners=.045cm] (4.18,1.035) rectangle (13.18,1.145);
+        \fill[barrelUiPending] (4.18,1.035) rectangle (13.18,1.145);
         \fill[barrelUiAuto] (4.18,1.035) rectangle (11.32,1.145);
-        \fill[barrelUiPale] (11.32,1.035) rectangle (13.18,1.145);
+        \fill[barrelUiPale] (11.32,1.035) rectangle (12.25,1.145);
       \end{scope}
       \node[meta] at (14.35,1.09) {23 / 29};
       \draw[barrelUiText, line width=.8pt, line cap=round, line join=round]
         (14.82,1.125) -- (14.89,1.055) -- (14.96,1.125);
     \end{tikzpicture}%
   }
-  \caption{The panel while \texttt{MinSearch\_r1} is being imported. Both bars are updated in
-    real time: the pale blue part of a bar is the goals parsed so far, whose outcome is not
-    yet known, and the green part those the automation has already discharged. A gray status
-    disc marks an artifact whose final count is still to come.}
+  \caption{Both bars are updated in
+    real time: green is the goals the automation has already discharged, pale blue those
+    parsed but not yet decided, and the gray remainder those still to be parsed. A gray
+    status disc marks an artifact left pending while the rest of the file is checked.}
   \label{fig:barrel-state-loading}
 \end{figure}
 
@@ -117,8 +115,7 @@ gray (\Cref{fig:barrel-state-missing}\,(a)); or it may provide every block and c
 them with \leaninl{sorry}, in which case those cells are marked and left out of the proved
 count (\Cref{fig:barrel-state-missing}\,(b)).
 Without the distinction, a syntactically complete development would look finished; the
-guarantee itself rests on the axiom check of \Cref{sec:barrel-atelier-comparison}, not on a
-color.
+guarantee itself rests on the axiom check of \Cref{sec:barrel-atelier-comparison}.
 When blocks are missing, an action inserts a \leaninl{sorry}-closed skeleton for them, in the
 order \leaninl{prove_obligations_of} consumes the goals, which is not the order the map
 displays them.
@@ -283,8 +280,7 @@ displays them.
 \paragraph*{Completion.}
 When every obligation has a checked proof the card collapses to a single line, so a
 multi-artifact development is read at a glance, and expanding it restores the goal map and
-the import statistics---for \texttt{MinSearch\_r2}, twenty-six of forty-seven distinct goals
-discharged automatically and seventy-four repeated definedness conditions resolved by reuse
+the import statistics
 (\Cref{fig:barrel-state-complete}).
 
 \begin{figure}[ht!]
@@ -292,8 +288,6 @@ discharged automatically and seventy-four repeated definedness conditions resolv
   \tikzsetnextfilename{barrel-state-complete}
   \resizebox{\textwidth}{!}{%
     \begin{tikzpicture}[x=1cm,y=1cm,
-      legend/.style={font=\fontsize{8.3}{9.3}\selectfont\sffamily,
-        text=barrelUiLabel, anchor=west},
       machine/.style={font=\fontsize{8.8}{9.8}\selectfont\sffamily\bfseries,
         text=barrelUiText, anchor=west},
       meta/.style={font=\fontsize{8.8}{9.8}\selectfont\sffamily\bfseries,
@@ -307,24 +301,11 @@ discharged automatically and seventy-four repeated definedness conditions resolv
       card/.style={draw=barrelUiBorder, fill=barrelUiBackground,
         rounded corners=.12cm, line width=1.1pt},
       divider/.style={draw=barrelUiBorder, line width=.45pt}]
-      \useasboundingbox (0,0) rectangle (15.5,6.55);
+      \useasboundingbox (0,0) rectangle (15.5,4.56);
 
-      \fill[barrelUiBackground] (0,3.40) rectangle (15.5,6.55);
-      \path[fill=barrelUiLegendAuto, rounded corners=.035cm]
-        (.18,6.18) rectangle ++(.16,.16);
-      \node[legend] at (.45,6.26) {auto-solved};
-      \path[fill=barrelUiLegendHand, rounded corners=.035cm]
-        (2.25,6.18) rectangle ++(.16,.16);
-      \node[legend] at (2.52,6.26) {by hand};
-      \path[fill=barrelUiLegendSorry, rounded corners=.035cm]
-        (3.90,6.18) rectangle ++(.16,.16);
-      \node[legend] at (4.17,6.26) {sorried};
-      \path[fill=barrelUiLegendPending, rounded corners=.035cm]
-        (5.50,6.18) rectangle ++(.16,.16);
-      \node[legend] at (5.77,6.26) {pending};
+      \fill[barrelUiBackground] (0,0) rectangle (15.5,4.56);
 
-      \foreach \bottom/\top/\cy in {
-          5.33/6.04/5.685,4.44/5.16/4.80,3.56/4.27/3.915}{
+      \foreach \bottom/\top/\cy in {3.75/4.46/4.105,2.87/3.58/3.225}{
         \path[card] (.12,\bottom) rectangle (15.36,\top);
         \fill[barrelUiAuto] (.52,\cy) circle (.105);
         \draw[white, line width=.75pt, line cap=round, line join=round]
@@ -333,31 +314,22 @@ discharged automatically and seventy-four repeated definedness conditions resolv
           (15.12,{\cy+.025}) -- (15.17,{\cy-.025}) --
           (15.22,{\cy+.025});}
 
-      \node[machine] at (.85,5.685) {MinSearch};
+      \node[machine] at (.85,4.105) {MinSearch};
       \begin{scope}
-        \clip[rounded corners=.035cm] (3.00,5.645) rectangle (13.35,5.725);
-        \fill[barrelUiAuto] (3.00,5.645) rectangle (11.87,5.725);
-        \fill[barrelUiHand] (11.87,5.645) rectangle (13.35,5.725);
+        \clip[rounded corners=.035cm] (3.00,4.065) rectangle (13.35,4.145);
+        \fill[barrelUiAuto] (3.00,4.065) rectangle (11.87,4.145);
+        \fill[barrelUiHand] (11.87,4.065) rectangle (13.35,4.145);
       \end{scope}
-      \node[meta] at (14.80,5.685) {7 / 7};
+      \node[meta] at (14.80,4.105) {7 / 7};
 
-      \node[machine] at (.85,4.80) {MinSearch\_r1};
+      \node[machine] at (.85,3.225) {MinSearch\_r1};
       \begin{scope}
-        \clip[rounded corners=.035cm] (3.60,4.76) rectangle (13.35,4.84);
-        \fill[barrelUiAuto] (3.60,4.76) rectangle (11.67,4.84);
-        \fill[barrelUiHand] (11.67,4.76) rectangle (13.35,4.84);
+        \clip[rounded corners=.035cm] (3.60,3.185) rectangle (13.35,3.265);
+        \fill[barrelUiAuto] (3.60,3.185) rectangle (11.67,3.265);
+        \fill[barrelUiHand] (11.67,3.185) rectangle (13.35,3.265);
       \end{scope}
-      \node[meta] at (14.80,4.80) {29 / 29};
+      \node[meta] at (14.80,3.225) {29 / 29};
 
-      \node[machine] at (.85,3.915) {MinSearch\_r2};
-      \begin{scope}
-        \clip[rounded corners=.035cm] (3.60,3.875) rectangle (13.35,3.955);
-        \fill[barrelUiAuto] (3.60,3.875) rectangle (8.99,3.955);
-        \fill[barrelUiHand] (8.99,3.875) rectangle (13.35,3.955);
-      \end{scope}
-      \node[meta] at (14.80,3.915) {47 / 47};
-
-      \fill[barrelUiBackground] (0,0) rectangle (15.5,2.80);
       \path[card] (.11,.10) rectangle (15.37,2.70);
       \draw[divider] (.11,2.02) -- (15.37,2.02);
 
@@ -412,9 +384,7 @@ discharged automatically and seventy-four repeated definedness conditions resolv
       \node[value] at (15.12,.43) {34.5 s};
     \end{tikzpicture}%
   }
-  \caption{Admission-free completion of the refinement chain: the three artifacts collapsed
-    (top) and the completed \texttt{MinSearch\_r2} card expanded (bottom), with its goal map
-    grouped by source operation.}
+  \caption{Completion of the refinement chain, with all obligations discharged.}
   \label{fig:barrel-state-complete}
 \end{figure}
 \FloatBarrier

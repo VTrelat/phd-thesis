@@ -8,7 +8,7 @@ dedicated rule language in which the user chooses instantiations and steers proo
 Lean offers a different trade-off, and this section makes precise what
 \Cref{sec:barrel-wd} guarantees.
 
-The difference is sharpest for partial expressions introduced \emph{during} a proof.
+The difference concerns partial expressions introduced \emph{during} a proof.
 Atelier~B's own documentation warns that some instantiation commands do not check the
 typing or the well-definedness of the term the user supplies.
 The machine of \Cref{lst:barrel-derive-false} exhibits the consequence.
@@ -39,9 +39,9 @@ produced it.
   precomputed conditions.
 \end{remark}
 
-\barrel{} does not forbid the corresponding step either.
+\barrel{} does not forbid the corresponding step either, technically.
 A user may write the same instantiation, as in \Cref{lst:barrel-derive-false-lean}: the
-witness \leaninl{min ∅ ?_} is accepted, and Lean simply asks for the missing
+witness \leaninl{min ∅ ?_} is accepted, and Lean asks for the missing
 second argument.
 That argument has type \leaninl{min.WD (∅ : Set ℤ)}, which is not
 inhabited, so the only way to proceed is to admit it.
@@ -52,8 +52,7 @@ The script then completes---and \leaninl{assert_no_sorry} rejects the resulting 
 prove_obligations_of DerivFalse
 next
   exists B.Builtins.min ∅ ?_
-  · -- min.WD (∅ : Set ℤ): unprovable
-    admit
+  · admit -- min.WD (∅ : Set ℤ): unprovable
   · refine ⟨?_, ?_⟩
     · exact trivial
     · intro
@@ -64,20 +63,15 @@ next
 assert_no_sorry DerivFalse.AssertionLemmas_0   -- fails, as it should
 \end{leanlisting}
 
-Two conclusions follow, and they are distinct.
+Two conclusions follow.
 The narrow one is that the ill-definedness cannot be hidden: it appears as a goal of a
 named type, it is counted as an admission by the interface of
 \Cref{sec:barrel-interface}, and it is detected by an axiom check.
-The broader one is methodological.
-Neither system is prevented from writing down an ill-defined term; what differs is who is
-responsible for noticing.
-In a proof language where definedness is a discipline, noticing depends on the prover
-implementing that discipline everywhere, including in commands added later.
-In \barrel{}'s encoding it is a consequence of type checking, and therefore holds for every
-term a user or a tactic can produce.
-This says nothing about the route from the source machine to the proof obligation, which
-remains on the trusted side of \Cref{fig:barrel-trust}; it delimits exactly the guarantee
-obtained after encoding.
+The broader one concerns where the check lives.
+Conditions produced by a generator are fixed at the moment it runs, so a witness supplied
+afterwards is past them; a condition carried by a type is checked whenever a term is
+elaborated, and therefore reaches every term a user or a tactic can produce, wherever it is
+introduced.
 
 Beyond that guarantee, Lean changes the proof-engineering environment.
 A user may combine \barrel{}'s B-shaped lemmas with general tactics for normalization,
@@ -109,19 +103,18 @@ The automated route is surveyed in \Cref{subsec:rw-set-encodings}: Atelier~B obl
 have long been exported to external provers~\cite{mentre2012discharging,deharbe2010automatic},
 and \beer{} follows the same broad strategy while verifying the encoding
 (\Cref{ch:beer}).
-Their target languages, however, are not intended to become the environment in which a
-user develops auxiliary mathematics.
-\barrel{} is complementary to them rather than a competitor: it keeps Atelier~B's modeling
-and generation stages, consumes the same files, and replaces the interactive stage.
+Their target languages, however, are solver input, not an environment in which a user
+develops auxiliary mathematics.
+\barrel{} keeps Atelier~B's modeling and generation stages, consumes the same files, and
+replaces the interactive stage.
 
 One structural remark connects this chapter to \Cref{subsec:rw-certificates}, where the
 reconstruction step of a hammer is identified as the safety net that makes its export
 translation harmless.
 \barrel{} runs in the opposite direction---a goal is imported into the assistant, and the
-proof is built there---so there is no certificate to check and nothing to play that role.
-The translation is trusted; what the assistant guarantees is that the imported proposition,
+proof is built there---so there is no certificate to check.
+The translation is trusted; the assistant guarantees only that the imported proposition,
 whatever it says, has been proved.
-Closing that last gap is the subject of \Cref{subsec:barrel-verified-generator}.
 
 \section{Conclusion and perspectives}
 \label{sec:barrel-discussion}
@@ -133,18 +126,18 @@ parameterized by a proof of its definedness, so that well-definedness is enforce
 checking rather than by prover discipline; its central engineering choice is to process
 obligations as independently bounded units whose failures and progress stay local and
 visible.
-Together with the sharing and automation layers they support, these decisions make it
-possible to import a three-level refinement chain and be left with twenty-seven interactive
-proofs where a purely occurrence-based translation would have shown one hundred ninety, and
-to bring a file of two and a half thousand industrial obligations into Lean in its
-entirety, without a single divergent tactic call aborting the command.
+Together with the sharing and automation layers they support, these decisions reduce a
+three-level refinement chain from the 190 goals a purely occurrence-based translation would
+produce to 27 interactive proofs.
+They also bring a file of 2\,526 industrial obligations into Lean in its entirety, with no
+divergent tactic call aborting the command.
 
 \paragraph*{Size of the artifact.}
 \barrel{} is a small tool, and the body of facts about B it rests on is of comparable size,
 as \Cref{tab:barrel-implementation} shows.
 The translation machinery---the abstract syntax of B, the reader for proof-obligation
-files, the encoder, the discharger, and the automation tactics---is about sixteen hundred
-lines, and the model of B with its 134 supporting theorems about thirteen hundred.
+files, the encoder, the discharger, and the automation tactics---is about 1\,600 lines, and
+the model of B with its 134 supporting theorems about 1\,300.
 That balance is the practical expression of \Cref{subsec:barrel-relational}: keeping a
 single, relational representation makes the translation short and moves the work into
 reusable mathematics.
@@ -226,14 +219,13 @@ The third is the reach of the default automation: 3.6\,\% of the obligations of 
 industrial file, against 39\,\% of the principal obligations of the case study
 (\Cref{subsec:barrel-industrial-scale}).
 Closing that gap requires growing the B-specific lemma library in the directions industrial
-files actually use, rather than any architectural change.
+files actually use.
 
-Until the verified generator exists, the claim stays deliberately scoped.
+Until the verified generator exists, the claim stays narrow.
 \barrel{} imports realistic B proof obligations into Lean, makes definedness evidence
 mandatory for every supported partial term, shares that evidence across an import, proves a
 useful share of the resulting goals automatically, and kernel-checks the proof of every
 admission-free theorem.
 It does not certify that Atelier~B generated the right obligation, nor that the encoder
-produced the intended Lean proposition---and, as \Cref{sec:barrel-atelier-comparison}
-shows, being explicit about which of these is checked and which is trusted is itself part
-of what the tool is for.
+produced the intended Lean proposition; \Cref{sec:barrel-atelier-comparison} makes that
+boundary explicit.
