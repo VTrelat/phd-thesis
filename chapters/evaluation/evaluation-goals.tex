@@ -12,19 +12,15 @@ Both decisions were justified there on semantic and proof-theoretic grounds; whe
   \item[Cost:] what do the higher-order scripts cost in solver time and script size?
 \end{description}
 
-\paragraph*{Baseline.}
 The comparison point is \emph{ppTrans}, the translator distributed with Atelier~B~\cite{lecomte2024proving} and the industrial reference for using SMT solvers to discharge B proof obligations~\cite{deharbe2014integrating}.
-It occupies the opposite pole of the design space surveyed in \Cref{ch:introduction}: set-theoretic constructs are compiled away into first-order formulas over simple membership predicates, so no set, function, or relation survives as a first-class value.
-Running both translators on the same goals, with the same solver under identical settings, therefore compares the two encoding philosophies rather than two solvers.
+Its design is the opposite pole of \beer's: set-theoretic constructs are compiled away into first-order formulas over simple membership predicates, so no set, function, or relation survives as a first-class value.
 
-\paragraph*{Measured artifact.}
-The questions above concern the encoding \emph{design} at full scale, so we measure the variant that implements the encoding rules of \Cref{ch:beer}, extends them to constructs outside the verified fragment, and applies more aggressive optimizations.
-The encoder under test is therefore \textsc{Zero-Proof} \beer{} (\Cref{sec:beer-zero-proof}).
-The distinction between the two binaries is kept explicit throughout: \textsc{Zero-Proof} \beer{} shares the design of the verified encoder, but its implementation is not fully covered by the soundness theorem of \Cref{sec:beer-soundness}.
+The questions above concern the encoding \emph{design} at full scale, so the encoder under test is \textsc{Zero-Proof} \beer{} (\Cref{sec:beer-zero-proof}).
+It applies the encoding rules of \Cref{ch:beer}, extended to a larger fragment of B---cardinality, finiteness, sequences, transitive closure, generalized sum and product---and is optimized for throughput: efficient data structures like hash-maps, arrays, linear state updates, and with the artifacts specifically added for the proof of correctness removed (like dependent in-domain test guarding each context lookup, the copy of the context taken at every binder, \etc).
+It shares the design of the verified encoder, and its implementation lies outside the soundness theorem of \Cref{sec:beer-soundness}.
 
-\paragraph*{Solver.}
-Scripts from both translators are processed by cvc5~\cite{barbosa2022cvc5}, the reference implementation of higher-order SMT solving~\cite{barbosa2019hosmt}.
-The choice is largely forced on one side---\beer{} emits \texttt{HO\_ALL} scripts that no other solvers accept---but it does not disadvantage the other: ppTrans's output is first-order, a fragment on which cvc5 is routinely competitive.
+Scripts from both translators are then processed by cvc5~\cite{barbosa2022cvc5}, the reference implementation of higher-order SMT solving~\cite{barbosa2019hosmt}.
+The choice is largely forced on one side---\beer{} emits \texttt{HO\_ALL} scripts that no other solver accepts---and neutral on the other: ppTrans's output is first-order, a fragment on which cvc5 is routinely competitive.
 
 \begin{note}
 The interactive route through \barrel{} is not evaluated here: a proof-assistant integration is exercised by users rather than by a corpus sweep, and \Cref{ch:barrel} discusses it qualitatively.

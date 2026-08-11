@@ -39,8 +39,14 @@ This coupling is valuable for certification, but makes every extension of the so
 For uses that favor coverage and translation speed over certification, we therefore also maintain \emph{\textsc{Zero-Proof} \beer{}}\footnote{The name plays on the two senses of \emph{proof}: zero-proof drinks are alcohol-free, while \textsc{Zero-Proof} \beer{} omits the formal proof of correctness.}, a variant from which the correctness development is deliberately elided.
 Freed from the requirement that every implementation change preserve the proof architecture, it supports a larger fragment of B and can be optimized more aggressively.
 
-Whereas the verified encoder is covered by the soundness theorem proved in this chapter, \textsc{Zero-Proof} \beer{} provides no mechanized semantic link between a source obligation and the SMT script it emits.
-It instead complements the certified development as an experimental and high-coverage implementation, while the verified encoder remains the reference for the guarantees established here.
+The variant drops the mechanized layer entirely: the PHOAS and denotational developments, the reasoning modules behind \Cref{sec:beer-soundness}, and, inside the encoder itself, the machinery whose only consumer was a proof---the dependent in-domain test guarding each context lookup, and the copy of~$\Gamma$ taken on entering a binder so that a lemma may relate the two.
+Coverage then extends to constructs the verified fragment leaves out: \(\cardB{\cdot}\), \(\minB\), \(\maxB\), finiteness, integer division and exponentiation, transitive closure, the sequence operators, generalized sum and product, and the parallel product.
+The rest is performance work on both sides of the interface.
+Inside the encoder, the typing context is backed by a hash map and the declaration stream by an array, the state is updated linearly instead of cloned, and each site caches its free names.
+In the emitted script, one-point quantifiers are eliminated, a relation's partial-function form is shared across its applications, dead declarations and repeated assertions are suppressed, and the generated quantifiers carry instantiation patterns.
+
+\textsc{Zero-Proof} \beer{} therefore offers no mechanized semantic link between a source obligation and the SMT script it emits, and the verified encoder remains the reference for the guarantees established here.
+The two share a design and differ in what they are built for.
 
 \subsection{Conclusion}
 \label{sec:beer-conclusion}

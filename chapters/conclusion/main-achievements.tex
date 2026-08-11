@@ -2,7 +2,7 @@
 \label{sec:main-achievements}
 
 The first result is a common semantic account of the source and target
-languages. \zflean{} supplies the ZFC universe in which the B and SMT-LIB
+languages. \zflean{} (\Cref{ch:zflean}) supplies the ZFC universe in which the B and SMT-LIB
 formalizations of \Cref{ch:b,ch:smt} are interpreted. Their syntax, typing, and
 denotations can therefore be related within one mathematical model. This turns
 the correctness of the encoding from an informal comparison of formulas
@@ -10,8 +10,7 @@ into a statement about preservation of meaning.
 
 The second result is that this preservation does not require a single fixed
 representation for each B value. Type loosening organizes compatible target
-representations into a decidable order and gives a semantics-preserving passage
-from functional representations to more general relational ones. On this
+representations into a decidable order and bridges functional representations and more general relational ones while preserving semantics. On this
 basis, the central theorem for \beer{} relates every successful encoding of a
 supported, well-typed, and well-defined term to the representation selected by
 the encoder, including the declarations and scoping information generated
@@ -23,10 +22,8 @@ The third result concerns the interactive route. \barrel{} makes the partiality
 of B operators explicit by requiring well-definedness evidence in their Lean
 encoding. Such evidence becomes part of the proof state, so an ill-defined
 instantiation cannot silently be used in a completed proof. Proof search may
-combine domain-specific lemmas, tactics, and manual steps, but every resulting
-theorem is checked by Lean's kernel.
+combine domain-specific lemmas, tactics, and manual steps, with every resulting
+theorem being checked by Lean's kernel.
 
-The automated route proves a semantic bridge before delegating search to an
-SMT solver; the interactive route checks the final derivation in Lean. Neither
-guarantee covers the complete toolchain, but each identifies what has been
-established and what must still be trusted.
+Neither the automated nor the interactive route is a complete verification of a complete B toolchain yet,
+but each identifies what has been established and what must still be trusted.

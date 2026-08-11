@@ -5,11 +5,10 @@
 \label{sec:beer-results-global}
 
 \Cref{fig:eval-global} shows the strict outcome of every scored goal.
-End to end, ppTrans proves \bmPptAll\,\% of the corpus against \beer{}'s \bmBeerAll\,\%---but the gap between them is not solely a solver result.
+End to end, ppTrans proves \bmPptAll\,\% of the corpus against \beer{}'s \bmBeerAll\,\%.
 On \beer{}'s side, \bmNoScript\,\% of all goals never reached cvc5: the encoder failed or exhausted its budget on the enclosing file, or---in a small per-goal remainder---on the goal itself.
 On ppTrans's side, \bmPptKilled\,\% of all goals were killed at the \(300\)\,s wall with the solver still running.
-These two populations decide the comparison and are the principal exclusions under verdict-only scoring, one from each side.
-They are not symmetric: of the \bmPOTotal{} goals ppTrans alone proves under strict scoring, roughly three quarters are goals for which \beer{} emitted no script, so \beer{}'s binding constraint is encoder \emph{coverage} rather than encoding quality.
+Across more than 1.6 million solver runs, no goal is \smtinl{sat} on one side and \smtinl{unsat} on the other---the disagreement an unsound encoding would produce---and cvc5 never returned \smtinl{sat} for any script.
 
 \begin{figure}[t]
 \centering
@@ -85,10 +84,9 @@ They are not symmetric: of the \bmPOTotal{} goals ppTrans alone proves under str
 \end{figure}
 
 Under strict scoring, \beer{} is 17.9 points behind; restricted to the goals both pipelines actually answered, it is within 3.2 points (\bmBeerH\,\% against \bmPptH\,\%).
-\Cref{fig:eval-fourway} splits that shared population four ways: \bmBoth\,\% of it is proved by both encodings, and each side proves goals the other cannot---\bmBeerOnly\,\% for \beer{} alone against \bmPptOnly\,\% for ppTrans alone.
-The two encodings are therefore not nested: even under strict scoring, their union proves \bmSUnion\,\% of the corpus against ppTrans's \bmPptAll\,\%, so a portfolio of the two proves more than either alone.
-Nevertheless, even where both scripts receive an answer, the higher-order encoding proves slightly fewer goals, and \bmNeither\,\% of the shared population resists both.
-Higher-order SMT solving is a young capability~\cite{barbosa2019hosmt} and is not yet efficient for goals of this form and scale.
+\Cref{fig:eval-fourway} splits that shared population four ways: \bmBoth\,\% of it is proved by both encodings, \bmBeerOnly\,\% by \beer{} alone, \bmPptOnly\,\% by ppTrans alone, and \bmNeither\,\% by neither.
+Even under strict scoring, their union proves \bmSUnion\,\% of the corpus against ppTrans's \bmPptAll\,\%.
+Those 3.2 points may simply be the price of a young technique: cvc5 is still the only SMT solver to accept the higher-order fragment of SMT-LIB~\cite{smtlib2.7}, and higher-order instantiation reached SMT solving only in 2019~\cite{barbosa2019hosmt}. Most other higher-order provers are saturation-based rather than SMT-based~\cite{bentkamp2023higherorder,kovacs2013vampire}, so \beer rests on solver support far less developed than the first-order reasoning ppTrans uses.
 
 \begin{figure}[t]
 \centering
@@ -129,16 +127,13 @@ Higher-order SMT solving is a young capability~\cite{barbosa2019hosmt} and is no
 
 \Cref{fig:eval-matrix} crosses the two outcomes goal by goal over the goals that \beer{} encoded.
 There, \emph{timeout} denotes the \(300\)\,s per-goal wall, whereas \smtinl{unknown} is the verdict that cvc5 returns at its own \(5\)\,s budget; verdict-only scoring retains exactly the top-left \(2\times2\) block.
-No goal is \smtinl{sat} on one side and \smtinl{unsat} on the other; indeed, cvc5 never returned \smtinl{sat} for any script.
-A hard disagreement would indicate an unsound encoding or a misaligned join, so its absence across more than 1.6 million solver runs is a check that \Cref{ch:beer} passes. It is a weak one: neither translator is verified, and agreement between two unverified tools cannot establish that either is correct.
 The \emph{timeout} row and column are asymmetric: \beer{} essentially never hits the wall, whereas ppTrans exhausts it on more than a tenth of the goals it shares with \beer{}; on \bmBeerWinsPptKilled{} of those, \beer{} had already proved the goal in a median of about five seconds.
 
-The time and size components of cost are reported in \Cref{fig:eval-time,fig:eval-ratio}.
+\Cref{fig:eval-time,fig:eval-ratio} report the two components of cost, solving time and script size.
 On the \bmBothCount{} goals both pipelines prove, the two solving-time distributions track each other closely: \beer{} is faster on \bmBeerFaster\,\% of goals, and the median per-goal ratio is \bmRatioMed\(\times\), with \(80\,\%\) of those ratios within a factor of about \(2\times\) either way.
 Taken separately, the median solving time is \bmBeerMed{}\,ms for \beer{} and \bmPptMed{}\,ms for ppTrans; these marginal medians do not divide to give the median ratio, which is computed goal by goal.
 The median script-size ratio is \bmSizeMed\(\times\), \bmBeerSizeMed{}\,KB for \beer{} against \bmPptSizeMed{}\,KB for ppTrans---the representation blow-up anticipated in \Cref{sec:beer-discussion}, with each cast contributing a helper variable and a quantified specification.
 Aggregate solver cost differs far more: running cvc5 over the corpus consumed roughly \(840\) hours on \beer{}'s scripts against \(9\,500\) hours on ppTrans's, with almost all of the difference spent at the \(300\)\,s wall on goals that produced no verdict.
-For the \bmBeerWinsPptKilled{} goals that \beer{} proves while ppTrans reaches the wall, a shorter per-goal budget preserves \beer{}'s answer but yields no ppTrans verdict.
 
 \begin{figure}[t]
 \centering
@@ -173,7 +168,7 @@ For the \bmBeerWinsPptKilled{} goals that \beer{} proves while ppTrans reaches t
 \begin{figure}[t]
 \centering
 \begin{tikzpicture}
-\begin{axis}[base, width=.7\linewidth, height=6cm,
+\begin{axis}[base, width=.7\linewidth, height=5.5cm,
   xlabel={\beer{} / ppTrans}, ylabel={goals (\%, cumulative)},
   xmin=-5, xmax=5, ymin=0, ymax=100,
   xtick={-4,-2,0,2,4},
@@ -191,11 +186,8 @@ For the \bmBeerWinsPptKilled{} goals that \beer{} proves while ppTrans reaches t
 \label{fig:eval-ratio}
 \end{figure}
 
-\FloatBarrier
 \subsection{Where the difference lives}
 \label{sec:beer-results-where}
-
-The global numbers say the two encodings are close where both return verdicts; this section asks where they differ by cutting the verdict-only population along the structural axes of \Cref{sec:benchmark-corpus}.
 
 % Two independent figures on one row: each minipage carries its own \caption,
 % so they are numbered as separate figures, not subfigures.  `[t]` plus a
@@ -239,11 +231,10 @@ The global numbers say the two encodings are close where both return verdicts; t
 \end{minipage}
 \end{figure}
 
-\Cref{fig:eval-order} cuts by type order.
-The natural conjecture---that a higher-order encoding pulls ahead as types deepen but falls behind on flat goals---holds only in part.
-Where both sides answer, the encodings perform comparably at order 0 and from order 2 upward; almost the entire verdict-only gap occurs at order 1 (\(-7.1\) points), where sets and relations are most prevalent in the corpus.
-This restriction must also be considered: it removes a quarter of the order-0 goals but \(70\,\%\) of the order-\(\ge 4\) goals, precisely because deep goals are where \beer{} and ppTrans most often fail to produce a verdict (\(43.4\,\%\) and \(36.7\,\%\) of them, respectively), leaving 3\,921 of 12\,950 goals in the surviving deep bucket.
-Under strict scoring, which counts all of those as failures, \beer{} is behind at every order; \Cref{tab:eval-order} carries both readings.
+\Cref{fig:eval-order} cuts the verdict-only population by type order.
+Where both sides answer, the encodings perform comparably at order 0 and from order 2 upward; almost all of \beer{}'s deficit against ppTrans is concentrated at order 1, where sets and relations are most prevalent in the corpus.
+Deep goals are also the ones both pipelines least often answer, so the high-order buckets are computed from few goals.
+Under strict scoring, which counts an unanswered goal as a failure, \beer{} is behind at every order; \Cref{tab:eval-order} carries both readings.
 
 \begin{figure}[t]
 \centering
@@ -265,13 +256,11 @@ Under strict scoring, which counts all of those as failures, \beer{} is behind a
 \end{figure}
 
 \Cref{fig:eval-subject,fig:eval-construct} locate the differences by subject and by construct.
-\beer{} is ahead wherever a goal involves \emph{counting}, \emph{integer arithmetic}, or a \emph{set treated as an object}: pure arithmetic (\(+9.0\)), sequences (\(+3.6\)), pure set theory (\(+1.5\)), and above all cardinality, where its success rate is nearly twice the baseline's (\(33.9\,\%\) against \(17.5\,\%\)).
-It is behind wherever a \emph{function is applied}: the functions subject class (\(-9.6\)) and the function-application construct class (\(-7.4\)) carry the largest deficits, alongside transitive closure (\(-8.2\)).
-The closure class must be read with care: only 634 of its goals survive the restriction because ppTrans was killed on \(45.8\,\%\) of the goals containing a closure.
-Both follow from the design of \Cref{ch:beer,ch:loosening}.
-On the winning side, characteristic predicates keep the set algebra shallow---union is a pointwise disjunction rather than an axiom about a fresh set---and integers stay native, so arithmetic reasoning never crosses an encoding layer.
-On the losing side, every application of an encoded function passes through the option-valued machinery and, when representations disagree, through a cast whose helper variable and quantified specification help explain the blow-up measured in \Cref{fig:eval-ratio}; ppTrans's uniform membership relation has no such intermediate layer.
-The propositional deficit (\(-5.7\)) fits neither pattern and is examined next.
+\beer{} is ahead where a goal counts, computes with integers (surprisingly), or treats a set as an object (which is the intended behavior): pure arithmetic, sequences, pure set theory, and above all cardinality, where its success rate is nearly twice the baseline's.
+It is behind where a function is applied---the functions subject class and the function-application construct class carry the largest deficits---and on transitive closure, a class the restriction leaves with few goals because ppTrans was killed on nearly half of the goals containing a closure.
+Both sides of that split follow the design of \Cref{ch:beer,ch:loosening}: characteristic predicates keep the set algebra shallow and integers native, whereas every application of an encoded function passes through the option-valued machinery and, when representations disagree, through the loosening phase.
+Propositional goals follow neither pattern.
+The rates behind both figures are in \Cref{tab:eval-subject,tab:eval-construct}.
 
 \begin{figure}[t]
 \centering
@@ -310,11 +299,10 @@ The propositional deficit (\(-5.7\)) fits neither pattern and is examined next.
 \label{fig:eval-cross}
 \end{figure}
 
-\Cref{fig:eval-cross} crosses subject with the higher-order class of \Cref{sec:benchmark-corpus}, and its gradient follows the intended design closely.
-In six of the seven subjects, \beer{} performs better relative to ppTrans on higher-order goals than on first-order goals of the same subject, and in four it is ahead outright---although the 70-percentage-point advantage in the higher-order arithmetic cell rests on only 161 goals and is too small a sample to support a general conclusion.
-The characteristic predicate representation was adopted for exactly these goals---sets as objects, quantification over sets---and that is where its advantage appears; most of \beer{}'s remaining deficit sits in the first-order cells, where ppTrans's reduction applies well and \beer{} pays its representational overhead without any corresponding gain.
-The propositional row is the outlier, but its higher-order cell holds only 88 goals, and the class's deficit is not concentrated in deep set structure.
-This is consistent with its exclusive-win rate, the lowest of any class (\Cref{sec:beer-results-alone}): on goals with no set structure to exploit, the higher-order machinery has no opportunity to offset its overhead.
+\Cref{fig:eval-cross} crosses subject with the higher-order class of \Cref{sec:benchmark-corpus}.
+In six of the seven subjects, \beer{} performs better relative to ppTrans on higher-order goals than on first-order goals of the same subject, and in four it is ahead; the largest of those advantages sits in one of the figure's smallest cells.
+\beer{}'s remaining deficit sits in the first-order cells, where the representation costs more than it returns.
+Propositional goals again run the other way, on the smallest cell in the figure; they also have the lowest exclusive-win rate of any class (\Cref{sec:beer-results-alone}).
 
 \begin{figure}[t]
 \centering
@@ -345,20 +333,14 @@ This is consistent with its exclusive-win rate, the lowest of any class (\Cref{s
 \label{fig:eval-size-quant}
 \end{figure}
 
-Finally, \Cref{fig:eval-size-quant} does not support two simpler explanations.
-Neither raw goal size nor the number of quantifiers the \emph{source} goal binds reverses the ordering: \beer{} is behind in every size bucket, by 1 to 12 points across four orders of magnitude, and in every quantifier bucket, by 3 to 7.3 points.
-The more relevant distinction is the quantified structure each encoding \emph{introduces}---casts and bounded universals on one side, membership axioms on the other.
-The construct-based breakdowns reflect that structure more directly.
+\Cref{fig:eval-size-quant} plots success against raw goal size and against the number of quantifiers the \emph{source} goal binds.
+Neither reverses the ordering: \beer{} is behind in every size bucket, from the smallest goals to the largest, and in every quantifier bucket.
 
 \subsection{Where \beer{} wins alone}
 \label{sec:beer-results-alone}
-
-The preceding analysis begins from \beer{}'s overall deficit.
-This section takes the opposite cut and examines the structure of the \bmBOHTotal{} goals that \beer{} proves and ppTrans does not.
+This section examines the structure of the \bmBOHTotal{} goals that \beer{} proves and ppTrans does not.
 Under verdict-only scoring, every such goal is one on which ppTrans answered \smtinl{unknown}: an encoding-quality win.
-The strict picture is consistent: of the \bmBOTotal{} strict \beer{}-exclusive wins, \bmBOUnknown\,\% are goals ppTrans answered \smtinl{unknown} on, and only \bmBOKilled\,\% are resource wins at the wall.
-The unit below is \emph{lift}: the ratio of the \beer{}-exclusive win rate within a class to the overall rate of \bmBOHRate\,\%, so a lift above 1 marks a class carrying more of those wins than its size would predict.
-Lift says nothing about volume---a class can have a high rate and still contribute few goals---so the class sizes are tabulated alongside in \Cref{tab:eval-construct,tab:eval-subject}.
+Most of the strict exclusive wins are of that kind too, rather than resource wins at the wall.
 
 \begin{figure}[t]
 \centering
@@ -394,24 +376,24 @@ Lift says nothing about volume---a class can have a high rate and still contribu
 \label{fig:eval-bo}
 \end{figure}
 
-\Cref{fig:eval-bo} ranks the classes by that rate, repeating the pattern of \Cref{sec:beer-results-where} from the opposite direction.
-Among constructs, cardinality leads at \(20.2\,\%\)---a lift of 2.8---followed by set-typed bound variables (\(9.3\,\%\)) and arithmetic (\(8.8\,\%\)); among subjects, pure arithmetic leads at \(10.7\,\%\) (a lift of 1.5), followed by arith+sets (\(8.6\,\%\)) and relational goals (\(8.5\,\%\)).
-At the opposite end are function application (\(5.2\,\%\), a lift of 0.7) and, well below every other class, propositional goals (\(1.6\,\%\), a lift of 0.2).
+\Cref{fig:eval-bo} gives the rate of those wins within each class, against the dashed line marking the rate over all goals; a class reaching past that line carries more of them than its size would predict.
+Among constructs, cardinality leads by a wide margin, followed by set-typed bound variables and arithmetic; among subjects, the order runs pure arithmetic, then arith+sets and relational goals.
+Function application sits below the overall rate, and propositional goals well below every other class.
+Class sizes are in \Cref{tab:eval-construct,tab:eval-subject}.
 
 \FloatBarrier
 
-The wins are broadly spread but not uniformly: \bmBOFiles{} files contribute at least one exclusive win.
-Three of the heaviest contributors\footnote{\texttt{0039/00060}, \texttt{0039/00040}, and \texttt{0032/00046}.} report identical figures and are almost certainly the same machine appearing three times in the corpus; they should therefore be treated as one when interpreting file-level concentration.
-File \texttt{0033/00039} shows the exclusive wins are not confined to \beer{}'s favored classes: 2\,307 of its 3\,715 answered goals---\(62\,\%\), against a \(35\,\%\) overall success rate for ppTrans---are \beer{}'s alone, and they are order-1 function applications, the class \beer{} loses on average.
-The files that this scoring \emph{removes} show the opposite selection effect: on \texttt{0002/00006} and \texttt{0024/00011}, ppTrans proves barely \(2\,\%\) under strict scoring while \beer{} clears them in seconds, yet they cannot appear in a verdict-only ranking because almost none of their goals received a ppTrans verdict.
+\bmBOFiles{} files contribute at least one exclusive win.
+Three of the heaviest contributors\footnote{\texttt{0039/00060}, \texttt{0039/00040}, and \texttt{0032/00046}.} report identical figures and are almost certainly the same machine appearing three times in the corpus, and count as one for file-level concentration.
+On \texttt{0033/00039}, most of the answered goals are \beer{}'s alone---far more than ppTrans's own rate on that file---and they are order-1 function applications, the class \beer{} loses on average.
+On \texttt{0002/00006} and \texttt{0024/00011}, ppTrans proves almost nothing under strict scoring while \beer{} clears them in seconds; almost none of their goals received a ppTrans verdict, so the verdict-only ranking cannot show them.
 
 \FloatBarrier
 \subsection{Summary}
 \label{sec:beer-results-summary}
-
 The campaign answers the four questions of \Cref{sec:evaluation-goals} as follows.
-End to end, the \beer{} pipeline proves \bmBeerAll\,\% of the corpus against the industrial baseline's \bmPptAll\,\%.
-The arithmetic of the gap is dominated by the \bmNoScript\,\% of goals that never reach the solver---mostly the \texttt{Struct} files that \beer{} does not aim to support---so encoder coverage, rather than encoding quality, is the principal end-to-end limitation.
-Where both pipelines deliver a script and a verdict, the higher-order encoding stands within 3.2 points of the industrial baseline, with exclusive wins on both sides and a combined union of \bmSUnion\,\%, so the two encodings are complements rather than substitutes.
-Structurally, the higher-order encoding performs best relative to the baseline where it was designed to excel: counting, arithmetic, and sets treated as objects, with a systematic relative advantage on higher-order goals; it fares worst on function application, where cast specifications concentrate.
-Its cost profile is mixed: on goals that both pipelines prove, solving times remain comparable, but the median script-size ratio is \bmSizeMed\(\times\); end to end, ppTrans consumes far more aggregate solver time because it reaches the \(300\)\,s wall much more often.
+End to end, \beer{} discharges a smaller share of the corpus than the industrial baseline, and the goals that never reach the solver---mostly the \texttt{Struct} files it does not aim to support---account for most of that gap, so the principal end-to-end limitation is encoder coverage rather than encoding quality.
+Where both pipelines deliver a script and a verdict, the higher-order encoding stands within a few points of the baseline, each side proves goals the other cannot, and their union proves more than either alone, so the two encodings are complements rather than substitutes.
+Structurally, \beer{} gains on counting, arithmetic, and sets treated as objects, holds a relative advantage on higher-order goals in six subject classes of seven, and loses on function application, where loosening concentrates.
+Its scripts are larger than ppTrans's and solve in comparable time on the goals both prove; end to end, ppTrans consumes far more solver time because it reaches the wall much more often.
+Progress in higher-order instantiation would show up in \beer{}'s numbers and leave ppTrans's where they are: its scripts are first-order and already run on mature machinery.

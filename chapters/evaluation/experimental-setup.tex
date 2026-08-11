@@ -6,10 +6,9 @@ Every \texttt{.pog} file is translated twice, by \beer{} (revision \texttt{83fda
 Both emit exactly one \smtinl{check-sat} command per goal, in the order in which the goals appear in the file.
 Each goal becomes a self-contained script solved in its own process---with no incremental mode and no state shared between goals---so the \(k\)-th answer on each side describes the same goal.
 Files for which the two goal counts differ are excluded from the join rather than silently misaligned.
-Such a mismatch is not an encoder defect: it arises when one of the two runs hits the wall partway through a file, so the solver is killed and the remaining goals record no answer.
+Such a mismatch is not an encoder defect: it arises when one of the two runs hits the wall partway through a file, so the solver is killed and the remaining goals record no answer instead of recording it only partially.
 Each script is processed by cvc5~1.3.4 with model-based quantifier instantiation (\texttt{-{}-mbqi}; \Cref{sec:ar-smt}) and a per-\smtinl{check-sat} budget of \(5\)\,s (\texttt{-{}-tlimit-per=5000}), the configuration under which \beer{}'s scripts are intended to run (\Cref{sec:beer-po-running-example}).
-The budget is soft---cvc5 checks it between phases---so each solver process is additionally killed at a \(300\)\,s wall; the encoders themselves run under a \(1\,800\)\,s budget per file.
-\beer{}'s shipped prelude requests unsat cores, whereas ppTrans does not; because producing them costs cvc5 time, the request is stripped so that both encodings are solved under identical solver settings.
+The budget is soft---cvc5 checks it between phases---so each solver process is additionally killed at a \(300\)\,s wall.
 
 \paragraph*{Hardware.}
 The campaign ran on identical nodes of the \texttt{gros} cluster at Grid'5000\footnote{\url{https://www.grid5000.fr}} in Nancy, each equipped with one Intel Xeon Gold 5220 processor.
@@ -21,23 +20,18 @@ Three exclusions separate the corpus from the scored population.
 Goal slots on which cvc5 itself errored out are dropped before anything is accumulated (\bmExcluded{} slots, \(0.3\,\%\)): the solver produces a higher-order instantiation that it is then unable to evaluate, and abandons the run.
 These are solver failures rather than encoding defects, and they leave no verdict to score.
 Files whose two goal counts differ are excluded from the join, as described above.
-The sweeps of three further files stopped partway through and contribute only the goals actually measured.
-What remains is \bmGoals{} goals from \bmFiles{} of the corpus's 5\,421 files; no \texttt{.pog} file is empty, so the fourteen files that contribute no scored goal lost all of their goals to these exclusions.
+What remains is \bmGoals{} goals from \bmFiles{} of the corpus's 5\,421 files; the fourteen files that contribute no scored goal lost all of their goals to these exclusions.
 The scored population deliberately retains two kinds of failure that a user of either tool experiences: goals for which \beer{}'s encoder produced no script, and goals on which a solver was killed at the wall.
 The first reflects encoder coverage and is dominated by files using Atelier~B's \texttt{Struct} records, which are specific to Atelier~B rather than part of the B language described in the B-Book~\cite{abrial1996bbook} and which \beer{} does not aim to support.
 The second is a failure to discharge a goal within the budget.
 
 \paragraph*{Two scorings.}
-Every result in this chapter uses one of two scoring rules; since the two give different answers, they are defined once here.
+Every result in this chapter uses one of two scoring rules, which give different answers and are defined here once.
 
 \begin{description}[font=\normalfont\itshape]
-  \item[strict] All \bmGoals{} goals; a goal counts as \emph{proved} iff cvc5 answered \smtinl{unsat}.
+  \item[strict] All \bmGoals{} goals; a goal counts as \emph{proved} when cvc5 answered \smtinl{unsat}.
     A goal for which no script was produced, or on which the solver exhausted the \(300\)\,s wall, counts as a failure to prove.
     This is what a user of either tool experiences end to end, and it is the headline scoring.
   \item[verdict-only] The \bmHead{} goals for which \emph{both} pipelines obtained a solver verdict (\smtinl{unsat} or \smtinl{unknown}; cvc5 never answered \smtinl{sat} on this corpus---see \Cref{sec:beer-results-global}).
     This isolates the quality of an encoding from the robustness and coverage of the encoder that produced it, at the cost of discarding \bmDropped{} goals---\(37\,\%\) of the corpus---and discarding them asymmetrically, since each side loses a different population.
 \end{description}
-
-\Cref{sec:beer-results-global} reports both scorings; their difference measures how much of \beer{}'s deficit comes from the encoder rather than from the encoding.
-The structural analyses of \Cref{sec:beer-results-where,sec:beer-results-alone} are verdict-only throughout: they ask which encoding suits which kind of goal, and a goal that never reached the solver cannot answer that.
-Every figure states its scoring rule or population, and the reference tables closing the chapter present both scorings side by side.
