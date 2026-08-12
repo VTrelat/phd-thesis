@@ -14,10 +14,22 @@ guarantee about completed proofs and further reduce the trusted base. The same
 infrastructure could serve the automated route and support an embedded B
 language for constructing and verifying machines directly in Lean.
 
+\subsection{Broader higher-order SMT support}
+
+\beer{} emits scripts in the higher-order fragment of
+SMT-LIB~\cite{smtlib2.7}: it represents B functions as SMT functions and relies
+on \(\lambda\)-terms and partial application rather than on first-order graph
+encodings. Today cvc5 is the only solver accepting this input, so the automated
+route has a single usable backend. Wider adoption of the higher-order fragment,
+and its consolidation in the proposed SMT-LIB~3, would open the same encoding to
+other solvers and make portfolio use possible. A standardized higher-order core
+with an official semantics would also narrow the gap between the fragment
+formalized in \Cref{ch:smt} and the standard itself.
+
 \subsection{Strengthening interactive proof}
 
 \barrel{} now shares repeated well-definedness theorems across an import,
-combines its B-specific tactics with \texttt{grind}, confines timeouts and
+combines its B-specific tactics with \leaninl{grind}, confines timeouts and
 recoverable encoder failures to one obligation, and reports live progress in
 Lean's infoview. Further engineering can broaden the mathematical fragment and
 raise the remaining stack and memory ceilings without changing this
