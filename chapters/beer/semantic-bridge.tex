@@ -2,7 +2,7 @@
 \label{sec:beer-semantic-bridge}
 
 Every correctness statement of this chapter compares a B denotation with an SMT denotation.
-This section introduces, once and for all, the canonical constructions that make such comparisons possible: encoding of B types in SMT types, canonical isomorphisms and their associated retractions with the round-trip laws relating them, canonical images of a B-side sets, and the agreement relation \(\semrel\).
+This section introduces, once and for all, the canonical constructions that make such comparisons possible: encoding of B types in SMT types, canonical isomorphisms and their associated retractions with the round-trip laws relating them, canonical images of B-side sets, and the agreement relation \(\semrel\).
 All objects live in the ZFC universe of \Cref{ch:zflean}; in particular \(\regnotation{\interpZ{\alpha}}\) denotes the carrier set of a B or SMT type \(\alpha\) (\Cref{def:b-type-interp,def:smt-type-interp}).
 
 \subsection{Encoding B types into SMT types}
@@ -30,7 +30,9 @@ Second, different SMT terms may of course denote the same characteristic predica
 \subsection{The indexed family of canonical isomorphisms and associated retractions}
 \label{sec:beer-canonical-iso}
 
-The indexed construction is forced by an ambiguity that arises if one first tries to define \(\semrel\) on bare ZF values.
+This subsection builds, for every B type \(\alpha\), a bijection \(\zeta_\alpha\) sending a B value to its canonical target representative, together with its inverse retraction \(\eta_\alpha\).
+The following ambiguity explains why these maps are indexed by the B type instead of being defined on bare ZF values.
+
 Interpretations of distinct types need not be disjoint; for example,
 \[
   U \;\coloneq\; \zop{1}
@@ -126,7 +128,7 @@ The following theorem establishes existence; the definition immediately afterwar
       &= \interpZ{\toSMT{(\alpha \prodB \beta)}}.
     \end{aligned}
   \]
-  Finally, the powerset of a carrier is isomorphic to the space of its characteristic predicates.
+  The set case needs two further facts.
   \begin{fact}
     Isomorphisms are likewise preserved by function spaces:
     \[
@@ -143,6 +145,7 @@ The following theorem establishes existence; the definition immediately afterwar
       \vspace*{-\baselineskip}
     \]
   \end{subproof}
+  Moreover, the powerset of a carrier is isomorphic to the space of its characteristic predicates.
   \begin{fact}
     For any set \(A\), \(\powZ(A) \mathbin{\zop{\cong}} {\Zbool}^A\).
   \end{fact}
@@ -388,6 +391,13 @@ In the set case, \(\widehat{\sigma}\) is the target type at which individual mem
 A set \(X\) is supported when a single cast path to \(\toSMT{\alpha}\) lets every \(x\in X\) be recovered from some \(w\in\interpZ{\widehat{\sigma}}\).
 Requiring \(x\in\operatorname{supp}_{\alpha}(\widehat{\sigma})\) carries the same guarantee recursively into nested set-valued members.
 \Cref{fig:beer-set-support} depicts the witness condition.
+
+\begin{example}[Support at a nested representation]
+  Let \(\alpha = \setB(\intB \prodB \intB)\), so that \(\toSMT{\alpha} = (\intS \timesS \intS) \toS \boolS\), and consider a set of relations \(X \in \interpZ{\setB\alpha}\) represented at \(\sigma = (\intS \toS \optS\,\intS) \toS \boolS\), that is, as a predicate over option-valued functions.
+  The support type is \(\widehat{\sigma} = \intS \toS \optS\,\intS\), and the cast path \(\castpath{\widehat{\sigma}}{\toSMT{\alpha}}\) sends a partial function to its graph.
+  Hence \(X\) is supported exactly when every relation in \(X\) is functional: a member that is not the graph of a partial function has no representative at \(\widehat{\sigma}\), so \(\sigma\) cannot represent \(X\).
+  At the canonical representation the condition is vacuous (\Cref{lem:beer-canonical-support}).
+\end{example}
 
 \begin{figure}[b]
   \centering

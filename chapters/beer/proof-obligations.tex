@@ -172,10 +172,9 @@ Following \Cref{sec:beer-rules-cast}, the \encruleref{rule:beer-union} rule keep
 
 The specification says that \smtinl{(pair u v)} belongs to \smtinl{f!} exactly when \smtinl{f} returns \smtinl{(some v)} at \smtinl{u}.
 After this reconciliation, union membership reduces to \smtinl{(or (f! z) (g z))}.
-The specification depends only on the free variable \smtinl{f}, not on the quantified pair \smtinl{z}.
-The helper can therefore be declared outside the quantified goal, with its specification asserted in the proof-obligation scope.
-The re-scoping part of the \encruleref{rule:beer-bounded-universal} rule is needed only for helpers whose specifications depend on a bound variable; in this instance, the encoded goal quantifies \smtinl{z} alone.
-Its guard is the union predicate above, and its existential conclusion is the characteristic predicate produced for \(X\prodB Y\) by the \encruleref{rule:beer-cartesian-product} rule.
+Because \smtinl{f!_spec} mentions only the free variable \smtinl{f} and not the quantified pair \smtinl{z}, the helper \smtinl{f!} needs no listing of its own: it is declared once, outside the goal, exactly as shown in \Cref{lst:beer-running-loosening}, and its specification is asserted in the outer scope.
+The re-scoping part of the \encruleref{rule:beer-bounded-universal} rule applies only to helpers whose specifications depend on a bound variable, which is not the case here.
+The encoded goal therefore quantifies \smtinl{z} alone: its guard is the union predicate above, and its existential conclusion is the characteristic predicate produced for \(X\prodB Y\) by the \encruleref{rule:beer-cartesian-product} rule.
 
 \paragraph{Refutation.}
 The proof obligation layer leaves the assumptions in the outer scope and asserts the negation of the encoded bounded universal in a nested goal scope.

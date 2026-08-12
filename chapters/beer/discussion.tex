@@ -42,8 +42,7 @@ Freed from the requirement that every implementation change preserve the proof a
 The variant drops the mechanized layer entirely: the PHOAS and denotational developments, the reasoning modules behind \Cref{sec:beer-soundness}, and, inside the encoder itself, the machinery whose only consumer was a proof---the dependent in-domain test guarding each context lookup, and the copy of~$\Gamma$ taken on entering a binder so that a lemma may relate the two.
 Coverage then extends to constructs the verified fragment leaves out: \(\cardB{\cdot}\), \(\minB\), \(\maxB\), finiteness, integer division and exponentiation, transitive closure, the sequence operators, generalized sum and product, and the parallel product.
 The rest is performance work on both sides of the interface.
-Inside the encoder, the typing context is backed by a hash map and the declaration stream by an array, the state is updated linearly instead of cloned, and each site caches its free names.
-In the emitted script, one-point quantifiers are eliminated, a relation's partial-function form is shared across its applications, dead declarations and repeated assertions are suppressed, and the generated quantifiers carry instantiation patterns.
+Inside the encoder, efficient data structures like hash-maps are used, and states are updated linearly instead of cloned.
 
 \textsc{Zero-Proof} \beer{} therefore offers no mechanized semantic link between a source obligation and the SMT script it emits, and the verified encoder remains the reference for the guarantees established here.
 The two share a design and differ in what they are built for.
@@ -51,22 +50,12 @@ The two share a design and differ in what they are built for.
 \subsection{Conclusion}
 \label{sec:beer-conclusion}
 
-This chapter has established a representation-aware translation from B terms to SMT terms.
+This chapter has established a translation from B terms to SMT terms and its correctness in a representation-aware semantics.
 Its central invariant relates source denotations not to a single canonical target type, but to every representation that the encoder may select and to the exact loosening paths between them.
-The resulting soundness theorem covers the complete successful execution of the term encoder, including its generated declarations, fresh names, and binder-scoping obligations.
-Together with the proof-obligation argument of \Cref{sec:beer-po-soundness}, it explains why an unsatisfiable generated script is evidence for the validity of the source obligation, subject precisely to the trusted components identified above.
+The resulting soundness theorem covers the complete successful execution of the term encoder.
+Together with the argument of \Cref{sec:beer-po-soundness}, it explains why an unsatisfiable generated script is evidence for the validity of the source obligation, subject precisely to the trusted components identified above.
 
-The compact square of \Cref{fig:beer-semantic-square} records the soundness
-theorem's main commuting property.
-\Cref{fig:beer-semantic-square-extended} closes the chapter by expanding it
-into the complete semantic path: valuation application and interpretation are
-separated from the end-to-end encoding step.
-Any syntactic loosening of already encoded subterms is internal to that step;
-the lower factorization instead displays the semantic cast and retraction used
-to decode the denotation of the final target term.
-
-\begin{center}
-  \begin{minipage}{\textwidth}
+\begin{figure}[t]
   \centering
   \tikzsetnextfilename{beer-semantic-square-extended}
   \input{chapters/beer/figures/semantic-square-extended.tex}
@@ -79,7 +68,13 @@ to decode the denotation of the final target term.
     The \(\semrel\) edge additionally records
     the support condition of \Cref{def:beer-agreement}.}
   \label{fig:beer-semantic-square-extended}
-  \end{minipage}
-\end{center}
+\end{figure}
 
-The diagram summarizes the role of the semantic bridge developed in this chapter: representation changes are visible to the encoder and to the solver, but transparent at the level of the B statement being proved.
+The compact square of \Cref{fig:beer-semantic-square} records the soundness
+theorem's main commuting property.
+\Cref{fig:beer-semantic-square-extended} closes the chapter by expanding it
+into the complete detailed semantic path.
+Any syntactic loosening of already encoded subterms is internal to that step;
+the lower factorization instead displays the semantic cast and retraction used
+to decode the denotation of the final target term.
+The diagram summarizes the role of the semantic bridge developed in this chapter: changes of representation are visible to the encoder and to the solver, but transparent at the semantic level.

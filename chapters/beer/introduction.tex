@@ -40,16 +40,19 @@ Their denotations must instead \emph{correspond} through the change of represent
 
 The kernel of the correctness result is consequently an agreement statement.
 We first state it here informally, just to motivate the rest of the chapter.
-For every well-typed, well-defined B term \(t : \alpha\) satisfying these hypotheses, a successful encoding produces an SMT term \(t' : \beta\) such that
+For every well-typed, well-defined B term \(t : \alpha\) whose bounded universals satisfy the binder-compatibility condition of \Cref{sec:beer-soundness}, and for corresponding B and SMT valuations, a successful encoding produces an SMT term \(t' : \beta\) such that
 \begin{equation*}
   \interpB{t} \semrel \interpS{t'},
   \label{eq:beer-invariant}
 \end{equation*}
 where \(\semrel\) is the agreement relation identifying an SMT denotation with the B denotation it represents.\footnote{The corresponding Unicode character \(\semrel\) is named \emph{corresponds to} (U+2258), which is its intended reading.}
-For Boolean terms, the representation interval is the singleton \([\boolS,\boolS]\), and agreement reduces to equality of truth values; this specialization is the semantic fact used for proof obligations.
+The \emph{representation interval} \(\bigl[\lgf{(\toSMT{\alpha})},\mgf{(\toSMT{\alpha})}\bigr]\) of \Cref{ch:loosening} collects the SMT types at which a B term of type \(\alpha\) may be represented, ordered by loosening.
+For Boolean terms it is the singleton \([\boolS,\boolS]\), and agreement reduces to equality of truth values; this specialization is the semantic fact used for proof obligations.
 
 Both denotations are sets in the ZFC universe of \Cref{ch:zflean} augmented with typing information (the semantic triples) as developed in \Cref{ch:b,ch:smt}: B terms and SMT terms denote in one and the same model, so agreement is a genuine set-theoretic relation rather than transport between two unrelated semantics.
-It combines equality after a semantic cast and the canonical retraction with a support condition ensuring the recursive availability of target representatives for members of set-valued denotations.
+Agreement has two ingredients.
+First, the target value must equal the source value once cast to the canonical type and read back through the retraction.
+Second, a support condition requires that the members of a set-valued denotation themselves admit representatives in the target type; this is what makes the relation recursive.
 This idea ruled out the possibility of a semantic interpretation of SMT-LIB in bare higher-order logic (HOL), even though it would have been a very natural choice.
 This design decision, made in \Cref{ch:b,ch:smt}, is what this chapter relies on.
 \Cref{sec:beer-semantic-bridge} constructs \(\semrel\); \Cref{sec:beer-encoding-rules} gives the encoding rules; \Cref{sec:beer-soundness} proves the main correctness statement; and \Cref{sec:beer-proof-obligations} derives the corresponding result for proof obligations.

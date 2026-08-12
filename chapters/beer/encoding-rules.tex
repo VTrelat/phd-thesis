@@ -9,7 +9,7 @@ Each recursive call therefore returns not only an SMT term but also its actual S
 We first introduce the encoding judgment and the elementary rules, then treat set constructors, comprehensions, and lambdas.
 We next isolate the casts required by set operations, equality, membership, and application, before explaining how generated helpers and their specifications are scoped under bounded universal quantifiers.
 Together, these rules describe the mathematical behavior of the encoder whose correctness is established in \Cref{sec:beer-soundness}.
-For each construct, we state the recursive encodings of its subterms first, display the resulting encoding rule in a box, and then give its intuition.
+For each construct, we state the recursive encodings of its subterms and explain the intended behavior, then display the resulting encoding rule in a box.
 
 \subsection{The encoding judgment}
 \label{sec:beer-encoding-judgment}
@@ -35,7 +35,7 @@ The source type \(\alpha\) is also omitted because it is a typing property of \(
 
 The base fragment is homomorphic: each B operator maps to its SMT counterpart, with operands encoded recursively.
 
-The atomic terms require no recursive call.
+The atomic terms require no recursive call: a variable keeps its name and receives the representation recorded in the SMT context, while integer and Boolean literals keep both their syntax and their base type.
 \begin{encrule}[atoms]{rule:beer-atoms}
 \[
 \begin{aligned}
@@ -45,8 +45,9 @@ The atomic terms require no recursive call.
 \end{aligned}
 \]
 \end{encrule}
-A variable keeps its name and receives the representation recorded in the SMT context; integer and Boolean literals keep both their syntax and their base type.
+
 Suppose \(x \encto (x', \intS)\) and \(y \encto (y', \intS)\).
+Arithmetic is translated homomorphically, with comparisons returning a Boolean.
 \begin{encrule}[arithmetic]{rule:beer-arithmetic}
 \[
 \begin{aligned}
@@ -57,9 +58,10 @@ Suppose \(x \encto (x', \intS)\) and \(y \encto (y', \intS)\).
 \end{aligned}
 \]
 \end{encrule}
-Arithmetic is translated homomorphically, with comparisons returning a Boolean.
 
 Suppose \(x \encto (x', \boolS)\) and \(y \encto (y', \boolS)\).
+The primitive connectives are translated directly.
+No separate rules are needed for \(\orB\), \(\impB\), or \(\iffB\): as noted in \Cref{ch:b}, they are generated from \(\andB\) and \(\notB\) and are eliminated before encoding.
 \begin{encrule}[logic]{rule:beer-logic}
 \[
 \begin{aligned}
@@ -68,16 +70,14 @@ Suppose \(x \encto (x', \boolS)\) and \(y \encto (y', \boolS)\).
 \end{aligned}
 \]
 \end{encrule}
-The primitive connectives are translated directly.
-No separate rules are needed for \(\orB\), \(\impB\), or \(\iffB\): as noted in \Cref{ch:b}, they are generated from \(\andB\) and \(\notB\) and are eliminated before encoding.
 
 Suppose \(x \encto (x', \alpha)\) and \(y \encto (y', \beta)\).
+A B maplet becomes an SMT pair whose components retain the representations selected by their recursive encodings.
 \begin{encrule}[maplet]{rule:beer-maplet}
 \[
   x \mapletB y \encto (\pairS{x'}{y'},\, \alpha \timesS \beta)
 \]
 \end{encrule}
-A B maplet becomes an SMT pair whose components retain the representations selected by their recursive encodings.
 
 \subsection{Sets as characteristic predicates}
 \label{sec:beer-rules-sets}
@@ -86,38 +86,37 @@ Following \Cref{def:beer-type-encoding}, the encoder constructs sets as characte
 The predicate domain is the representation produced for the element type: if elements are encoded at \(\sigma\), the constructed set has type \(\sigma \toS \boolS\).
 A set-valued variable may instead retain the option-valued function representation selected for its binding; the cast layer below converts it to a graph predicate when a set operator requires one.
 
-The two base-type sets require no recursive call.
+The two base-type sets require no recursive call: each becomes the constant-true characteristic predicate over the corresponding SMT base type.
 \begin{encrule}[base sets]{rule:beer-base-sets}
 \[
   \ZintB \encto (\lamS \var{z} : \intS \cdot \mathsf{true},\; \intS \toS \boolS)\mkern20mu
   \ZboolB \encto (\lamS \var{z} : \boolS \cdot \mathsf{true},\; \boolS \toS \boolS)
 \]
 \end{encrule}
-Each becomes the constant-true characteristic predicate over the corresponding SMT base type.
 
 Suppose \(S \encto (S', \sigma \toS \boolS)\).
+The encoded powerset recognizes exactly the characteristic predicates included pointwise in \(S'\).
 \begin{encrule}[powerset]{rule:beer-powerset}
 \[
   \powB(S) \encto \Bigl(\lamS \var{E} : \sigma \toS \boolS \cdot\; \forallS \var{x} : \sigma \cdot \appS{\var{E}}{\var{x}} \;\impS\; \appS{S'}{\var{x}},\;\; (\sigma \toS \boolS) \toS \boolS\Bigr)
 \]
 \end{encrule}
-The result recognizes exactly the characteristic predicates included pointwise in \(S'\).
 
 Suppose \(A \encto (A', \alpha \toS \boolS)\) and \(B \encto (B', \beta \toS \boolS)\).
+The encoded product recognizes a candidate \(\var{p}\) exactly when it is a pair whose components are accepted by \(A'\) and \(B'\): the two witnesses supply one component each, and the final equality identifies their pair with \(\var{p}\).
 \begin{encrule}[Cartesian product]{rule:beer-cartesian-product}
 \[
   A \prodB B \encto
   \Bigl(\lamS \var{p} : \alpha \timesS \beta \cdot\;
     \existsS \var{a}:\alpha,\,\var{b}:\beta\cdot\;
       \appS{A'}{\var{a}}
-      \andS \bigl(\appS{B'}{\var{b}}
-      \andS \var{p}\eqS\pairS{\var{a}}{\var{b}}\bigr),\;
+      \andS \appS{B'}{\var{b}}
+      \andS \var{p}\eqS\pairS{\var{a}}{\var{b}},\;
     (\alpha \timesS \beta) \toS \boolS\Bigr)
 \]
 \end{encrule}
-The witnesses provide one element of each factor, while the final equality identifies their pair with the candidate \(\var{p}\).
 
-Under the same recursive encodings of \(A\) and \(B\), the partial-function space is encoded as follows.
+Under the same recursive encodings of \(A\) and \(B\), the partial-function space is encoded by two conjuncts stating that the graph of the relation \(\var{R}\) lies in \(A \prodB B\) and that it is functional.
 \begin{encrule}[partial functions]{rule:beer-partial-function-space}
 \[
   \begin{aligned}
@@ -135,7 +134,6 @@ Under the same recursive encodings of \(A\) and \(B\), the partial-function spac
   \end{aligned}
 \]
 \end{encrule}
-The two conjuncts state that the graph of the relation \(\var{R}\) lies in \(A \prodB B\) and that it is functional.
 All richer B function spaces (\(\tfunB\), \(\injpfunB\), \dots) are comprehensions over \(\pfunB\) (see \Cref{ch:b}) and therefore reach the encoder in already-elaborated form.
 
 \subsection{Comprehension and lambda}
@@ -168,15 +166,17 @@ The following operation recovers its components.
 In the following two rules, let \(\vec{\var{v}} = \langle \var{v}_1, \dots, \var{v}_n \rangle\), where \(n \geq 1\), and let \(\sigma = \sigma_1 \timesS \cdots \timesS \sigma_n\) denote the left-associated product of their SMT types.
 Thus, \(P'[\vec{\var{v}} \leftarrow \mathsf{destr}_n(z)]\) uses the binder arity \(n\) to decompose \(\sigma\), then simultaneously substitutes the resulting components for the bound variables.
 Suppose \(D \encto (D', \sigma \toS \boolS)\), and encode \(P \encto (P', \boolS)\) in the context extended with the bound variables \(\vec{\var{v}}\).
+A guard confines the predicate to \(D'\): outside it, the body---which may be meaningless there---is never consulted, and the predicate returns \(\mathsf{false}\).
+This guard is what reconciles the partiality of the B construct with the totality that SMT lambdas demand; the point recurs in the soundness proof (\Cref{sec:beer-case-comprehension}).
 \begin{encrule}[comprehension]{rule:beer-comprehension}
 \[
   \bcomp{\vec{\var{v}} \inB D}{P} \encto \Bigl(\lamS \var{z} : \sigma \cdot\; \iteS\bigl(\appS{D'}{\var{z}}\bigr)\bigl(P'[\vec{\var{v}} \leftarrow \mathsf{destr}_n(\var{z})]\bigr)\bigl(\mathsf{false}\bigr),\;\; \sigma \toS \boolS\Bigr)
 \]
 \end{encrule}
-The guard confines the predicate to \(D'\): outside it, the body---which may be meaningless there---is never consulted, and the predicate returns \(\mathsf{false}\).
-This guard is what reconciles the partiality of the B construct with the totality that SMT lambdas demand; the point recurs in the soundness proof (\Cref{sec:beer-case-comprehension}).
 
 Suppose \(D \encto (D', \sigma \toS \boolS)\), and encode \(P \encto (P', \gamma)\) in the context extended with \(\vec{\var{v}}\).
+The encoded lambda retains the \emph{functional structure} of its source: at a represented tuple accepted by \(D'\), it returns \(\someS\) of the encoded body value; otherwise, it returns \(\noneS\).
+Its option graph therefore represents exactly the set of pairs \(\{(x,P(x))\mid x\in D\}\) denoted by the B lambda, while undefinedness outside \(D\) is represented without choosing an arbitrary value.
 \begin{encrule}[lambda]{rule:beer-lambda}
 \[
   \begin{aligned}
@@ -188,15 +188,13 @@ Suppose \(D \encto (D', \sigma \toS \boolS)\), and encode \(P \encto (P', \gamma
   \end{aligned}
 \]
 \end{encrule}
-The result retains the \emph{functional structure} of the B lambda: at a represented tuple accepted by \(D'\), it returns \(\someS\) of the encoded body value; otherwise, it returns \(\noneS\).
-Its option graph therefore represents exactly the set of pairs \(\{(x,P(x))\mid x\in D\}\) denoted by the B lambda, while undefinedness outside \(D\) is represented without choosing an arbitrary value.
 
 \subsection{The loosening layer}
 \label{sec:beer-rules-cast}
 
 An encoded B term of type \(\alpha\) returns its actual representation \(\sigma\) in
 \(\bigl[\lgf{(\toSMT{\alpha})},\mgf{(\toSMT{\alpha})}\bigr]\), together with a cast path from \(\sigma\) to \(\toSMT{\alpha}\).
-The actual representation is computed syntax-directly: variables read it from the SMT context, while constructors determine it from the representations returned for their subterms.
+The actual representation is computed in a syntax-directed way: variables read it from the SMT context, while constructors determine it from the representations returned for their subterms.
 When a variable of B type \(\setB(\alpha \prodB \beta)\) is known to range over partial functions, it may be bound to the SMT type
 \[
   \toSMT{\alpha} \toS \optS\,\toSMT{\beta}
@@ -226,6 +224,8 @@ These are the two possible outer shapes of a represented B set.
 \paragraph{Reconciling binary set operands.}
 Suppose \(S \encto (S', \alpha)\) and \(T \encto (T', \beta)\).
 As both operands have the same B set type, \(\alpha\) and \(\beta\) lie in the same loosening interval of \Cref{ch:loosening}.
+The common type must be an upper bound of the two: loosening is the only direction available, since tightening a relational representation back into a functional one would have to invent the determinism and totality that an arbitrary relation lacks (\Cref{sec:loosening-normal-forms}).
+Their join is therefore the target, and it always exists (\Cref{thm:loosening-lattice}).
 The rules below apply when these representations are comparable.
 Let \(\gamma \triangleq \alpha \sqcup \beta\); it is then the looser of the two representations, and there are cast paths \(\mathbb{c}_S : \castpath{\alpha}{\gamma}\) and \(\mathbb{c}_T : \castpath{\beta}{\gamma}\).
 If \(\alpha=\gamma\), set \(\lvar{S}\coloneq S'\).
@@ -237,7 +237,8 @@ Otherwise, obtain
 and add \(\spec{\lvar{S}}\) to the generated helper specifications.
 Define \(\lvar{T}\) symmetrically from \(T'\), \(\beta\), and \(\mathbb{c}_T\).
 Thus, an operand already at the join is retained without generating a helper; only a strictly tighter operand is loosened.
-If neither representation can be loosened to the other, the partial translation is undefined.
+Restricting the rules to comparable representations is an implementation choice: a join that is neither operand would have to be reached by loosening both, hence by generating two helper variables and two specifications, whereas the encoder loosens at most one.
+If neither representation can be loosened to the other, the partial translation is therefore undefined.
 This reconciliation is shared by union and intersection; only the operation performed at the common type differs.
 
 \paragraph{Union.}
@@ -284,12 +285,12 @@ In a mixed functional--relational case the join \(\gamma\) is relational, so the
 Suppose \(A \encto (A', \alpha)\) and \(B \encto (B', \beta)\).
 Let \(\gamma \coloneq \alpha \sqcup \beta\) and choose cast paths \(\mathbb{c}_A : \castpath{\alpha}{\gamma}\) and \(\mathbb{c}_B : \castpath{\beta}{\gamma}\).
 Obtain \(\langle\lvar{A},\spec{\lvar{A}}\rangle \coloneq \mathsf{loosen}_{\mathbb{c}_A}(A')\) and \(\langle\lvar{B},\spec{\lvar{B}}\rangle \coloneq \mathsf{loosen}_{\mathbb{c}_B}(B')\) by loosening \(A'\) and \(B'\) to \(\gamma\).
+Equal representations are compared directly; otherwise the tighter operand is loosened to the type of the other.
 \begin{encrule}[equality]{rule:beer-equality}
 \[
   A \eqB B \encto \bigl((\lvar{A} \eqS \lvar{B}) \andS \spec{\lvar{A}} \andS \spec{\lvar{B}},\; \boolS\bigr)
 \]
 \end{encrule}
-Equal representations are compared directly; otherwise the tighter operand is loosened to the type of the other.
 Here the specification travels \emph{inside} the returned formula rather than as a global assertion---a scoping necessity, since equalities may occur under binders.
 
 \paragraph{Membership.}
@@ -315,14 +316,13 @@ and
   \coloneq \mathsf{loosen}_{\mathtt{chpred}\,\mathbb{c}_S}({S'}^{\mathrm{rel}})
 \).
 Let \(\Phi_{\in} \coloneq \spec{\lvar{x}} \andS \spec{\lvar{S}}\) be the possibly empty conjunction of the specifications generated by these two (potentially reflexive) loosening steps, with the empty conjunction equal to \(\mathsf{true}\).
-
+Membership is then predicate application, once the element representation has been reconciled with the support type of the set representation.
 \begin{encrule}[membership]{rule:beer-membership}
 \[
   x \inB S \encto
   \bigl(\appS{\lvar{S}}{\lvar{x}} \andS \Phi_{\in},\;\boolS\bigr)
 \]
 \end{encrule}
-Membership is thus predicate application after reconciling the element representation with the support type of the set representation.
 
 \paragraph{Application.}
 B application \(\appB f\ x\) must produce a \emph{value}, not a predicate, so a graph representation must be cast in the opposite, tightening direction---the one place where this is sound, because B's well-definedness (\Cref{sec:b-wd}) guarantees \(x \in \domB(f)\) and functionality of \(f\).
@@ -384,6 +384,7 @@ Helpers generated for the \emph{bound} variables \(\vec{\var{v}}\) cannot be dec
 The encoder therefore re-scopes them \emph{inside} the quantifier, universally bound and guarded by their specifications.
 Suppose \(D \encto (D', \sigma \toS \boolS)\).
 We replace the bound variables \(\vec{\var{v}}\) by fresh bound variables \(\vec{\var{z}}\) of types \(\vec{\tau}\), then encode the membership guard and \(P \encto (P', \boolS)\) in the extended context, collecting as \(\var{h}_1, \dots, \var{h}_k\) those generated helpers whose specifications depend on the bound variables.
+Helper binders keep these specifications in the scope of the variables on which they depend; helpers involving only free variables remain in the surrounding scope.
 \begin{encrule}[bounded universal]{rule:beer-bounded-universal}
 \[
   \forallB \vec{\var{v}} \inB D \cdot P
@@ -395,7 +396,6 @@ We replace the bound variables \(\vec{\var{v}}\) by fresh bound variables \(\vec
   \boolS\Bigr)
 \]
 \end{encrule}
-The helper binders keep these specifications in the scope of the variables on which they depend; helpers involving only free variables remain in the surrounding scope.
 Here \((\vec{\var{z}} \inB D)'\) abbreviates the membership encoding of \Cref{sec:beer-rules-cast}.
 The binder types \(\vec{\tau}\) are derived from the component types of \(\sigma\); a component is changed to an option-valued function type only when that bound name is explicitly selected for a functional representation.
 Semantic agreement already ensures that every value in the B domain has a representative at the element type carried by the encoded domain, recursively at nested set positions.

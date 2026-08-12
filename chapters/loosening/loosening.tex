@@ -136,6 +136,7 @@ transitivity concatenates the derivations into a single path, and antisymmetry e
 In sum, $\castable{}{}$ and $\castpath{}{}$ present one and the same partial order---once as a proposition, once as data. We now turn to its order-theoretic structure, which is richer than the bare ordering suggests.
 
 \subsection{Normal forms}
+\label{sec:loosening-normal-forms}
 
 The structure induced by $\castable{}{}$ is neither a lattice nor boundedly complete (also called Dedekind complete), since $\sqsubseteq$ does not have meets or joins in general (\eg $\intS$ and $\boolS$).
 However, every SMT type $\alpha$ admits two normal forms called the \emph{least} and \emph{most general forms} of $\alpha$.
@@ -619,6 +620,7 @@ Since $\theta \sqcap \tau \sqsubseteq \theta$, the join $\theta \sqcup (\theta \
 \end{proof}
 
 \begin{theorem}[Complete lattice]
+  \label{thm:loosening-lattice}
   For any SMT type $\alpha$, the adjoint interval $[\lgf{\alpha}, \mgf{\alpha}]$ is a complete lattice with join $\sqcup$, meet $\sqcap$, bottom $\lgf{\alpha}$ and top $\mgf{\alpha}$.
 \end{theorem}
 \begin{proof}[Proof sketch]
