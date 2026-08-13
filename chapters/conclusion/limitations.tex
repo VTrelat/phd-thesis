@@ -29,14 +29,3 @@ developments studied here and open to extension: each missing construct is added
 by the same short sequence of steps (\Cref{subsec:barrel-coverage}). Outside
 this manuscript, the tool has drawn the attention of the industrial B community,
 and projects to integrate it into existing toolchains are under way.
-
-Both routes rest on a trusted base, and its principal component is the same:
-proof-obligation generation. \beer{} additionally trusts the decoder of
-Atelier~B proof-obligation files and its elaborations, the printer from abstract
-scripts to concrete SMT-LIB, and the solver's unsatisfiability answer; the
-composition of the term-level contracts into a theorem about a complete script
-is a manuscript-level argument rather than a mechanized one. \barrel{}
-additionally trusts the faithfulness of its shallow B-to-Lean embedding: the
-kernel can reject an invalid derivation of a Lean proposition, but it cannot
-establish that this proposition is the correct translation of the original B
-obligation. Removing the shared component is the subject of the next section.

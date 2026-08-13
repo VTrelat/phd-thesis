@@ -3,6 +3,7 @@
 
 \subsection{Toward verified proof-obligation generation}
 
+Both routes rest on a trusted base, and its principal component is the same: generation of proof obligations.
 A semantics of B machines and refinement, together with a verified
 proof-obligation generator, would connect the term-level models developed in
 this thesis to the correctness of complete B developments. Implementing this
@@ -35,9 +36,7 @@ sort, and part of what \Cref{ch:loosening} now reconciles would be settled by
 type checking. Whether that is a good trade is open. Expressiveness in the input
 language is paid for in the solver, whose effectiveness rests on decidable
 fragments and efficient decision procedures.
-\Cref{sec:beer-zero-proof} shows the tension from the other side: making the
-encoder fast meant removing machinery whose only consumer was the correctness
-proof. A direct encoding serves certification; a tuned one serves throughput;
+A direct encoding serves certification; a tuned one serves throughput;
 the two need not coincide.
 
 \subsection{Strengthening interactive proof}
