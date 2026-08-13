@@ -627,6 +627,10 @@ Since $\theta \sqcap \tau \sqsubseteq \theta$, the join $\theta \sqcup (\theta \
 The interval is finite: each of the finitely many functional positions of $\alpha$ makes an independent choice between its functional and relational forms. Because the interval is finite and closed under binary joins and meets, every finite subset has a join and a meet by iteration, using the bottom and top elements for the empty subset. Every subset of a finite interval is finite; hence arbitrary joins and meets exist, so the lattice is complete.
 \end{proof}
 
+\begin{remark}[Loosening is not ordinary subtyping]
+Although $\sqsubseteq$ is a partial order on SMT types, it should not be confused with ordinary subtyping. A judgment $\castable{\alpha}{\beta}$ does not license subsumption: it records an explicit change of SMT representation that preserves the underlying B set. Function types make the distinction clear. Ordinary function subtyping is contravariant in the domain and covariant in the codomain, whereas rule \ref{rule:castable-fun} loosens both components covariantly, extending the transported function by a default value outside the image of the domain cast. Loosening is therefore a semantics-preserving representation change, rather than a subtyping discipline internal to SMT-LIB.
+\end{remark}
+
 \section{Loosening equations}
 \label{sec:loosening-rules}
 
