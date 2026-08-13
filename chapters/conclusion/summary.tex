@@ -1,9 +1,15 @@
-This thesis examines how B proof obligations can benefit from automated and
-interactive theorem proving while preserving a clear and auditable account of
-why accepted results can be trusted. It answers this question by separating the
-assurance argument into distinct links---the meaning of the source obligation,
-its translation to SMT-LIB, the reasoning performed there, and the mechanism
-that accepts the result---and by stating the guarantees of the automated and
-interactive routes independently. The developments formalize the semantics of
-both languages, the encoding between them, and the well-definedness discipline
-of the interactive route.
+The B method makes correctness a matter of proof: consistency and refinement are
+reduced to proof obligations, and a development is accepted once all of them have
+been discharged. Its trustworthiness therefore depends on the trustworthiness of whatever
+discharges them.
+
+This thesis follows B proof obligations along two routes and asks, for each, what
+a discharged obligation establishes. On the automated route, \beer{} encodes
+obligations into SMT-LIB, and the encoding is proved in Lean to preserve meaning,
+so that a solver's answer bears on the original obligation. That proof rests on
+\zflean{}, which interprets the fragments of B and SMT-LIB formalized here in one
+ZFC universe and thereby turns correctness of the encoding into a statement about
+preservation of denotations. On the interactive route, \barrel{} presents
+obligations as Lean theorems whose proofs are checked by the kernel. It makes
+well-definedness of B's partial operators a typing constraint enforced by construction at every
+step.
