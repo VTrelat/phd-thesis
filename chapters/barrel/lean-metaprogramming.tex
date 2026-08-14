@@ -24,7 +24,7 @@ separate binders, so a user proof does not begin with a sequence of administrati
 conjunction eliminations.
 
 The second is not.
-A B conjunction is translated by a \emph{dependent} conjunction,
+A conjunction of B is translated by a \emph{dependent} conjunction,
 \[
   P \mathbin{\land'} Q \;\triangleq\; \exists\, (h : P),\ Q\,h ,
 \]
@@ -108,9 +108,9 @@ whose only occurrence of a partial operator is the minimum.
 
     \node[side] at (9.3,-2.05)
       {\(?m\) has type \(\mathtt{min.WD}\ \var{S}\) in the context
-       \(\var{S}, h_{f}, h_{\le}\); close its type over that context};
+       \(\var{S}, h_{f}, h_{\le}\), over which that type is closed};
     \node[side] at (9.3,-4.75)
-      {assign \(?m \coloneq \mathtt{wd_0}\ \var{S}\ h_{f}\ h_{\le}\)};
+      {\(?m\) is assigned \(\mathtt{wd_0}\ \var{S}\ h_{f}\ h_{\le}\)};
   \end{tikzpicture}
   \caption{Reification of a well-definedness metavariable. The hole left by the encoder
     carries its own local context; closing its type over that context turns it into a
@@ -242,7 +242,8 @@ verified by Lean's kernel, and neither the tactics nor the interface of
 \Cref{sec:barrel-interface} has to be trusted for that verification to hold.
 Importing an existing proof-obligation file removes the external programs from a particular
 run, but says nothing about how that file was produced.
-\Cref{subsec:barrel-verified-generator} takes up the trusted side.
+Reducing the trusted base is left as future work
+(\Cref{subsec:barrel-verified-generator}).
 
 \begin{figure}[t]
   \centering

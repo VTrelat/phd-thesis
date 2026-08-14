@@ -16,7 +16,7 @@ figures they make concrete.
 \definecolor{barrelUiBorder}{RGB}{209,215,208}
 \definecolor{barrelUiAuto}{RGB}{105,198,143}
 \definecolor{barrelUiHand}{RGB}{7,183,208}
-\definecolor{barrelUiSorry}{RGB}{219,153,69}
+\definecolor{barrelUiSorry}{RGB}{158,88,8}
 \definecolor{barrelUiPending}{RGB}{200,209,203}
 \definecolor{barrelUiPale}{RGB}{184,217,219}
 \definecolor{barrelUiText}{RGB}{0,82,96}
@@ -24,7 +24,7 @@ figures they make concrete.
 \definecolor{barrelUiMuted}{RGB}{124,158,163}
 \definecolor{barrelUiLegendAuto}{RGB}{164,214,177}
 \definecolor{barrelUiLegendHand}{RGB}{104,202,217}
-\definecolor{barrelUiLegendSorry}{RGB}{236,178,105}
+\definecolor{barrelUiLegendSorry}{RGB}{190,122,42}
 \definecolor{barrelUiLegendPending}{RGB}{213,219,213}
 \definecolor{barrelUiError}{RGB}{196,71,31}
 \definecolor{barrelUiBarrel}{RGB}{224,157,35}
@@ -101,8 +101,8 @@ works through the file, so an import can be watched rather than waited out, as d
     \end{tikzpicture}%
   }
   \caption{Both bars are updated in
-    real time: green is the goals the automation has already discharged, pale blue those
-    parsed but not yet decided, and the gray remainder those still to be parsed. A gray
+    real time: green is for the goals the automation has already discharged, pale blue is for those
+    parsed but not yet decided, and the gray remainder is for those still to be parsed. A gray
     status disc marks an artifact left pending while the rest of the file is checked.}
   \label{fig:barrel-state-loading}
 \end{figure}
@@ -271,8 +271,8 @@ displays them.
   {\small (b) the same two obligations closed with \texttt{sorry}}
   \caption{Two states that a source file alone does not distinguish. In (a) the goals have
     no proof block and the insertion action is offered; in (b) the blocks exist but admit
-    their goals, so the action disappears while the goals are marked in orange and excluded
-    from the proved count.}
+    their goals, so the action disappears while the goals are marked as admitted and
+    excluded from the proved count.}
   \label{fig:barrel-state-missing}
 \end{figure}
 \FloatBarrier

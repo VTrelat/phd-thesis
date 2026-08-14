@@ -82,7 +82,7 @@ proof genuinely participates in the elaboration of the value.
     \(\minB(S)\)      & \leaninl{min}  & \(S\) has a least element \\
     \(\maxB(S)\)      & \leaninl{max}  & \(S\) has a greatest element \\
     \(\cardB{S}\)     & \leaninl{card} & \(S\) is finite \\
-    \(f(x)\)          & \leaninl{app}  & \(f \inB \domB(f) \tfunB \ranB(f)\) and \(x \inB \domB(f)\) \\
+    \(\appB f\,x\)    & \leaninl{app}  & \(f \inB \domB(f) \tfunB \ranB(f)\) and \(x \inB \domB(f)\) \\
     \(\mathsf{size}(s)\) & \leaninl{size} & \(s\) is a sequence over its own range \\
     \bottomrule
   \end{tabular}
@@ -125,7 +125,7 @@ identified only by their textual description, and a condition may depend on a pr
 conjunct of the very goal it belongs to.
 The assertion
 \[
-  \existsB \var{G} \cdot \bigl(\var{G} \inB A \tfunB B \andB \var{G}(\var{x}) \inB B \bigr)
+  \existsB \var{G} \cdot \bigl(\var{G} \inB A \tfunB B \;\andB\; \var{G}(\var{x}) \inB B \bigr)
 \]
 produces the definedness condition
 \[
@@ -136,21 +136,26 @@ whose hypothesis is the first conjunct of the source assertion.
 That context is available during encoding and nowhere else, and is precisely what the
 reification mechanism of \Cref{subsec:barrel-reification} captures.
 
+\begin{leanlisting}[title={The two bridging theorems relating \barrel{}'s definedness
+    conditions for the integer extrema to Atelier~B's.},
+    label={lst:barrel-atelierb-bridge}, float=t]
+theorem min.WD_iff_AtelierB_WD {S : Set ℤ} :
+    min.WD S ↔ S ≠ ∅ ∧ S ∩ (INTEGER \ NATURAL) ∈ FIN INTEGER
+
+theorem max.WD_iff_AtelierB_WD {S : Set ℤ} :
+    max.WD S ↔ S ≠ ∅ ∧ S ∩ NATURAL ∈ FIN INTEGER
+\end{leanlisting}
+
 \begin{remark}
   Recomputing does not mean disagreeing.
   For integer extrema, Atelier~B phrases definedness as non-emptiness together with a
   finiteness condition on an intersection with the naturals or with their complement, while
   \barrel{} uses the order-theoretic condition that the set has a least or greatest
   element, which also applies to reals and to any partially ordered carrier.
-  The library proves the two characterizations equivalent for the integer extrema---the
-  only operators for which such a bridging theorem exists. For the minimum,
-  \[
-    \mathtt{min.WD}\ S
-    \quad\iff\quad
-    S \neq \varnothing
-      \;\land\; S \cap (\mathtt{INTEGER} \mathbin{\backslash} \mathtt{NATURAL})
-        \in \mathtt{FIN}\ \mathtt{INTEGER},
-  \]
-  and symmetrically for the maximum, with \(\mathtt{NATURAL}\) in place of its complement.
+  The library proves the two characterizations equivalent for the integer extrema
+  (\Cref{lst:barrel-atelierb-bridge}), the only operators for which such a bridging theorem
+  exists: {\small\barrelcodeptr{min.WD\_iff\_AtelierB\_WD}{Barrel/Builtins/Arithmetic.lean\#L707}}
+  and {\small\barrelcodeptr{max.WD\_iff\_AtelierB\_WD}{Barrel/Builtins/Arithmetic.lean\#L757}}.
   What differs is not the mathematical content but where the condition is anchored.
 \end{remark}
+\FloatBarrier

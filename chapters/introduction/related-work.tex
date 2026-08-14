@@ -2,7 +2,7 @@
 \label{sec:intro-related-work}
 
 The work presented in this manuscript lies at the confluence of three research
-traditions that have largely developed independently: deductive verification
+traditions that have largely evolved independently: deductive verification
 frameworks, which reduce software correctness to logical proof obligations;
 automated theorem proving, particularly satisfiability modulo theories (SMT)
 solving; and the mechanization of languages and their metatheory in proof
@@ -142,17 +142,17 @@ the solver's. The systems reviewed below explore essentially every part of this
 design space.
 
 \paragraph*{Event-B and Rodin.}
-D\'eharbe first isolated a class of Rodin proof obligations---over Booleans,
+D\'eharbe first isolated a class of proof obligations---over Booleans,
 integers, and basic sets---that admitted a direct SMT
 translation~\cite{deharbe2010automatic}. The resulting SMT plug-in for
-Rodin~\cite{deharbe2012smt} industrialized two complementary encodings. A
+the Rodin platform~\cite{deharbe2012smt} industrialized two complementary encodings. A
 \emph{lambda-based} approach represents sets by characteristic functions using
 the macro mechanism of SMT-LIB, whereas the \emph{ppTrans}
 approach~\cite{deharbe2014integrating} reuses the translator of Rodin's
 predicate prover to reduce set-theoretic constructs to first-order formulas
 over simple membership predicates. On a large sample of industrial and academic
 projects, adding SMT solvers to the Atelier~B provers reduced the number of
-sequents requiring human interaction to roughly one-fourth.
+proof obligations requiring human interaction to roughly one-fourth.
 
 \paragraph*{Atelier~B and BWare.}
 For classical B, the BWare project~\cite{delahaye2014bware} built a proof
@@ -188,13 +188,14 @@ picture with a direct, low-level reduction of finite B constraint problems to
 propositional satisfiability.
 
 \paragraph*{\tlaplus.}
-The encoding problem has been studied in particular depth for
-\tlaplus~\cite{lamport2002specifying}. Its mathematical language combines
+\tlaplus~\cite{lamport2002specifying} is a specification language for
+concurrent and distributed systems, in which a system and its properties are
+described as formulas of the Temporal Logic of Actions over a data language of
 \emph{untyped} Zermelo--Fraenkel set theory with choice, functions as primitive
-objects rather than sets of pairs, and arithmetic, all beneath the Temporal
-Logic of Actions. The \tlaplus Proof System
+objects rather than sets of pairs, and arithmetic. Its encoding problem has been
+studied in particular depth. The \tlaplus Proof System
 (TLAPS)~\cite{cousineau2012tlaproofs} dispatches obligations to saturation
-provers, an Isabelle encoding, and SMT solvers.
+provers, an encoding for the proof assistant Isabelle~\cite{NipkowPaulsonWenzel2002}, and SMT solvers.
 
 Merz and Vanzetto developed the SMT backend through a series of encodings. The
 work progressed from a typed translation guided by type
@@ -206,7 +207,11 @@ later redesigned the backend with soundness as the explicit priority. The new
 design replaces type-synthesis machinery judged too complex to trust with a
 direct first-order axiomatization of \tlaplus's set theory, equipped with
 carefully chosen \emph{triggers} to guide quantifier instantiation, at
-essentially no cost in automation~\cite{defourne2023encoding}. This redesign is
+essentially no cost in automation~\cite{defourne2023encoding}. The machinery it
+replaces had grown complex enough that its most advanced type-reconstruction
+mode was eventually found to be unsound---the side conditions of its typing
+rules were assumed rather than discharged---and was withdrawn from the
+comparison~\cite{defourne2025encoding}. This redesign is
 a telling data point for the thesis: even within a mature system, the
 translation itself---not the solver---came to be regarded as the weakest link.
 
@@ -257,7 +262,7 @@ systems---including, as seen above, Zenon Modulo's proofs of B obligations---can
 be re-expressed and revalidated. The autarkic route has also been demonstrated:
 a fully verified SAT solver with watched literals has been extracted from
 Isabelle~\cite{fleury2018sat}. Verifying a complete SMT solver of competitive
-strength, however, remains out of reach.
+strength, however, remains currently out of reach.
 
 The Lean~4 ecosystem, in which this thesis is developed, has recently acquired
 similar infrastructure: Duper, a proof-producing superposition prover native
@@ -280,6 +285,14 @@ problem because it scrutinizes the solver's reasoning, not the translation. In
 these pipelines, the encoding is not merely part of the trusted base; it is the
 most exposed component.
 
+The exposure is measurable. Evaluating the previous TLAPS encoding, Defourn\'e
+found that it reduced 11\,\% of the proof obligations in her benchmark to
+assertions the solver discharges immediately: on those obligations the verdict
+reflects the unverified preprocessing rather than any reasoning by the
+solver~\cite{defourne2025encoding}. An encoding aggressive enough to be
+efficient is thereby aggressive enough to decide, on its own, a substantial
+fraction of the questions the pipeline was built to answer.
+
 \subsection{Certifying the translation itself}
 \label{subsec:rw-certified-translation}
 
@@ -293,9 +306,10 @@ Rocq~\cite{leroy2009compcert}. Deductive verification has largely ignored both
 options for its own translators: the encodings from F\(^\star\) into
 Z3~\cite{fstar}, from Why3 into its many backends, and from the B-family tools
 surveyed above are all trusted. Even the redesign of the TLAPS encoding, which
-made soundness an explicit priority~\cite{defourne2023encoding}, rests on an
-informal argument about a nontrivial implementation in which subtle defects
-have since been uncovered.
+made soundness an explicit priority~\cite{defourne2023encoding}, rests on a
+pen-and-paper argument about a nontrivial implementation---the same form of
+argument that had left the unsoundness of its predecessor undetected for
+years~\cite{defourne2025encoding}.
 
 This manuscript applies verified translation, to our knowledge for the first
 time, to an SMT encoding of a set-theoretic specification language. The encoder

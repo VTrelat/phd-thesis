@@ -50,9 +50,9 @@
   \label{fig:intro-reasoning-routes}
 \end{figure}
 
-The distinction between automated and interactive reasoning becomes concrete in
-this thesis through the B method, a formal method for specifying and refining
-systems~\cite{abrial1996bbook}. A B development generates logical claims, called
+Both are developed in the setting of the B method, a formal method for
+specifying systems and refining them into
+implementations~\cite{abrial1996bbook}. A B development generates logical claims, called
 \emph{proof obligations}, that must be discharged to establish the desired
 correctness properties. Large developments may generate many such obligations:
 routine ones favor automated discharge, while the remaining obligations require
@@ -72,7 +72,7 @@ relations, and functions, and bridges between ZFC objects and Lean's native
 types. These bridges allow proofs to move between extensional set-level
 reasoning and typed results from Mathlib without conflating the two foundations.
 
-Within this thesis, \zflean has a semantic role. It allows B and SMT-LIB
+Within this thesis, \zflean has a semantic role. It allows B and the target language SMT-LIB
 to be interpreted in the same ZFC universe, so that correctness of the encoding
 can be expressed as a precise set-theoretic correspondence between denotations,
 rather than as an informal comparison of unrelated models. \Cref{ch:zflean}
@@ -139,9 +139,11 @@ ill-typed or ill-defined instantiations are rejected by construction rather
 than left to prover discipline. Equal well-definedness goals are shared across
 an import, and proof-producing automation combines B-specific lemmas with
 Lean's \texttt{grind} tactic before leaving the remaining invariant and
-refinement arguments for interactive proof. Obligation-local resource limits
-and a live infoview panel make this workflow usable on large proof-obligation
-files. \Cref{ch:barrel} presents the architecture, embedding, metaprogramming
+refinement arguments for interactive proof. Each obligation is processed under
+its own resource budget, so an obligation that exhausts it is simply left to the
+user instead of aborting the whole file; this containment, together with a live
+infoview panel reporting progress, makes the workflow usable on large
+proof-obligation files. \Cref{ch:barrel} presents the architecture, embedding, metaprogramming
 interface, and representative developments.
 
 The ``kernel-checked'' tag in \Cref{fig:intro-reasoning-routes} states the precise

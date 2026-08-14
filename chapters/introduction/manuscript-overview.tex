@@ -60,7 +60,7 @@ the state it manipulates implicit elsewhere.
 
 \subsection{Color conventions}
 Color provides a consistent visual guide to the kind of material being read.
-The manuscript uses the following conventions throughout:
+The manuscript uses the following conventions throughout (except in the figures, which are colored for clarity rather than to indicate content type):
 
 \smallskip
 \begin{description}[
@@ -82,16 +82,21 @@ The manuscript uses the following conventions throughout:
   \item[\overviewcolorbox{beige}{cover-cream}{Beige}]
     Notes, encoding rules, and source-code listings.
 \end{description}
+\medskip
+
+Color is redundant with the label and the shape of every environment it marks,
+so it carries no information of its own. Readers with a color vision deficiency
+and readers of a grayscale copy therefore lose nothing: the manuscript is meant
+to be equally readable in black and white.
 
 Internal cross-references, citations, and external web addresses are clickable.
-Definition and theorems generally have a direct counterpart in the formal
-Lean artifact, indicated in their upper-right corner as lists one or more Lean declaration
-names pointing to the generated Lean documentation at the corresponding
-declaration, and allowing the reader to inspect the machine-checked statement and
-its implementation. The same convention is occasionally used for declaration
-names in running text. These links provide a route into the artifact, thereby
-increasing trust in the informal content of the manuscript, allowing the reader
-to check every single result it claims.
+Definitions and theorems generally have a direct counterpart in the formal Lean
+artifact. It is indicated in their upper-right corner by one or more Lean
+identifiers, each linking to the corresponding declaration in the online Lean
+documentation, where the reader can inspect the machine-checked statement and
+its implementation. The same convention is used occasionally for declaration
+names in running text. These links open a route into the artifact, so that every
+result claimed here can be checked against the code that establishes it.
 
 \subsection{Notations}
 \paragraph{Superscripts.}

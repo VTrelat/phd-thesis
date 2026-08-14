@@ -396,6 +396,15 @@ end
   \href{\beerref{#2}}{\texttt{#1}}%
 }
 
+% \barrel{} has no rendered documentation; pointers go to the sources, pinned to a commit.
+\newcommand{\BarrelBase}{https://github.com/VTrelat/BARReL/blob/030ffa8/}
+\newcommand{\barrelref}[1]{%
+  \BarrelBase\directlua{tex.sprint(pct_encode("\luaescapestring{#1}"))}%
+}
+\NewDocumentCommand{\barrelcodeptr}{m m}{%
+  \href{\barrelref{#2}}{\texttt{#1}}%
+}
+
 % Underset with underbrace in math mode
 \NewDocumentCommand{\undernote}{m m}{%
   \ensuremath{\underset{#2}{\underbrace{#1}}}

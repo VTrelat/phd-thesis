@@ -44,7 +44,8 @@ chapter \emph{obligation} denotes the unit that becomes one Lean theorem: what a
 \texttt{.pog} file records as a \emph{simple goal}, several of which the generator groups
 under a single proof-obligation element. \Cref{sec:benchmark-corpus} calls that unit a
 \emph{goal}; here the word is reserved for the Lean goals left to the user.} and the
-encoder encounters four occurrences of \(\minB\) while translating them.
+encoder encounters four occurrences of \(\minB\) while translating them, each of which
+raises a well-definedness condition.
 \Cref{lst:barrel-step-goal} shows the Lean goal corresponding to the first conjunct of
 invariant preservation for \binl{step}.
 The ellipsis after \leaninl{min done} is not an abbreviation introduced here: it stands for
@@ -142,8 +143,8 @@ END
 This level combines refinement reasoning with repeated occurrences of cardinality and of
 relational application: 21 principal obligations come with 100 occurrences of a partial
 operator, of which 74 repeat an earlier condition.
-The 26 remaining well-definedness theorems are all automatic, and every one of the 21
-interactive goals is a refinement argument rather than a definedness one.
+The 26 remaining well-definedness theorems are all automatic, and each of the 21 interactive
+goals is a refinement argument rather than a definedness one.
 
 \subsection{Driving the chain and its outcome}
 \label{subsec:barrel-minsearch-results}
@@ -217,8 +218,7 @@ On the public corpus of Atelier~B obligations~\cite{deharbe2022pog} described in
 \Cref{sec:benchmark-corpus}, the file \texttt{0020/00003.pog}---3.4~MB of XML,
 2\,526 obligations---is imported in 31~minutes.
 Every construct in the file lies within the fragment of \Cref{subsec:barrel-coverage}, so
-the whole file is encoded, and the 2\,434 automatic attempts that fail do so where they
-occur instead of aborting the command (\Cref{subsec:barrel-automation}).
+the whole file is encoded, and 2\,434 remain for interactive proof.
 What is left is an ordinary Lean development, its goals grouped by source operation and
 addressable one \leaninl{next} block at a time.
 
