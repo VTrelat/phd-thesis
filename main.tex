@@ -14,8 +14,8 @@
 % \includeonly{chapters/smt}
 % \includeonly{chapters/loosening}
 % \includeonly{chapters/beer}
-% \includeonly{chapters/barrel}
 % \includeonly{chapters/evaluation}
+% \includeonly{chapters/barrel}
 % \includeonly{chapters/conclusion}
 % \includeonly{chapters/appendices}
 
@@ -36,8 +36,8 @@
 
 \input{cover.tex}
 \input{official-cover.tex}
-\input{wip-stamp.tex}
-\WIPStampPage
+% \input{wip-stamp.tex}
+% \WIPStampPage
 \cleardoublepage
 
 \input{chapters/abstract.tex}
@@ -50,7 +50,13 @@
 \tableofcontents
 \endgroup
 
-\listofedcomments
+\begingroup
+\hypersetup{linkcolor=black}
+\addcontentsline{toc}{chapter}{\listfigurename}
+\listoffigures
+\endgroup
+
+% \listofedcomments
 
 % Blank page after TOC before mainmatter.
 % \null\thispagestyle{empty}\cleardoublepage
