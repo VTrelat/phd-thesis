@@ -11,20 +11,27 @@ into a statement about preservation of meaning.
 The second result is that this preservation does not require a single fixed
 representation for each B value. Type loosening (\Cref{ch:loosening}) organizes compatible target
 representations into a decidable order and bridges functional representations and more general relational ones while preserving semantics. On this
-basis, the central theorem for \beer{} relates every successful encoding of a
+basis, the central theorem for \beer{} (\Cref{ch:beer}) relates every successful encoding of a
 supported, well-typed, and well-defined term to the representation selected by
 the encoder, including the declarations and scoping information generated
 during translation. For Boolean terms, thus more generally, proof obligations, the result yields preservation of
-truth. \textsc{Zero-Proof} \beer{} deliberately falls outside this guarantee:
-although it relies on the same design as \beer, its broader coverage is experimental and therefore not verified.
+truth. \textsc{Zero-Proof} \beer{} is an extension of \beer{} that adds broader,
+experimental coverage; because that extension is unverified, it lies outside
+this guarantee.
 
 The third result concerns the interactive route. \barrel{} represents every partial B operator as a Lean
-function whose definedness proof is an explicit argument, so building a such terms requires supplying that evidence first.
+function whose definedness proof is an explicit argument, so building such terms requires supplying that evidence first.
 Lean enforces this correct-by-construction discipline wherever a term is
 elaborated, including inside a proof, so an obligation closed without the
 evidence leaves an admission that an axiom check reports. Atelier~B introduces its
 well-definedness conditions when it generates the obligations. Any witness
 introduced afterwards, during an interactive proof, therefore escapes them;
 \Cref{sec:barrel-atelier-comparison} derives falsehood this way. Proof then proceeds as an ordinary Lean development, using B-specific lemmas, and leveraging Mathlib's tactics.
+
+\Cref{ch:evaluation} measures the automated route against Atelier~B's ppTrans
+translator on nearly a million goals from industrial B developments. End to
+end, \beer{} proves a smaller share of the corpus, mostly because its encoder
+covers less of B; on the goals both pipelines answer, it is within a few
+points of ppTrans, and each side proves goals the other does not.
 
 Together, the two routes cover the automatic and the interactive halves of how a B development can be discharged in practice.

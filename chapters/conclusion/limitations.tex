@@ -1,8 +1,9 @@
 \section{Scope and limitations}
 \label{sec:limitations}
 
-The formal B semantics covers the mathematical fragment \beer{} requires;
-machines, substitutions, refinement, and proof-obligation generation lie outside
+The first limitation is semantic scope and external correspondence: the formal
+B semantics covers the mathematical fragment \beer{} requires, and machines,
+substitutions, refinement, and proof-obligation generation lie outside
 its scope. For the fragment it does
 cover, its agreement with the reference account of the
 B-Book~\cite{abrial1996bbook} is argued informally, and necessarily so: that
@@ -14,7 +15,7 @@ standard would be a disproportionate effort for a guarantee the encoder never
 exercises. The soundness theorem accordingly relates the formal source and
 target models developed in this manuscript.
 
-Coverage is a second limit: the verified \beer{} encoder leaves out, among
+The second limitation is coverage: the verified \beer{} encoder leaves out, among
 other constructs, cardinality, minimum, maximum, and substantial parts of the
 sequence language. Unsupported inputs are rejected, which preserves soundness at
 the cost of applicability. \textsc{Zero-Proof} \beer{} covers these constructs
