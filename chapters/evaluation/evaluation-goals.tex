@@ -21,7 +21,3 @@ It shares the design of the verified encoder, and its implementation lies outsid
 
 Scripts from both translators are then processed by cvc5~\cite{barbosa2022cvc5}, the reference implementation of higher-order SMT solving~\cite{barbosa2019hosmt}.
 The choice is largely forced on one side---\beer{} emits \texttt{HO\_ALL} scripts that no other solver accepts---and neutral on the other: ppTrans's output is first-order, a fragment on which cvc5 is routinely competitive.
-
-\begin{note}
-The interactive route through \barrel{} is not evaluated here: a proof-assistant integration is exercised by users rather than by a corpus sweep, and \Cref{ch:barrel} discusses it qualitatively.
-\end{note}

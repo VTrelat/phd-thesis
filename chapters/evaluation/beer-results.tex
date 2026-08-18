@@ -1,6 +1,8 @@
 \section{Results}
 \label{sec:beer-results}
 
+\Cref{sec:beer-results-global} compares the two pipelines end to end and on the goals both answer, and reports the cost in solving time and script size; \Cref{sec:beer-results-where} cuts the comparison by goal class, \Cref{sec:beer-results-alone} examines the goals \beer{} proves alone, and \Cref{sec:beer-results-summary} returns to the questions of \Cref{sec:evaluation-goals}.
+
 \subsection{Global picture}
 \label{sec:beer-results-global}
 
@@ -23,16 +25,18 @@ Across more than 1.6 million solver runs, no goal is \smtinl{sat} on one side an
   bar width=16pt,
   nodes near coords style={font=\scriptsize\bfseries, anchor=center},
   ]
-  \addplot[fill=beercol, draw=none, point meta=explicit symbolic,
+  % same four fills, in the same order, as \Cref{fig:eval-fourway}: its
+  % grayscale separation is the reference for this figure
+  \addplot[fill=greenc, draw=none, point meta=explicit symbolic,
            nodes near coords, nodes near coords style={text=white}]
     table[x=unsat, y=idx, meta=lunsat]{\gstack};
-  \addplot[fill=beigec!30, draw=none, point meta=explicit symbolic,
-           nodes near coords]
+  \addplot[fill=pinkc, draw=none, point meta=explicit symbolic,
+           nodes near coords, nodes near coords style={text=white}]
     table[x=unknown, y=idx, meta=lunknown]{\gstack};
-  \addplot[fill=pinkc!70, draw=none, point meta=explicit symbolic,
+  \addplot[fill=beercol, draw=none, point meta=explicit symbolic,
            nodes near coords, nodes near coords style={text=white}]
     table[x=noscript, y=idx, meta=lnoscript]{\gstack};
-  \addplot[fill=beigec, draw=none, point meta=explicit symbolic,
+  \addplot[fill=beigec!35, draw=none, point meta=explicit symbolic,
            nodes near coords]
     table[x=killed, y=idx, meta=lkilled]{\gstack};
   \legend{\texttt{unsat}, \texttt{unknown}, no script, killed at the wall}
@@ -45,12 +49,19 @@ Across more than 1.6 million solver runs, no goal is \smtinl{sat} on one side an
 \begin{figure}[t]
 \centering
 \begin{tikzpicture}
-\begin{axis}[base, xbar stacked, height=2.6cm, width=.93\linewidth,
-  % the four shares are rounded to 1 dp and sum to 100.1; at xmax=100 the
-  % last segment overran the axis and pgfplots dropped its label
-  xmin=0, xmax=100.4, xtick={0,10,...,100}, xlabel near ticks,
+\begin{axis}[base, xbar stacked, height=2.6cm, width=.95\linewidth,
+  % the four shares are rounded to 1 dp and sum to exactly 100.1, not 100;
+  % xmax matches that true sum so the last segment's right edge lands on
+  % the axis border instead of being clipped (and its label dropped) at
+  % xmax=100, or leaving a gap behind an overpadded xmax
+  xmin=0, xmax=100.1, xtick={0,10,...,100}, xlabel near ticks,
   xlabel={\small share of the goals both pipelines answered (\%)},
-  ytick=\empty, ymin=-0.5, ymax=0.5,
+  % phantom label matches \Cref{fig:eval-global}'s widest row label
+  % ("ppTrans") so both figures' plot boxes share the same left margin
+  ytick={0}, yticklabels={\phantom{ppTrans}},
+  y tick label style={font=\small\bfseries},
+  ytick style={draw=none},
+  ymin=-0.5, ymax=0.5,
   grid=none, bar width=20pt,
   legend style={at={(0.5,-0.95)}, anchor=north, legend columns=4},
   nodes near coords style={font=\scriptsize\bfseries, white, anchor=center,
@@ -107,8 +118,8 @@ Those 3.2 points may simply be the price of a young technique: cvc5 is still the
   y tick label style={font=\scriptsize}, x tick label style={font=\scriptsize},
   grid=none, y dir=reverse, axis on top,
   ]
-  % hue = which of the four outcomes the cell is, shade = its magnitude.
-  % A single-hue ramp made a win and a loss look identical.
+  % hue = which of the four outcomes the cell is; fills are uniform and match
+  % the legend, and the printed shares carry the magnitudes.
   \input{benchmarks/data/status_cross.tex}
 \end{axis}
 \end{tikzpicture}
@@ -130,7 +141,7 @@ There, \emph{timeout} denotes the \(300\)\,s per-goal wall, whereas \smtinl{unkn
 The \emph{timeout} row and column are asymmetric: \beer{} essentially never hits the wall, whereas ppTrans exhausts it on more than a tenth of the goals it shares with \beer{}; on \bmBeerWinsPptKilled{} of those, \beer{} had already proved the goal in a median of about five seconds.
 
 \Cref{fig:eval-time,fig:eval-ratio} report the two components of cost, solving time and script size.
-On the \bmBothCount{} goals both pipelines prove, the two solving-time distributions track each other closely: \beer{} is faster on \bmBeerFaster\,\% of goals, and the median per-goal ratio is \bmRatioMed\(\times\), with \(80\,\%\) of those ratios within a factor of about \(2\times\) either way.
+On the \bmBothCount{} goals both pipelines prove, the two solving-time distributions track each other closely: \beer{} is faster on \bmBeerFaster\,\% of goals, the median \beer{}/ppTrans time ratio is \bmRatioMed\(\times\) in ppTrans's favor, and \(80\,\%\) of those ratios are within a factor of about \(2\times\) either way.
 Taken separately, the median solving time is \bmBeerMed{}\,ms for \beer{} and \bmPptMed{}\,ms for ppTrans; these marginal medians do not divide to give the median ratio, which is computed goal by goal.
 The median script-size ratio is \bmSizeMed\(\times\), \bmBeerSizeMed{}\,KB for \beer{} against \bmPptSizeMed{}\,KB for ppTrans---the representation blow-up anticipated in \Cref{sec:beer-discussion}, with each cast contributing a helper variable and a quantified specification.
 Aggregate solver cost differs far more: running cvc5 over the corpus consumed roughly \(840\) hours on \beer{}'s scripts against \(9\,500\) hours on ppTrans's, with almost all of the difference spent at the \(300\)\,s wall on goals that produced no verdict.
@@ -160,7 +171,7 @@ Aggregate solver cost differs far more: running cvc5 over the corpus consumed ro
 \end{axis}
 \end{tikzpicture}
 \caption{Per-goal solving time on the goals both pipelines prove: one
-  translucent mark per goal, pink above the diagonal where ppTrans took
+  mark per goal, pink above the diagonal where ppTrans took
   longer, blue below it where \beer{} did.}
 \label{fig:eval-time}
 \end{figure}
@@ -275,7 +286,7 @@ The rates behind both figures are in \Cref{tab:eval-subject,tab:eval-construct}.
   ytick=data, yticklabels from table={\bysubj}{label},
   y tick label style={font=\scriptsize},
   grid=none, y dir=reverse,
-  nodes near coords, nodes near coords style={font=\scriptsize,
+  nodes near coords, nodes near coords style={font=\small,
     anchor=south, yshift=0.5pt,
     /pgf/number format/fixed, /pgf/number format/precision=0,
     /pgf/number format/print sign},
@@ -316,7 +327,7 @@ Propositional goals again run the other way, on the smallest cell in the figure;
   x tick label style={font=\tiny, rotate=25, anchor=north east},
   legend style={at={(0.98,0.98)}, anchor=north east}]
   \addplot[beerline, mark=*, mark size=1.5pt] table[x=idx, y=beerh]{\bynodes};
-  \addplot[beercol, line width=1.1pt, mark=*, mark size=1.5pt]
+  \addplot[beercol, line width=1.1pt, mark=triangle*, mark size=2pt]
     table[x=idx, y=pptransh]{\bynodes};
   \legend{\beer{}, ppTrans}
 
@@ -324,7 +335,7 @@ Propositional goals again run the other way, on the smallest cell in the figure;
   xlabel={quantifiers in the goal}, title={by quantifier count},
   x tick label style={font=\tiny}]
   \addplot[beerline, mark=*, mark size=1.5pt] table[x=idx, y=beerh]{\byquant};
-  \addplot[beercol, line width=1.1pt, mark=*, mark size=1.5pt]
+  \addplot[beercol, line width=1.1pt, mark=triangle*, mark size=2pt]
     table[x=idx, y=pptransh]{\byquant};
 \end{groupplot}
 \end{tikzpicture}
@@ -381,8 +392,6 @@ Among constructs, cardinality leads by a wide margin, followed by set-typed boun
 Function application sits below the overall rate, and propositional goals well below every other class.
 Class sizes are in \Cref{tab:eval-construct,tab:eval-subject}.
 
-\FloatBarrier
-
 \bmBOFiles{} files contribute at least one exclusive win.
 Three of the heaviest contributors\footnote{\texttt{0039/00060}, \texttt{0039/00040}, and \texttt{0032/00046}.} report identical figures and are almost certainly the same machine appearing three times in the corpus, and count as one for file-level concentration.
 On \texttt{0033/00039}, most of the answered goals are \beer{}'s alone---far more than ppTrans's own rate on that file---and they are order-1 function applications, the class \beer{} loses on average.
@@ -391,7 +400,7 @@ On \texttt{0002/00006} and \texttt{0024/00011}, ppTrans proves almost nothing un
 \FloatBarrier
 \subsection{Summary}
 \label{sec:beer-results-summary}
-The campaign answers the four questions of \Cref{sec:evaluation-goals} as follows.
+The evaluation answers the four questions of \Cref{sec:evaluation-goals} as follows.
 End to end, \beer{} discharges a smaller share of the corpus than the industrial baseline, and the goals that never reach the solver---mostly the \texttt{Struct} files it does not aim to support---account for most of that gap, so the principal end-to-end limitation is encoder coverage rather than encoding quality.
 Where both pipelines deliver a script and a verdict, the higher-order encoding stands within a few points of the baseline, each side proves goals the other cannot, and their union proves more than either alone, so the two encodings are complements rather than substitutes.
 Structurally, \beer{} gains on counting, arithmetic, and sets treated as objects, holds a relative advantage on higher-order goals in six subject classes of seven, and loses on function application, where loosening concentrates.

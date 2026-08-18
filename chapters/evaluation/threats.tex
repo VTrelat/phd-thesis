@@ -2,7 +2,7 @@
 \label{sec:threats-to-validity}
 
 Only cvc5~1.3.4 was evaluated, with model-based quantifier instantiation and a \(5\)\,s internal budget.
-Different solver versions, quantifier strategies, or budgets could change both the absolute success rates and the relative ranking of the encodings.
+Different solver versions, quantifier strategies, or budgets could change both the absolute success rates and the relative ranking of the encodings; enumerative instantiation and its combination with model-based instantiation are the untested alternatives closest to the configuration used here.
 
 The corpus is large and industrial, but it comes from a single toolchain, its projects contribute unequal numbers of goals, and one component appears in it three times (\Cref{sec:beer-results-alone}); the subject and construct effects may therefore not generalize to other B developments or proof-obligation generators.
 Those classes are descriptive in any case: they record what a goal contains, not what makes a solver succeed.
@@ -10,7 +10,7 @@ Those classes are descriptive in any case: they record what a goal contains, not
 The obligations themselves come without a ground truth.
 Earlier releases of this dataset contained obligations a solver could refute; on this one no refutation appeared, which says that neither encoding gave cvc5 one, not that every obligation is provable.
 
-Neither scoring rule is neutral: strict scoring merges encoder failures with solver failures, and verdict-only scoring removes \bmDropped{} goals asymmetrically, so the full-corpus comparison it implies carries a bias whose direction the campaign cannot determine.
+Neither scoring rule is neutral: strict scoring merges encoder failures with solver failures, and verdict-only scoring removes \bmDropped{} goals asymmetrically, so the full-corpus comparison it implies carries a bias whose direction the evaluation cannot determine.
 
 Finally, the measured \textsc{Zero-Proof} \beer{} binary implements the verified design but extends and optimizes it beyond the fragment covered by the soundness theorem.
-The absence of a \smtinl{sat}/\smtinl{unsat} disagreement with ppTrans is reassuring, but it is not a correctness argument: both translators and the goal-alignment machinery used in the campaign are unverified code.
+The absence of a \smtinl{sat}/\smtinl{unsat} disagreement with ppTrans is reassuring, but it is not a correctness argument: both translators and the goal-alignment machinery used in the evaluation are unverified code.
