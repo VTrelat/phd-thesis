@@ -23,13 +23,13 @@ In particular, the representation-aware proof introduces no project-specific axi
 
 This development nevertheless has two limitations.
 The first concerns unsupported constructs.
-The encoder rejects \(\cardB{\cdot}\), \(\minB\), \(\maxB\), and other constructs like operations on sequences: no encoding rule exists and the encoder fails on it. \Cref{thm:beer-encodeTerm-spec} constrains successful runs only.
+The encoder rejects \(\cardB{\cdot}\), \(\minB\), \(\maxB\), and other constructs like operations on sequences: no encoding rule covers them, and the encoder fails. \Cref{thm:beer-encodeTerm-spec} constrains successful runs only.
 This failure mode is the benign one: a proof obligation containing an unsupported construct is never translated, so no unsound script is ever produced; the cost is coverage, not correctness.
 
 The second limitation is the representation blow-up caused by loosening.
 Each cast introduces a helper variable and a quantified specification, and the \encruleref{rule:beer-bounded-universal} rule nests these under the source quantifier, adding quantifier alternations to the emitted formula.
 Characteristic predicate representations likewise trade solver-friendly function values for higher-order terms; this is the ``encoding-functions-as-functions'' principle that ruled the design choices advocated in \Cref{ch:loosening}.
-The practical impact of both on solver performance is deliberately out of scope here and is measured in \Cref{ch:evaluation}.
+The practical impact of both on solver performance is measured in \Cref{ch:evaluation}.
 
 \subsection{Zero-Proof \beer{}}
 \label{sec:beer-zero-proof}
@@ -61,10 +61,8 @@ Together with the argument of \Cref{sec:beer-po-soundness}, it explains why an u
   \input{chapters/beer/figures/semantic-square-extended.tex}
   \captionof{figure}{The extended representation-aware semantic diagram.
     Here \(\toSMT{\Gamma}\subseteq\Lambda'\),
-    \(\sigma\in[\lgf{(\toSMT{\alpha})},\mgf{(\toSMT{\alpha})}]\),
     \(\Delta(v)\semrel\Theta_0(v)\) for every
-    \(v\in\mathsf{fv}(t)\), \(\Theta_0\subseteq\Theta'\), and
-    \(\mathbb c:\castpath{\sigma}{\toSMT{\alpha}}\).
+    \(v\in\mathsf{fv}(t)\), and \(\Theta_0\subseteq\Theta'\).
     The \(\semrel\) edge additionally records
     the support condition of \Cref{def:beer-agreement}.}
   \label{fig:beer-semantic-square-extended}

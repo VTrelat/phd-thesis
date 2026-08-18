@@ -103,7 +103,7 @@ has a model, together with the surrounding local assertions; this is the refutat
 \end{center}
 
 The proof uses the equivalent countermodel correspondence shown in \Cref{fig:beer-refutation-adequacy}.
-Retracting an SMT model yields an agreeing B valuation, with option-valued functions read as graphs; the Boolean term corollary \Cref{cor:beer-encodeTerm-bool-spec} then recovers true B hypotheses and a false goal.
+Retracting from an SMT model yields an agreeing B valuation, with option-valued functions read as graphs; \Cref{cor:beer-encodeTerm-bool-spec} then recovers true B hypotheses and a false goal.
 Conversely, represent a B countermodel at the selected SMT types and interpret each generated helper by its specification; the same corollary makes every encoded hypothesis and the negated goal true.
 
 The valuation transports and term-level results are mechanized; their assembly over all assertions and scopes is not.
@@ -178,7 +178,7 @@ The encoded goal therefore quantifies \smtinl{z} alone: its guard is the union p
 
 \paragraph{Refutation.}
 The proof obligation layer leaves the assumptions in the outer scope and asserts the negation of the encoded bounded universal in a nested goal scope.
-The resulting block in \Cref{lst:beer-running-refutation} makes the final step explicit: its active assertions express exactly the two hypotheses together with the negation of the goal, as explained in \Cref{sec:beer-po-refutation}.
+The resulting block in \Cref{lst:beer-running-refutation} makes the final step explicit: its active assertions express exactly the two hypotheses from \Cref{lst:beer-running-assumptions} together with the negation of the goal, as explained in \Cref{sec:beer-po-refutation}.
 
 \begin{smtlisting}[title={Negated goal.}, label=lst:beer-running-refutation, float=h]
 (push 1)

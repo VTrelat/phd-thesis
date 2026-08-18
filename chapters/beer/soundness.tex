@@ -124,6 +124,7 @@ When \(\rho\) is the bound-value type already carried by the represented domain,
       \qquad\text{and}\qquad
       \denval{T}[\alpha]\;\semrel\;\denval{T'}[\sigma].
     \]
+    \Needspace{8\baselineskip}
     \item \emph{Valuation stability.}
       For every other well-formed B valuation \(\Delta_a\) and SMT valuation \(\Theta_a\) satisfying the same free-variable agreement and context conditions, if \(t\) denotes \(\denval{T_a}[\alpha]\) under \(\Delta_a\), then \(\Theta_a\) extends to a valuation under which the same emitted term \(t'\) denotes some \(\denval{T_a'}[\sigma]\) with
       \(\denval{T_a}[\alpha]\semrel\denval{T_a'}[\sigma]\).
@@ -139,8 +140,8 @@ When \(\rho\) is the bound-value type already carried by the represented domain,
     ]
     \node[font=\large] (t) {$t : \alpha$};
     \node[font=\large, right=of t] (tp) {$t' : \sigma$};
-    \node[below=of t] (X) {$\denval{T}[\orange{\alpha}]$};
-    \node[below=of tp] (Y) {$\denval{T'}[\orange{\sigma}]$};
+    \node[below=of t] (X) {$\denval{T}[\alpha]$};
+    \node[below=of tp] (Y) {$\denval{T'}[\sigma]$};
 
     \draw[funarr, draw=blue]
       (t) -- node[midway, above] {\beer{}\enspace\textbeer} (tp);
@@ -707,7 +708,7 @@ generated specification enforces the transfer under every satisfying helper
 valuation.
 Consequently, the equivalence for \(H(a)=\someZ b\) above proves ordinary
 agreement; because it holds for every valuation satisfying the helper
-specification, it also proves the declaration-aware clause.
+specification, it also proves the declaration-aware component.
 
 For membership, recursive encoding and the cast function arrange an element and a set at compatible representations.
 If the set is a predicate, \Cref{lem:beer-represented-membership} immediately equates the emitted application with B membership.
@@ -747,12 +748,12 @@ Thus the option cannot be \(\noneZ\), and
   \qquad\text{with}\qquad
   \denval{Y}[\beta]\;\semrel\;\denval{Y'}[\rho].
 \]
-The same equations hold for every satisfying assignment to the generated graph helper, which proves the declaration-aware clause as well.
+The same equations hold for every satisfying assignment to the generated graph helper, which proves the declaration-aware component of the induction as well.
 
 \subsection{Set formers}
 \label{sec:beer-case-set-formers}
 
-Powerset, Cartesian product, and partial-function space emit characteristic predicates.
+Powerset, Cartesian product, and partial function space emit characteristic predicates.
 Their proofs retain the same set-theoretic core as in the canonical case; the difference is that instantiation points now come from the support carried by agreement rather than being assumed to be canonical images.
 
 For \(\powB(S)\), let \(T\) be a candidate source set and \(E\) a related target representation.
@@ -767,7 +768,7 @@ After normalizing \(E\) and the representation \(F\) of \(S\) to predicates at a
     &\iff T\subseteq S.
   \end{aligned}
 \]
-For the middle equivalence, a true target application decodes through \Cref{lem:beer-represented-membership}; in the reverse direction, support supplies a representative of every \(x\in T\).
+For the middle equivalence, a true target application is decoded using \Cref{lem:beer-represented-membership}; in the reverse direction, support supplies a representative of every \(x\in T\).
 Thus \(\Pi\) is true exactly on the members of \(\powB(S)\), and candidate-set support gives the reverse direction required for agreement.
 
 For \(A\prodB B\), let \(C\) be the emitted predicate and let \(z\) represent a source pair \(\pairZ{x}{y}\).
@@ -807,7 +808,7 @@ Hence the emitted characteristic predicate agrees with the B partial-function sp
 \subsection{Comprehension and lambdas}
 \label{sec:beer-case-comprehension}
 
-For a comprehension \(\bcomp{\vec{\var{v}}\inB D}{P}\), write \(\mathcal D\) for the source domain, \(G\) for its reconciled target predicate, and \(P_x\) and \(P'_w\) for the source and target body values under related tuple assignments
+For a comprehension \(\bcomp{\vec{\var{v}}\inB D}{P}\), write \(\mathcal D\) for the source domain, \(G\) for its reconciled target predicate (the guard), and \(P_x\) and \(P'_w\) for the source and target body values under related tuple assignments
 \(\denval{x}[\tau]\;\semrel\;\denval{w}[\rho]\).
 For a tuple \(u\in\mathcal D\), write \(\vec{u}\) for the ordered components obtained by destructuring its left-associated product.
 The \encruleref{rule:beer-comprehension} rule emits a predicate \(C\) with
@@ -822,13 +823,14 @@ The \encruleref{rule:beer-comprehension} rule emits a predicate \(C\) with
         \interpB{\aterm{P[\vec{\var{v}}\leftarrow\vec{u}]}{\Delta}}=\topZ\}.
   \end{aligned}
 \]
-The first equivalence is the denotation of the guarded target predicate.
+The first equivalence unfolds \(C\) into the guard \(G(w)=\topZ\) and the encoded body condition \(P'_w=\topZ\).
 For the second, \Cref{lem:beer-represented-membership} handles the guard; the substitution lemma identifies the two extended valuations, and the Boolean induction hypothesis identifies the body truth values.
 If \(x\) belongs to the source comprehension, support of \(\mathcal D\) provides \(w\), so the reverse pointwise condition also holds.
 The two-sided pointwise argument therefore proves agreement with the B separation denotation.
 
 The lambda case uses the same tuple transport, but the \encruleref{rule:beer-lambda} rule emits an option-valued function \(L\).
 Write \(F'_a\) for the target body value under the tuple assignment \(a\).
+
 For
 \(\denval{x}[\tau]\;\semrel\;\denval{a}[\rho]\)
 and

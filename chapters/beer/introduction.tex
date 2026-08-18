@@ -10,7 +10,7 @@ The implementation is deliberately kept in the background: it is the topic of a 
 \label{sec:beer-goal}
 
 The correctness criterion for \beer{} is semantic equivalence: a B proof obligation and its SMT encoding must have the same truth value under corresponding valuations.
-The mechanized term theorem establishes the representation-aware kernel of this criterion.
+The Lean theorem proves the central semantic-preservation result for individual terms, including when the source and the target use different representations.
 Under the hypotheses stated in \Cref{thm:beer-encodeTerm-spec}, a successful encoding of a well-typed, well-defined B term of type \(\alpha\) produces a well-typed SMT term of some selected representation type \(\beta\); its denotation represents the source denotation after the semantic cast from \(\beta\) to the canonical type \(\toSMT{\alpha}\).
 The theorem applies directly to valuations that use the representations selected by the encoder, including option-valued functions.
 

@@ -151,7 +151,7 @@ The following operation recovers its components.
     \mathsf{destr}_{n+1}(z) \;\triangleq\;
       \mathsf{destr}_n(\fstS z) \mathbin{\texttt{++}} \langle \sndS z \rangle,
   \]
-  where \(\texttt{++}\) denotes sequence concatenation.
+  where \(\langle t_1, \dots, t_k \rangle\) denotes the finite sequence with entries \(t_1, \dots, t_k\) (so \(\langle z \rangle\) is a singleton sequence) and \(\texttt{++}\) denotes sequence concatenation.
   Its \(i\)-th component is written \(\mathsf{destr}_{n,i}(z)\).
 \end{definition}
 
@@ -163,9 +163,9 @@ The following operation recovers its components.
   \]
 \end{example}
 
-In the following two rules, let \(\vec{\var{v}} = \langle \var{v}_1, \dots, \var{v}_n \rangle\), where \(n \geq 1\), and let \(\sigma = \sigma_1 \timesS \cdots \timesS \sigma_n\) denote the left-associated product of their SMT types.
-Thus, \(P'[\vec{\var{v}} \leftarrow \mathsf{destr}_n(z)]\) uses the binder arity \(n\) to decompose \(\sigma\), then simultaneously substitutes the resulting components for the bound variables.
-Suppose \(D \encto (D', \sigma \toS \boolS)\), and encode \(P \encto (P', \boolS)\) in the context extended with the bound variables \(\vec{\var{v}}\).
+In the following two rules, let \(\vec{\var{v}} = (\var{v}_1, \dots, \var{v}_n)\), where \(n \geq 1\), and let \(\sigma = \sigma_1 \timesS \cdots \timesS \sigma_n\) denote the left-associated product of their SMT types.
+For a comprehension \(\bcomp{\vec{\var{v}} \inB D}{P}\), suppose \(D \encto (D', \sigma \toS \boolS)\), and encode \(P \encto (P', \boolS)\) in the ambient SMT context \(\sop{\Gamma}\) extended with \(\var{v}_i : \sigma_i\) for \(1 \leq i \leq n\).
+In the rule below, the substitution \(P'[\vec{\var{v}} \leftarrow \mathsf{destr}_n(\var{z})]\) decomposes the bound tuple \(\var{z}\) into its \(n\) components and substitutes them simultaneously for the bound variables.
 A guard confines the predicate to \(D'\): outside it, the body---which may be meaningless there---is never consulted, and the predicate returns \(\mathsf{false}\).
 This guard is what reconciles the partiality of the B construct with the totality that SMT lambdas demand; the point recurs in the soundness proof (\Cref{sec:beer-case-comprehension}).
 \begin{encrule}[comprehension]{rule:beer-comprehension}
@@ -174,7 +174,7 @@ This guard is what reconciles the partiality of the B construct with the totalit
 \]
 \end{encrule}
 
-Suppose \(D \encto (D', \sigma \toS \boolS)\), and encode \(P \encto (P', \gamma)\) in the context extended with \(\vec{\var{v}}\).
+For a lambda \(\lambdaB \vec{\var{v}} \inB D \cdot P\), suppose again \(D \encto (D', \sigma \toS \boolS)\), and encode \(P \encto (P', \gamma)\) in the same extended context.
 The encoded lambda retains the \emph{functional structure} of its source: at a represented tuple accepted by \(D'\), it returns \(\someS\) of the encoded body value; otherwise, it returns \(\noneS\).
 Its option graph therefore represents exactly the set of pairs \(\{(x,P(x))\mid x\in D\}\) denoted by the B lambda, while undefinedness outside \(D\) is represented without choosing an arbitrary value.
 \begin{encrule}[lambda]{rule:beer-lambda}
@@ -201,7 +201,7 @@ When a variable of B type \(\setB(\alpha \prodB \beta)\) is known to range over 
   \qquad\text{rather than}\qquad
   (\toSMT{\alpha} \timesS \toSMT{\beta}) \toS \boolS,
 \]
-a partial-function representation that solvers exploit far better than a bare graph predicate.
+a partial-function representation that solvers with higher-order support are expected to exploit better than a bare graph predicate; \Cref{ch:evaluation} measures how far they do.
 Since \(\toSMT{\alpha}\) is the upper endpoint of this interval, \(\castable{\sigma}{\toSMT{\alpha}}\); an operation combining differently represented operands first brings them to a common type.
 Reconciling these representations is the role of the loosening layer.
 The fresh variables produced by these loosening steps are constrained by their specifications to denote the corresponding semantic cast images (\Cref{thm:loosening-correctness}).
@@ -465,6 +465,6 @@ U \;=_{\beta}\;&
     \bigl(\appS{Y}{\var{b}}\andS\var{z}\eqS\pairS{\var{a}}{\var{b}}\bigr).
 \end{aligned}
 \]
-Thus, the goal encodes as \((U,\boolS)\).
+Thus, the goal is encoded as \((U,\boolS)\).
 The implication is the encoded bounded implication, and the existential is the characteristic predicate emitted for \(X\prodB Y\).
-The proof-obligation layer subsequently asserts \(\notS U\); its surrounding declarations, hypotheses, and full emitted script is shown in \Cref{sec:beer-proof-obligations}.
+\beer{}'s proof-obligation layer keeps the declarations and the encoded hypotheses in an outer scope, opens a nested scope for the goal, asserts \(\notS U\) there, and calls \smtinl{check-sat} (\Cref{sec:beer-po-refutation}); the complete emitted script is shown in \Cref{sec:beer-po-running-example}.
