@@ -94,4 +94,15 @@
 \addcontentsline{toc}{chapter}{Bibliography}
 \printbibliography[heading=none]
 
+% ------------------------------------------------------------------
+% Blank page, then the back cover (assets/back-cover.png + English
+% abstract), as the very last two pages of the manuscript.
+% ------------------------------------------------------------------
+\clearpage
+\thispagestyle{empty}
+\mbox{}
+\clearpage
+
+\input{back-cover.tex}
+
 \end{document}

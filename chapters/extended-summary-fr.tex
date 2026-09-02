@@ -1,4 +1,543 @@
-\chapter*{R\'{e}sum\'{e} \'{e}tendu}
-\addcontentsline{toc}{chapter}{R\'{e}sum\'{e} \'{e}tendu}
+\chapter*{Résumé étendu}
+\addcontentsline{toc}{chapter}{Résumé étendu}
 
-% Extended summary in French to be added.
+\begin{otherlanguage}{french}
+
+\begingroup
+\tikzexternaldisable
+\captionsetup{list=false}
+\renewcommand{\thefigure}{\arabic{figure}}
+\setcounter{figure}{0}
+
+\section*{Contexte et motivation}
+
+Au cours des trois années de préparation de cette thèse, le sens pratique de
+l'expression \og raisonnement assisté par ordinateur \fg a changé. Les grands
+modèles de langage (LLM) sont passés d'échanges brefs à des sessions soutenues
+sur des programmes et des développements formels de taille conséquente; ils
+proposent des solutions en plusieurs étapes et dialoguent directement avec les
+compilateurs et les assistants à la preuve. La nouveauté n'est pas que la
+machine assiste le raisonnement, mais l'ampleur de ce qu'un système
+généraliste peut proposer, dans les langues mêmes où les chercheurs formulent
+leurs idées.
+
+Cette extension des capacités rend la question de la fiabilité plus
+pressante. Une réponse générée peut être correcte, subtilement fausse, ou
+correcte pour de mauvaises raisons, et sa fluidité efface les indices qui
+trahissaient autrefois une réponse douteuse. Plus il est facile de produire
+une réponse plausible, plus les justifications vérifiables comptent. Leonardo
+de Moura l'a résumé en trois phrases~\cite{deMoura2026floc}: \og Nous n'avons
+jamais été aussi utiles. La vérification formelle rend l'IA digne de
+confiance. L'IA rend la vérification formelle rentable.\fg C'est la
+perspective adoptée ici: un humain, un LLM ou une procédure de recherche peut
+suggérer un invariant, un programme ou une preuve; un système formel rejette
+ensuite la suggestion ou certifie qu'elle satisfait un critère précis. La
+composante créative peut être opaque, tant que le critère d'acceptation reste
+déterministe et inspectable.
+
+Deux familles de systèmes se partagent la preuve assistée par ordinateur. Un
+démonstrateur (ou prouveur) automatique (ATP) reçoit une conjecture et cherche
+une preuve sans guidage. Parmi eux, les solveurs de satisfiabilité modulo
+théories (SMT), tels que Z3~\cite{demoura2008z3} et
+cvc5~\cite{barbosa2022cvc5}, sont particulièrement efficaces sur les
+buts engendrés par la vérification de programmes, qu'ils
+traitent par lots une fois traduits dans leur langage. Un assistant à la
+preuve interactif (ITP) fournit au contraire un environnement où définitions,
+énoncés et preuves sont développés ensemble; chaque preuve achevée est
+vérifiée par un petit noyau. Lean~4~\cite{deMouraUllrich2021Lean4}, utilisé
+tout au long de cette thèse, y ajoute des types dépendants, un cadre de
+tactiques et de métaprogrammation, et la bibliothèque mathématique
+Mathlib~\cite{mathlib4}.
+
+Utiliser l'un de ces systèmes pour un formalisme existant exige une
+traduction, et cette traduction fait partie de l'argument de sûreté. Les
+langages source et cible, ici B et SMT-LIB, diffèrent par leur système de
+types, leurs primitives et leur traitement des quantificateurs. Un
+démonstrateur irréprochable ne peut réparer une traduction qui change le sens
+de son entrée, et une preuve du côté cible n'établit l'énoncé source que si le
+lien entre les deux est lui-même justifié. Plus le moteur devient puissant,
+plus il importe de ne pas cacher cette frontière derrière le message de succès
+d'un outil. Cette thèse naît de cette tension entre automatisation et
+assurance. Elle n'apporte aucune automatisation nouvelle; elle travaille sur
+les liens qui rendent l'automatisation acceptable, afin que la validité d'un
+résultat ne dépende pas de l'opacité de l'outil qui l'a proposé.
+
+\section*{La méthode B et ses obligations de preuve}
+
+La méthode~B~\cite{abrial1996bbook} est une méthode formelle de développement
+logiciel fondée sur les machines abstraites et le raffinement: un système est
+décrit par des machines (systèmes de transitions) munies de variables, d'un
+invariant et d'opérations, puis raffiné pas à pas jusqu'à une implantation
+exécutable. La méthode engendre des \emph{obligations de preuve}: des énoncés
+logiques dont la démonstration établit que l'initialisation satisfait
+l'invariant, que chaque opération le préserve et que chaque raffinement est
+correct. Un développement est accepté lorsque toutes ses obligations sont
+déchargées; sa fiabilité dépend donc des outils qui les déchargent.
+L'Atelier~B, l'outil industriel de référence, engendre les obligations et les
+soumet à ses propres démonstrateurs, ainsi qu'à des solveurs SMT externes via
+son traducteur \textsc{ppTrans}~\cite{deharbe2014integrating}.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      route/.style={
+        rounded corners=3pt,
+        line width=1pt,
+        align=center,
+        text width=.29\linewidth,
+        minimum height=3.35cm,
+        inner sep=6pt,
+      },
+      source/.style={
+        rounded corners=3pt,
+        draw=dark-blue,
+        fill=blue!6,
+        line width=1pt,
+        align=center,
+        inner sep=8pt,
+      },
+    ]
+    \node[source] (bpo) {\textbf{Obligations de preuve B}};
+
+    \node[route, draw=pink, fill=pink!4,
+          below left=1.4cm and .45cm of bpo] (automated) {%
+      \textbf{Raisonnement automatisé}\\[.55em]
+      \begin{tabular}{@{}c@{\hspace{.55em}}c@{}}
+        \includegraphics[height=1.6cm]{assets/beer.png} &
+        \includegraphics[height=1.6cm]{assets/zero-proof-beer.png} \\[-.1em]
+        {\small\beer} & {\small\textsc{Zero-Proof} \beer{}} \\[-.15em]
+        {\scriptsize vérifié} & {\scriptsize couverture élargie}
+      \end{tabular}%
+    };
+
+    \node[route, draw=orange, fill=orange!5,
+          below right=1.4cm and .45cm of bpo] (interactive) {%
+      \textbf{Raisonnement interactif}\\[.55em]
+      \includegraphics[height=1.6cm]{assets/barrel.png}\\[-.1em]
+      {\small\barrel}\\[-.15em]
+      {\scriptsize vérifié par Lean}%
+    };
+
+    \draw[funarr, draw=pink] (bpo.south west) -- (automated.north);
+    \draw[funarr, draw=orange] (bpo.south east) -- (interactive.north);
+  \end{tikzpicture}
+  \caption{Les voies automatique et interactive pour les obligations de
+    preuve~B.}
+  \label{fig:resume-routes}
+\end{figure}
+
+Un grand développement produit des milliers d'obligations. Les obligations de
+routine relèvent de la décharge automatique; celles qui portent le contenu
+mathématique d'un raffinement exigent une preuve guidée. Cette thèse étudie
+ces deux voies (\Cref{fig:resume-routes}) et demande pour chacune ce
+qu'établit une obligation déchargée. Elle y répond par trois développements
+en Lean~4: \zflean{}, une bibliothèque de mathématiques ensemblistes qui
+fournit l'univers sémantique commun; \beer{}, un encodeur vérifié des
+obligations vers SMT-LIB; \barrel{}, développé avec Ghilain Bergeron, qui
+transporte les obligations de l'Atelier~B vers des théorèmes Lean.
+
+\section*{\zflean{}: des mathématiques ensemblistes dans Lean}
+
+La plupart des assistants à la preuve modernes reposent sur une théorie des
+types (Isabelle/HOL, Rocq, Agda, Lean); quelques-uns reposent sur une théorie
+des ensembles du premier ordre (Mizar, Isabelle/ZF). Raisonner au niveau des
+ensembles reste pourtant utile: égalités entre ensembles définis par des
+compréhensions différentes, fonctions partielles vues comme des relations,
+raisonnement \og à isomorphisme près\fg. Mathlib fournit un modèle de ZFC,
+mais l'utiliser tel quel expose des détails de construction (quotients,
+extensionnalité) qui rendent pénibles même de petits développements; ce
+modèle est donc plus souvent cité qu'utilisé.
+
+\zflean{}~\cite{trelat2026zflean} est une bibliothèque Lean~4 construite sur
+ce modèle, avec une ergonomie comparable à celle des développements typés.
+Elle apporte trois choses. Une théorie des relations: composition,
+réciproque, images, leurs lois algébriques, et des tactiques (\leaninl{zrel},
+\leaninl{zpfun}, \leaninl{zfun}) qui déchargent automatiquement les
+conditions de bonne formation omniprésentes (\og est une relation\fg, \og est
+une fonction partielle\fg, \og est une fonction totale\fg). Des constructions
+canoniques avec leurs propriétés usuelles: booléens, entiers naturels et
+relatifs, rationnels, fonctions, sommes disjointes, options. Des passerelles
+entre les ensembles de ZFC et les types natifs de Lean, fondées sur des
+plongements et des isomorphismes, qui permettent de transporter un résultat
+de Mathlib vers le niveau ensembliste et inversement, sans confondre les deux
+fondements.
+
+Un exemple: la preuve de l'isomorphisme de curryfication
+\(C^{A\times B} \cong (C^B)^A\) suit l'argument mathématique (deux fonctions
+inverses l'une de l'autre, extensionnalité, deux \(\beta\)-réductions),
+l'automatisation absorbant les obligations de bonne formation. La bibliothèque
+compte environ 8300 lignes de Lean et 633 théorèmes.
+
+Dans cette thèse, \zflean{} joue un rôle sémantique: le langage mathématique
+de B est ensembliste (ses expressions dénotent des ensembles, des relations et
+des fonctions partielles), et \zflean{} fournit l'univers dans lequel B et
+SMT-LIB sont interprétés.
+
+\section*{Formalisation de B et de SMT-LIB}
+
+Les deux langages sont formalisés selon le même plan: syntaxe, typage,
+sémantique dénotationnelle.
+
+Le fragment de B retenu est le cœur logique des obligations de l'Atelier~B:
+entiers, booléens, couples, connecteurs, quantification bornée, ensembles
+(parties, produits, union, intersection, compréhension), cardinal, fonctions
+partielles, application et abstraction. Une syntaxe concrète (plongement profond) suit celle des
+fichiers d'obligations de l'Atelier~B; une syntaxe abstraite, où les variables
+liées sont représentées par des variables de Lean (plongement superficiel), sert au
+raisonnement sémantique et évite les problèmes de renommage. Le typage est un
+jugement \(\btype{\Gamma}{t}{\alpha}\) sur les types de B,
+engendrés à partir des entiers et des booléens par produit cartésien et
+ensemble des parties \(\mathbb{P}(\tau)\). Les opérateurs partiels (par exemple, application hors du domaine,
+minimum de l'ensemble vide) sont encadrés par un prédicat de bonne définition qui
+correspond aux obligations de bonne définition que l'Atelier~B peut émettre séparément.
+Chaque terme bien typé et bien défini dénote un
+triplet \(\denval{T}[\alpha]\): la valeur \(T\), son type \(\alpha\) et une
+preuve que \(T\) appartient à l'interprétation ensembliste du type \(\alpha\) dans l'univers ZFC.
+
+Le fragment de SMT-LIB~2.7~\cite{smtlib2.7} comprend les sortes des entiers,
+des booléens et de l'unité, et trois constructeurs: fonctions, paires et
+options, ces deux derniers réalisés par les types de données polymorphes de
+la version~2.7. Le fragment est d'ordre supérieur (\(\lambda\)-termes,
+application partielle): c'est ce qui permet de représenter les fonctions de B
+par des fonctions SMT. Sa sémantique est donnée dans le même univers ZFC que
+celle de B, et non dans une logique d'ordre supérieur, ce qui aurait pourtant
+été naturel: la correction de l'encodage se formule comme une relation entre
+dénotations B et SMT, qui n'a de sens que si les deux langages dénotent dans
+un même modèle.
+
+\section*{Relaxation de types: réconcilier théorie des types et théorie des ensembles}
+
+La traduction de B vers SMT-LIB bute sur une différence de nature entre les
+deux langages. En B, relations, fonctions partielles et fonctions totales sont
+toutes des ensembles de couples et ne diffèrent que par les propriétés de leur
+graphe. En SMT-LIB, chaque terme a un type fixe, et l'encodeur doit choisir
+pour chaque objet~B une représentation, alors qu'un même objet en admet
+plusieurs, également fidèles.
+
+Prenons une fonction partielle \(f \in \mathbb{Z} \pfunB \mathbb{Z}\). Elle
+s'encode naturellement de manière \emph{fonctionnelle}, par un terme de type
+\(\intS \toS \optS\intS\) qui renvoie \(\someS(f(x))\) sur le domaine et
+\(\noneS\) ailleurs; mais elle s'encode tout aussi bien de manière
+\emph{relationnelle}, par le prédicat caractéristique de son graphe, de type
+\((\intS \timesS \intS) \toS \boolS\). Les deux encodages dénotent le même
+ensemble et ont pourtant des types SMT différents. Le problème apparaît dès
+qu'ils se rencontrent: l'union \(f \cupB g\) de deux fonctions partielles
+n'est en général qu'une relation, et l'encodeur doit d'abord ramener \(f\) et
+\(g\) à la forme relationnelle avant de prendre l'union. Tout encoder
+relationnellement éviterait le problème, et c'est la direction adoptée dans l'encodeur
+\textsc{ppTrans} de l'Atelier~B, mais ferait perdre ce qui rend les
+solveurs efficaces: avec l'encodage fonctionnel, une application \(f(x)\) est
+un terme ordinaire, et totalité et déterminisme sont garantis par le type
+plutôt qu'axiomatisés.
+
+La \emph{relaxation} (\emph{loosening}) est le passage d'une représentation à
+une représentation plus générale du même graphe, sans changer l'ensemble
+dénoté. Elle est orientée: une fonction peut toujours être vue comme son
+graphe, mais une relation n'est une fonction que si elle est déterministe, \ie
+qu'elle relie chaque élément du domaine à au plus un élément de l'image.
+On définit donc un ordre \(\castable{\alpha}{\beta}\) sur les types SMT, qui décide quand
+\(\alpha\) peut être relaxé en \(\beta\); un \emph{certificat de conversion}
+\(\mathbb{c} : \castpath{\alpha}{\beta}\) enregistre par quels constructeurs
+(réflexivité, option, paire, prédicat caractéristique, fonction, graphe) la
+relaxation peut être effectuée. Tout type se situe entre une forme la moins générale
+\(\lgf{\alpha}\) et une forme la plus générale \(\mgf{\alpha}\), reliées par
+une connexion de Galois. La fonction \(\mathsf{loosen}_{\mathbb{c}}\), définie
+par récurrence sur la structure de \(\mathbb{c}\), permet de relaxer un terme \(x\)
+en le remplaçant par une variable fraîche \(\lvar{x}\) contrainte par une spécification \(\spec{\lvar{x}}\).
+Le théorème de correction établit que cette spécification caractérise exactement
+l'image de \(x\) par la conversion sémantique \(\zop{\mathbb{c}}\): si l'ensemble \(X\)
+dénote le terme \(x\), l'image \(\appZ\zop{\mathbb{c}}(X)\) satisfait la
+spécification, et toute valeur \(Y\) de type \(\beta\) qui la satisfait lui est égale:
+\[
+  \interpS{\aterm{\spec{\lvar{x}}}{\Delta[\lvar{x} \mapsto \denval{Y}[\beta]]}}
+  = \denval{\topZ}[\boolS]
+  \;\implies\;
+  \appZ\zop{\mathbb{c}}(X) = Y.
+\]
+C'est ce résultat qui autorise l'encodeur à relaxer un opérande chaque fois
+que deux termes doivent être amenés à un type commun.
+
+\section*{\beer{}: un encodeur vérifié des obligations de preuve vers SMT-LIB}
+
+\beer{} (\emph{B Encoder})~\cite{trelat2025beer} assemble ces ingrédients.
+C'est un outil écrit et vérifié en Lean qui traduit les obligations de preuve de
+l'Atelier~B en scripts SMT-LIB, et dont l'apport principal est la preuve de
+correction de cette traduction. La \Cref{fig:resume-architecture} en donne
+l'architecture: la chaîne exécutable lit un fichier POG, encode B en SMT et
+écrit un fichier SMT-LIB; la couche de preuve interprète les deux langages
+dans l'univers ZFC commun de \zflean et compare leurs dénotations.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[
+      every node/.style={font=\small},
+      node distance=14mm and 23mm,
+      box/.style={
+        draw=dark-blue,
+        text=dark-blue,
+        very thick,
+        rounded corners=1mm,
+        minimum width=19mm,
+        minimum height=7mm,
+        align=center,
+      },
+      concrete/.style={box, draw=dark-blue, text=dark-blue},
+      phoas/.style={box, draw=orange, text=orange},
+      semantic/.style={box, draw=pink, text=pink},
+      note/.style={draw=none, inner sep=1.5pt},
+      arr/.style={-{Stealth[length=2mm]}, very thick,},
+      arr'/.style={-{Stealth[length=2mm]}, very thick, shorten >= 3pt, shorten <= 3pt},
+      group/.style={
+        draw=dark-blue!50,
+        dashed,
+        thick,
+        rounded corners=1mm,
+        inner sep=2mm,
+      },
+    ]
+    \node[concrete] (b) {B};
+    \node[concrete, right=of b] (smt) {SMT};
+
+    \node[phoas, below=of b] (bphoas) {B PHOAS};
+    \node[phoas, below=of smt] (smtphoas) {SMT PHOAS};
+    \path (bphoas) -- coordinate[midway] (proofmid) (smtphoas);
+    \node[semantic, below=12mm of proofmid] (zfc) {ZFC};
+
+    \draw[arr', dark-blue] (b) -- node[midway, above]
+      {\Large\textbeer} (smt);
+    \draw[arr', orange] (b) -- node[midway, left, text=orange]
+      {$\aterm{\cdot}{\Delta}$} (bphoas);
+    \draw[arr', orange] (smt) -- node[midway, right, text=orange]
+      {$\aterm{\cdot}{\Theta}$} (smtphoas);
+    \draw[arr', pink] (bphoas) -- node[midway, below left, text=pink]
+      {$\interpB{\cdot}$} (zfc);
+    \draw[arr', pink] (smtphoas) -- node[midway, below right, text=pink]
+      {$\interpS{\cdot}$} (zfc);
+
+    \node[group, fit=(b)(smt)] (program) {};
+    \node[note, text=dark-blue, font=\small,
+      below=0pt of program.south] (programlabel) {programme};
+
+    \node[group, fit=(bphoas)(smtphoas)(zfc)] (proofs) {};
+    \node[note, text=dark-blue, font=\small,
+      above=0pt of proofs.north] (proofslabel) {preuves};
+
+    \node[
+      draw=pink,
+      very thick,
+      rounded corners=2mm,
+      fit=(program)(programlabel)(proofs)(proofslabel),
+      inner sep=2mm,
+    ] (leanframe) {};
+    \node[note, text=pink, font=\Large,
+      above=0pt of leanframe.north] {\textlean};
+
+    \node[box, left=8mm of leanframe] (pog) {fichier POG};
+    \node[box, right=8mm of leanframe] (smtfile) {fichier SMT};
+
+    \draw[very thick, draw=dark-blue, shorten <= 3pt] (pog.east) -- (leanframe.west);
+    \draw[arr, draw=dark-blue, shorten >= 3pt] (leanframe.west) --
+      node[midway, left, xshift=-2mm, text=dark-blue] {analyse} (b.west);
+    \draw[very thick, draw=dark-blue, shorten <= 3pt] (smt.east) --
+      node[midway, right, xshift=2mm, text=dark-blue] {écriture} (leanframe.east);
+    \draw[arr, draw=dark-blue, shorten >= 3pt] (leanframe.east) -- (smtfile.west);
+  \end{tikzpicture}
+  \caption{Architecture de \beer{}. La chaîne exécutable analyse un fichier
+    POG, encode B en SMT et écrit un fichier SMT-LIB; la couche de preuve
+    place les deux langages en PHOAS et compare leurs dénotations dans
+    l'univers ZFC commun.}
+  \label{fig:resume-architecture}
+\end{figure}
+
+L'encodage suit deux principes: un ensemble devient un prédicat
+caractéristique; une relation dont une hypothèse établit qu'elle est
+fonctionnelle devient une fonction à valeurs optionnelles. Chaque objet garde
+son type le plus précis et n'est relaxé que là où un opérateur l'exige (union,
+égalité entre une fonction et une relation, appartenance d'un couple,
+application d'une relation). Par exemple, pour \(\var{f} \inB X \tfunB Y\) et
+\(\var{g} \inB X \mathbin{\bop{\leftrightarrow}} Y\), l'obligation
+\(\var{f} \cupB \var{g} \subseteqB X \prodB Y\) fait cohabiter une fonction
+optionnelle et un prédicat sur les couples.
+
+Le critère de correction est l'équivalence sémantique, mais elle ne peut pas
+être une égalité de dénotations, puisque la traduction change de
+représentation: un terme~B \(t\) de type \(\alpha\) et son encodage \(t'\) de
+type \(\beta\) dénotent dans des ensembles différents. La preuve repose donc
+sur une relation d'\emph{accord} \(\semrel\) entre une dénotation B et la
+dénotation SMT qui la représente. Le théorème central
+(\Cref{fig:resume-square}) considère un terme \(t\) bien typé et bien défini.
+Si l'encodage réussit, \(t \encto (t', \sigma)\), alors le type \(\sigma\) choisi par
+l'encodeur est une relaxation du type canonique \(\toSMT{\alpha}\), \(t'\)
+est bien typé, et les deux dénotations sont en accord:
+\[
+  \interpB{\aterm{t}{\Delta}} = \denval{T}[\alpha],\qquad
+  \interpS{\aterm{t'}{\Theta'}} = \denval{T'}[\sigma]
+  \qquad\text{et}\qquad
+  \denval{T}[\alpha] \;\semrel\; \denval{T'}[\sigma].
+\]
+Pour un terme booléen, l'accord est donc
+l'égalité des valeurs de vérité. Une obligation \(H_1,\dots,H_n \vdash G\)
+est encodée par réfutation: un bloc SMT affirme les hypothèses encodées et la
+négation du but encodé, puis appelle \smtinl{check-sat}. Le théorème,
+complété par un argument sur papier au niveau du script, garantit qu'une
+réponse \smtinl{unsat} atteste la validité de l'obligation source. Cette
+garantie ne dit rien de la réponse du solveur elle-même, que l'on peut
+accepter telle quelle ou vérifier par un certificat de preuve.
+
+\begin{figure}[t]
+  \centering
+  \begin{tikzpicture}[node distance=2.5cm]
+    \node (t) {$t : \alpha$};
+    \node (tsmt) [right=of t] {$t' : \beta$};
+    \node (dent) [below=of t] {$\denval{T}[\alpha]$};
+    \node (dentsmt) [below=of tsmt] {$\denval{T'}[\beta]$};
+
+    \draw[funarr, draw=blue] (t) -- (tsmt) node[midway, above] {\Large\textbeer};
+    \draw[funarr, draw=blue] (t) -- (dent) node[midway, left] {$\interpB{\cdot}$};
+    \draw[relarr, draw=blue] (tsmt) -- (dentsmt) node[midway, right] {$\interpS{\cdot}$};
+    \draw[relarr, {Stealth[length=6pt, width=5pt]}-{Stealth[length=6pt, width=5pt]}, draw=blue] (dent) -- (dentsmt) node[midway, below] {$\semrel$};
+  \end{tikzpicture}
+  \caption{Vue simplifiée du carré sémantique établi pour \beer{}: les
+    flèches pleines sont des hypothèses, les flèches en pointillés des
+    conclusions.}
+  \label{fig:resume-square}
+\end{figure}
+
+Pour des usages privilégiant la couverture et la vitesse, une variante optimisée
+\textsc{Zero-Proof} \beer{} abandonne la couche de correction : même conception,
+fragment de B plus large, optimisations plus agressives, mais aucun lien
+sémantique prouvé entre une obligation et son script.
+
+\section*{Évaluation}
+
+L'évaluation porte sur un corpus
+public d'obligations de David Déharbe~\cite{deharbe2022pog}: près d'un
+million de buts issus de développements industriels, récemment mis à jour.
+La référence est \textsc{ppTrans}, le traducteur de l'Atelier~B, dont la conception est opposée à celle
+de \beer{}: les constructions ensemblistes y sont compilées en formules du
+premier ordre sur des prédicats d'appartenance. L'encodeur évalué est
+\textsc{Zero-Proof} \beer{}, puisque la question porte sur la conception de
+l'encodage à pleine échelle. Les scripts des deux côtés sont soumis à cvc5,
+seul solveur acceptant le fragment d'ordre supérieur de SMT-LIB, avec
+instanciation des quantificateurs fondée sur les modèles (\emph{model-based quantifier instantiation})
+et le même budget de temps par but.
+
+De bout en bout, \textsc{ppTrans} prouve une plus grande part du corpus, l'écart
+venant surtout de la couverture.
+Sur les buts auxquels les deux chaînes répondent, les deux encodages sont
+proches, et chacun prouve des buts que l'autre manque, si bien que leur union
+fait mieux que chacun d'eux. Sur plus d'un million et demi d'exécutions du
+solveur, aucun but n'est \smtinl{sat} d'un côté et \smtinl{unsat} de l'autre,
+le désaccord qu'un encodage incorrect produirait.
+
+\beer{} l'emporte là où un but compte, calcule sur les entiers ou traite un
+ensemble comme un objet: arithmétique, suites, théorie des ensembles pure et
+surtout cardinal. Il est en retrait sur l'application de fonctions, là où se
+concentre la relaxation. Ses scripts sont plus gros, mais les temps de
+résolution sont comparables sur les buts que les deux prouvent, et le coût
+total en temps de solveur est bien moindre, \textsc{ppTrans} épuisant son budget sur
+beaucoup de buts sans verdict.
+La limite principale est donc la couverture de l'encodeur, non la qualité
+de l'encodage, et les progrès futurs de l'instanciation à l'ordre supérieur
+profiteront à \beer{} seul.
+
+\section*{\barrel{}: les obligations de preuve B dans Lean}
+
+La voie automatique est sans retour: soit le solveur répond \smtinl{unsat},
+soit il échoue sans dire pourquoi. Les obligations qu'elle laisse sont
+typiquement celles qui portent le contenu mathématique d'un raffinement;
+l'Atelier~B y répond par son propre démonstrateur interactif. La voie
+complémentaire remplace cette étape par un assistant à la
+preuve généraliste, en l'occurrence Lean.
+
+\barrel{} (\emph{B Automated tRanslation for Reasoning in
+Lean})~\cite{bergeron2026barrel}, développé avec Ghilain Bergeron, est une
+bibliothèque Lean~4 qui consomme les fichiers que l'Atelier~B produit déjà.
+Il importe une machine, un raffinement ou un fichier d'obligations, traduit
+chaque obligation en une proposition Lean, tente de la prouver
+automatiquement et laisse les autres comme buts Lean ordinaires. Une
+obligation déchargée devient un théorème nommé, dont la preuve est vérifiée
+par le noyau de Lean.
+
+Deux décisions structurent l'outil. La première concerne les opérateurs
+partiels de B: \(\minB(S)\) n'a de sens que si \(S\) a un plus petit élément,
+\(\appB fx\) que si \(f\) est fonctionnelle et \(x\) dans son domaine. La
+méthode B garde une logique totale et émet une obligation de bonne définition
+séparée pour chaque occurrence. \barrel{} fait l'inverse: chaque opérateur
+partiel est une fonction Lean qui prend une preuve de bonne définition en
+argument, si bien qu'un terme mal défini ne peut pas être construit, sauf à
+admettre cette preuve par un \leaninl{sorry} que l'outillage signale. C'est le
+paradigme du \og correct par construction\fg.
+La bonne définition devient une contrainte de typage, vérifiée partout où un
+terme est élaboré, y compris au milieu d'une preuve. Un exemple montre ce que
+cela exclut: dans l'Atelier~B Community Edition 24.04.2, une commande
+d'instanciation interactive accepte \(\minB(\varnothing)\) comme témoin
+existentiel sans lever de condition, et une preuve de faux devient dérivable. Dans
+\barrel{}, le même témoin laisse un but \leaninl{min.WD ∅} inhabité, dont la
+seule issue est un \leaninl{sorry} que \leaninl{assert_no_sorry} rejette.
+
+La seconde décision est le choix d'un plongement typé. \beer{} interprète B
+dans l'univers non typé de ZFC, cadre nécessaire à une preuve de correction
+entre deux langages; \barrel{} n'a pas de telle preuve à énoncer et exploite
+les ensembles parents que l'Atelier~B infère pour chaque expression. Ce sont
+exactement les annotations de types qui permettent d'atterrir dans la théorie
+des ensembles typée de Mathlib, où s'appliquent directement les résultats
+existants sur les ensembles, les relations, les ordres, la finitude et
+l'arithmétique. Une fonction~B y reste ce qu'elle est en B: une relation
+fonctionnelle.
+
+Le reste est de l'ingénierie de preuve: les conditions de bonne définition
+identiques sont partagées à l'échelle d'un import; l'automatisation combine
+des lemmes propres à B et la tactique \leaninl{grind} de Lean; chaque
+obligation dispose de son propre budget de ressources, rendant l'outil utilisable
+à l'échelle industrielle. Une interface graphique permet de visualiser l'avancement.
+L'outil est conçu pour être extensible: de nouvelles constructions B peuvent
+être ajoutées, ainsi que de nouvelles tactiques Lean utilisées.
+
+\section*{Conclusion et perspectives}
+
+Cette thèse a étudié deux voies pour décharger les obligations de preuve de
+la méthode~B et a établi, pour chacune, ce qu'une obligation déchargée
+signifie. Premier résultat: une sémantique commune d'un fragment substantiel
+de B et d'un fragment de SMT-LIB dans l'univers ZFC de \zflean{}, qui fait de
+la correction d'un encodage un énoncé ensembliste de préservation du sens.
+Deuxième résultat: cette préservation n'impose pas une représentation unique par
+valeur~B; la relaxation de types ordonne les représentations compatibles, et
+le théorème central de \beer{} relie tout encodage réussi à la représentation
+choisie par l'encodeur. L'évaluation situe la voie automatique par rapport à la
+référence industrielle sur près d'un million de buts.
+Troisième résultat, sur la voie interactive: \barrel{} fait de la
+bonne définition une discipline correcte par construction, que Lean fait
+respecter partout où un terme est élaboré.
+
+Les limites sont énoncées avec la même précision. La sémantique formelle de B
+couvre le fragment mathématique dont \beer{} a besoin; machines,
+substitutions, raffinement et génération des obligations en sont exclus, et
+l'accord de ce fragment avec le \emph{B-Book} reste un jugement porté sur
+papier, comme pour tout développement de ce type.
+
+Trois directions s'ouvrent. La principale composante de la base de confiance
+est commune aux deux voies: la génération des obligations. Une sémantique des
+machines et du raffinement, avec un générateur d'obligations vérifié en Lean,
+relierait les résultats obtenus ici au niveau des termes à la correction de
+développements~B complets, et fonderait un langage~B embarqué dans Lean. Sur
+la voie automatique, cvc5 reste le seul solveur acceptant le fragment d'ordre
+supérieur; son adoption plus large, et la proposition
+SMT-LIB~3.0~\cite{smtlib3proposal}, ouvriraient l'encodage à d'autres
+solveurs, et les sortes indexées par des termes de cette proposition
+pourraient prendre en charge par le typage une partie de ce que la relaxation
+réconcilie aujourd'hui, à un coût pour le solveur qui reste à mesurer. Sur la
+voie interactive, \barrel{} réunit décharge automatique et guidage interactif sur
+les mêmes buts, et ce même espace accueille le raisonnement assisté par
+intelligence artificielle: un assistant peut proposer un invariant, un lemme ou un script complet;
+le noyau de Lean décide si la preuve est acceptée, et la discipline de bonne
+définition décide si les termes introduits ont un sens. Aucune de ces
+décisions ne dépend du récit que l'assistant fait de son propre raisonnement.
+C'est le principe de cette thèse: l'automatisation peut entrer dans un flux
+de raisonnement tant que la portée et le fondement de chaque résultat accepté
+restent explicites.
+
+\setcounter{figure}{0}
+\tikzexternalenable
+\endgroup
+\end{otherlanguage}

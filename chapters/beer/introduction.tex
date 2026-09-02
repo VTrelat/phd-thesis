@@ -31,7 +31,7 @@ Their denotations must instead \emph{correspond} through the change of represent
       \draw[funarr, draw=blue] (t) -- (tsmt) node[midway, above] {\Large\textbeer};
       \draw[funarr, draw=blue] (t) -- (dent) node[midway, left] {$\interpB{\cdot}$};
       \draw[relarr, draw=blue] (tsmt) -- (dentsmt) node[midway, right] {$\interpS{\cdot}$};
-      \draw[relarr, draw=blue] (dent) -- (dentsmt) node[midway, below] {$\semrel$};
+      \draw[relarr, {Stealth[length=6pt, width=5pt]}-{Stealth[length=6pt, width=5pt]}, draw=blue] (dent) -- (dentsmt) node[midway, below] {$\semrel$};
     \end{tikzpicture}
   \end{center}
   \caption{A simplified view of the semantic square proved for \beer. Solid arrows are hypotheses, dashed arrows are conclusions.}

@@ -1,4 +1,42 @@
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 
-% English abstract to be added.
+% Université de Lorraine deposit rule: 2 500 characters maximum, spaces included.
+% Current length: 2 275 characters (plain text, macros expanded).
+
+\noindent
+The B method reduces the correctness of software development to the
+verification of proof obligations, so its guarantees rest on the tools that
+discharge these obligations and on the translations that carry them to those
+tools. This thesis follows B proof obligations along two routes, automated and
+interactive, and establishes for each what a discharged obligation means. It
+contributes three Lean~4 developments. \zflean{} is a library for set-level
+mathematics in Mathlib's model of ZFC: a relational calculus with automation,
+canonical constructions of numbers, relations, and functions, and bridges to
+Lean's native types. In its universe, fragments of B and of SMT-LIB~2.7
+receive their syntax, typing, and denotational semantics, so that the
+correctness of a translation becomes a statement about denotations. \beer{},
+built on this setting, is a verified encoder of Atelier~B proof obligations
+into SMT-LIB. Because B objects are sets while SMT-LIB terms carry fixed
+sorts, one B value admits several target representations, a set becoming a
+characteristic predicate and a functional relation a function; type loosening
+orders these representations and moves terms between them without changing
+the denoted set. The mechanized soundness theorem states that every successful
+encoding of a well-typed, well-defined term agrees semantically with its
+source at the selected representation; in particular, for proof obligations,
+truth is preserved. On nearly a million goals from industrial B developments,
+compared with Atelier~B's ppTrans under the SMT solver cvc5, the encoding of
+\beer{} proves a smaller share end to end, mostly for lack of coverage; on the
+goals both pipelines answer it is within a few points, and each proves goals
+the other does not. \barrel{}, developed with Ghilain Bergeron, imports
+Atelier~B obligations as Lean theorems. It makes the well-definedness of
+partial operators a typing constraint, so that no term is built without
+evidence of its definedness, closes routine goals automatically, and leaves
+the rest to interactive proof in Lean. Each development states what it proves
+and what it trusts, so that increasingly powerful automation, AI-assisted
+included, can be used without making the validity of a result depend on the
+tool that proposed it.
+
+\bigskip
+\noindent\textbf{Keywords:} B method; higher-order logic; SMT solving; verified
+encoding; set theory; ZFC; interactive theorem proving; automated reasoning; Lean~4.

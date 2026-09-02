@@ -1,4 +1,53 @@
-\chapter*{Abstract (en fran\c{c}ais)}
-\addcontentsline{toc}{chapter}{Abstract (en fran\c{c}ais)}
+\chapter*{Résumé}
+\addcontentsline{toc}{chapter}{Résumé}
 
-% French abstract to be added.
+\begin{otherlanguage}{french}
+
+% Règle de dépôt (Université de Lorraine) : 2 500 caractères maximum, espaces
+% comprises. Longueur actuelle : 2 492 caractères (texte brut, macros
+% développées).
+
+\noindent\emph{Titre: Raisonnement fiable pour la méthode~B}
+
+\medskip
+\noindent
+La méthode~B réduit la correction du développement logiciel à la vérification
+d'obligations de preuve; ses garanties reposent donc sur les outils qui
+déchargent ces obligations et sur les traductions qui les y acheminent. Cette
+thèse étudie deux voies, automatique et interactive, pour décharger les
+obligations de preuve~B et établit pour chacune ce que signifie une
+obligation déchargée.
+Elle apporte trois développements Lean~4. \zflean{} est une bibliothèque de
+mathématiques ensemblistes dans le modèle de ZFC de Mathlib: un calcul
+relationnel avec automatisation, des constructions canoniques (nombres, relations,
+fonctions) et des passerelles vers les types de Lean. C'est dans cet univers que sont définis les
+fragments de syntaxe de B et SMT-LIB~2.7, leur typage et sémantique
+dénotationnelle, de sorte que la correction d'une traduction devient un énoncé
+sur les dénotations. \beer{}, construit dans ce cadre, est un encodeur vérifié
+des obligations d'Atelier~B vers SMT-LIB. Les objets de B étant des ensembles
+et les termes de SMT-LIB portant une sorte fixe, une valeur~B admet plusieurs
+représentations cibles, un ensemble devenant un prédicat caractéristique et
+une relation fonctionnelle une fonction. La relaxation de types ordonne ces
+représentations et fait passer les termes de l'une à l'autre sans changer
+l'ensemble dénoté. Le théorème de correction énonce que tout encodage
+réussi d'un terme bien typé et bien défini possède une sémantique compatible avec sa
+source à la représentation choisie; en particulier, pour les obligations de
+preuve, la véracité est préservée. Sur près d'un million de buts de
+développements~B industriels, face à \textsc{ppTrans} d'Atelier~B avec le solveur \textsc{cvc5},
+l'encodage de \beer{} prouve une part plus faible de bout en bout, surtout faute
+de couverture; sur les buts auxquels les deux chaînes répondent,
+l'écart tombe à quelques points et chacune prouve des buts que l'autre
+manque. \barrel{}, développé avec Ghilain Bergeron, importe les obligations
+d'Atelier~B comme théorèmes Lean. Il fait de la bonne définition des
+opérateurs partiels une contrainte de typage, si bien qu'aucun terme n'est
+construit sans preuve de sa bonne définition, décharge automatiquement les
+buts de routine et laisse les autres à la preuve interactive dans Lean. Chaque
+développement précise ce qu'il prouve et ce qu'il suppose, afin qu'une
+automatisation toujours plus puissante, y compris assistée par l'IA, puisse
+servir sans que la validité d'un résultat dépende de l'outil qui l'a proposé.
+
+\bigskip
+\noindent\textbf{Mots-clés:} méthode~B; logique d'ordre supérieur; résolution
+SMT; encodage vérifié; théorie des ensembles; ZFC; démonstration
+interactive; raisonnement automatisé; Lean~4.
+\end{otherlanguage}
