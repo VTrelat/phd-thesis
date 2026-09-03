@@ -1,0 +1,20 @@
+% Target selection, read before \documentclass.
+%
+% The class font size differs between targets -- the A5 book is set at 9pt,
+% everything else at 10pt -- so the target has to be known before scrbook is
+% loaded.  That is all this file settles; preamble.tex derives the rest of the
+% configuration (covers, body, paper size, figure cache) from \ThesisTarget.
+%
+% Both main.tex and tikz-cache-driver.tex read it, so that a figure rendered
+% by an externalization subprocess is typeset at the same size as the page it
+% is going to land on.  Loading it twice is harmless.
+\ifdefined\ThesisTargetLoaded\else
+  \def\ThesisTargetLoaded{}%
+  % Set by the root wrappers book.tex / academic.tex / short-fr.tex, and by
+  % the externalization subprocess; building main.tex directly leaves it
+  % undefined and gives the "full" development build.
+  \ifdefined\ThesisTarget\else\def\ThesisTarget{full}\fi
+  \newif\ifThesisBookTarget
+  \def\ThesisNameBook{book}%
+  \ifx\ThesisTarget\ThesisNameBook \ThesisBookTargettrue \fi
+\fi

@@ -260,7 +260,7 @@ Unlike union, intersection can preserve a functional representation: it cannot i
 When the common type is an option-valued function type \(\gamma=\delta\toS\optS\varepsilon\), both \(\appS{\lvar{S}}{\var{x}}\) and \(\appS{\lvar{T}}{\var{x}}\) already have type \(\optS\varepsilon\): an argument is mapped to a value precisely when these two options agree; otherwise it is left undefined.
 When \(\gamma\) is relational, intersection remains pointwise conjunction.
 \begin{encrule}[intersection]{rule:beer-intersection}
-\begin{align*}
+\begin{fitalign}
   S \capB T &\encto
     \Bigl(\lamS \var{x}:\delta\cdot
       \iteS
@@ -275,7 +275,7 @@ When \(\gamma\) is relational, intersection remains pointwise conjunction.
       \;\andS\;
       \appS{{\lvar{T}}^{\mathrm{rel}}}{\var{z}},\;\; \gamma\Bigr),
       && \text{if } \gamma=\delta\toS\boolS
-\end{align*}
+\end{fitalign}
 \end{encrule}
 When \(\alpha=\beta=\gamma\) in the functional branch, the guarded lambda is emitted directly and no helper specification is needed.
 For distinct compatible option-valued function types, only the tighter operand is loosened, and the result retains the looser option-valued function type \(\gamma\).

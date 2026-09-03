@@ -1,6 +1,70 @@
+% ===========================================================================
+% Compilation targets
+% ===========================================================================
+% \ThesisTarget is set by the thin root wrappers book.tex, academic.tex and
+% short-fr.tex, each of which defines it and then \input{main.tex}.  Building
+% main.tex directly leaves it undefined and yields the "full" development
+% build, which is what this project compiled before the targets existed.
+%
+%   target     art covers  official cover  body              paper
+%   ---------  ----------  --------------  ----------------  -----
+%   full       yes         yes             full manuscript   A4
+%   book       yes         no              full manuscript   A5
+%   academic   no          yes             full manuscript   A4
+%   short-fr   yes         no              French summary    A4
+%
+% .latexmkrc derives the matching job name and auxiliary directory from the
+% root file name, so `latexmk book.tex` writes thesis-book.pdf using
+% build/book/ and never shares aux files or a TikZ figure cache with a target
+% typeset on a different paper size.
+% ---------------------------------------------------------------------------
+\ifdefined\ThesisTarget\else\def\ThesisTarget{full}\fi
+
+\newif\ifThesisArtCover        % cover.tex + back-cover.tex (the printed book jacket)
+\newif\ifThesisOfficialCover   % official-cover.tex (Université de Lorraine title page)
+\newif\ifThesisFullBody        % whole manuscript, as opposed to the French summary alone
+\newif\ifThesisAfive           % A5 trim instead of A4
+
+\makeatletter
+\def\Thesis@target@full{full}
+\def\Thesis@target@book{book}
+\def\Thesis@target@academic{academic}
+\def\Thesis@target@shortfr{short-fr}
+
+\ifx\ThesisTarget\Thesis@target@book
+  \ThesisArtCovertrue  \ThesisOfficialCoverfalse \ThesisFullBodytrue  \ThesisAfivetrue
+\else\ifx\ThesisTarget\Thesis@target@academic
+  \ThesisArtCoverfalse \ThesisOfficialCovertrue  \ThesisFullBodytrue  \ThesisAfivefalse
+\else\ifx\ThesisTarget\Thesis@target@shortfr
+  \ThesisArtCovertrue  \ThesisOfficialCoverfalse \ThesisFullBodyfalse \ThesisAfivefalse
+\else
+  \ThesisArtCovertrue  \ThesisOfficialCovertrue  \ThesisFullBodytrue  \ThesisAfivefalse
+\fi\fi\fi
+
+% Auxiliary directory latexmk uses for this target; must agree with $aux_dir
+% in .latexmkrc.  Everything the externalization machinery touches is named
+% relative to it -- TikZ writes each figure's .md5 and .dpth through the parent
+% job's -output-directory, and the subprocess that renders the figure has to
+% put the PDF next to them -- so the figure cache lives inside it too.  That
+% also keeps the A5 book from reusing a cached picture whose size came from
+% the A4 \textwidth.
+\ifx\ThesisTarget\Thesis@target@full
+  \newcommand{\ThesisAuxDir}{build}
+\else
+  \newcommand{\ThesisAuxDir}{build/\ThesisTarget}
+\fi
+\makeatother
+
 \usepackage[french,english]{babel}
 
-\usepackage[a4paper, inner=.8in, outer=1.2in, top=1.2in, bottom=1.2in]{geometry}
+% A5 pages leave the text block about 27% narrower and 27% shorter than A4;
+% the inner margin carries the binding gutter in both.
+\ifThesisAfive
+  \usepackage[paperwidth=148mm, paperheight=210mm,
+              inner=18mm, outer=14mm, top=18mm, bottom=20mm]{geometry}
+\else
+  \usepackage[a4paper, inner=1.2in, outer=0.8in, top=1.2in, bottom=1.2in]{geometry}
+\fi
 \usepackage{fancyhdr}
 \usepackage{microtype}
 \usepackage{xcolor}
@@ -41,6 +105,124 @@
 \renewcommand{\nomname}{List of Notations}
 \usepackage{multicol}        % two-column layout for the notation index
 \usepackage{multiincludeonly}
+
+% ---------------------------------------------------------------------------
+% A5: fitting A4-tuned material into a narrower measure
+% ---------------------------------------------------------------------------
+% The tables, displays, grammars and figures of this manuscript were written
+% against the A4 text block, 159mm wide.  The A5 one is 116mm, so some of them
+% no longer fit -- by up to 43mm, which is just the difference between the two
+% measures.  Rather than rewrite the manuscript for one target, shrink
+% whatever overflows, and only there: on A4 none of this is loaded and the
+% output is unchanged.
+
+% A few pictures are positioned against the page rather than the text block --
+% the cover artwork, the Venn chapter heads -- and must never be scaled to the
+% measure.  They clear this switch around themselves, so it has to exist for
+% every target, not just A5.
+\newif\ifthesisfitpics \thesisfitpicstrue
+
+\usepackage{adjustbox}
+
+\ifThesisAfive
+  % Scales an over-wide equation or gather display down to the measure and
+  % leaves the ones that already fit alone.
+  \usepackage{resizegather}
+
+  % Let TeX loosen a paragraph rather than overrun the margin when a line ends
+  % up holding something it cannot break -- a long Lean identifier, a URL, a
+  % wide inline formula.  This settles most of the prose overflows on its own.
+  \emergencystretch=3em
+
+  % A display environment needs vertical mode and so cannot be put in a box --
+  % but its contents can.  Scaling those keeps the display's own skips and
+  % centring while bringing an over-wide formula back inside the measure; one
+  % that already fits comes through untouched, and \tag still reaches the outer
+  % display and prints flush right.  Patching equation* covers \[ ... \] too,
+  % which is what amsmath makes it.  align needs vertical mode all the way down
+  % and cannot be treated this way; the few that overflow use the fitalign
+  % environment defined below instead.
+  \makeatletter
+  \expandafter\let\expandafter\thesisorigeqstar\csname equation*\endcsname
+  \expandafter\let\expandafter\thesisorigendeqstar\csname endequation*\endcsname
+  \expandafter\def\csname equation*\endcsname{%
+    \thesisorigeqstar\adjustbox{max width=\linewidth}\bgroup$\displaystyle}
+  \expandafter\def\csname endequation*\endcsname{%
+    $\egroup\thesisorigendeqstar}
+  \makeatother
+
+  % Long dotted or underscored Lean names cannot be broken inside \texttt and
+  % overrun the measure; give them break points at the underscores.
+  \newcommand{\ThesisBreakUnderscore}{\renewcommand{\_}{\textunderscore\allowbreak}}
+
+  % Shrink-to-measure wrappers, with a depth counter apiece so that a nested
+  % occurrence does not get a second box of its own.
+  \newcommand{\thesisfitopen}{\begin{adjustbox}{max width=\linewidth}}
+  \newcommand{\thesisfitclose}{\end{adjustbox}}
+  \newcommand{\thesisfitnext}{}
+
+  % Wide tables: pgfplotstable's generated ones in the evaluation chapter.
+  \newcounter{thesisfittabdepth}
+  \BeforeBeginEnvironment{tabular}{%
+    \stepcounter{thesisfittabdepth}%
+    \ifnum\value{thesisfittabdepth}=1
+      \let\thesisfitnext\thesisfitopen
+    \else
+      \let\thesisfitnext\relax
+    \fi
+    \thesisfitnext}
+  \AfterEndEnvironment{tabular}{%
+    \ifnum\value{thesisfittabdepth}=1
+      \let\thesisfitnext\thesisfitclose
+    \else
+      \let\thesisfitnext\relax
+    \fi
+    \thesisfitnext
+    \addtocounter{thesisfittabdepth}{-1}}
+
+  % simplebnf builds its grammars on tabularray rather than tabular, so the
+  % hook above never sees them; the syntax chapters set them at the full A4
+  % measure.
+  \BeforeBeginEnvironment{bnf}{\thesisfitopen}
+  \AfterEndEnvironment{bnf}{\thesisfitclose}
+
+  % Figures drawn at absolute coordinates keep their A4 width even after being
+  % re-rendered for A5.  Page-anchored pictures opt out through
+  % \thesisfitpicsfalse; overlay pictures have no width to scale anyway.
+  \newcounter{thesisfitpicdepth}
+  \BeforeBeginEnvironment{tikzpicture}{%
+    \stepcounter{thesisfitpicdepth}%
+    \ifnum\value{thesisfitpicdepth}=1
+      \ifthesisfitpics \let\thesisfitnext\thesisfitopen \else \let\thesisfitnext\relax \fi
+    \else
+      \let\thesisfitnext\relax
+    \fi
+    \thesisfitnext}
+  \AfterEndEnvironment{tikzpicture}{%
+    \ifnum\value{thesisfitpicdepth}=1
+      \ifthesisfitpics \let\thesisfitnext\thesisfitclose \else \let\thesisfitnext\relax \fi
+    \else
+      \let\thesisfitnext\relax
+    \fi
+    \thesisfitnext
+    \addtocounter{thesisfitpicdepth}{-1}}
+\fi
+
+% A multi-line display that overruns the A5 measure.  On A4 this is exactly an
+% align*; on A5 the alignment is packed into an aligned and handed to the
+% fitted equation* above, which is the only way to bring a multi-line display
+% back inside the measure.  \tag still works, so the few tagged blocks that
+% need it can use this too.
+\NewEnviron{fitalign}{%
+  \ifThesisAfive
+    \begin{equation*}\begin{aligned}\BODY\end{aligned}\end{equation*}%
+  \else
+    \begin{align*}\BODY\end{align*}%
+  \fi}
+
+\ifThesisAfive\else
+  \newcommand{\ThesisBreakUnderscore}{}
+\fi
 
 \overfullrule=3pt
 
@@ -359,10 +541,14 @@ extendedchars=true
   \def\tikzexternalcurrentinclude{#1}%
   \thesisoriginalinclude{#1}%
 }
-% latexmk compiles main.tex under the job name "thesis" and places auxiliary
-% files in build/. Figure subprocesses use a small, independent driver so they
-% never read half-written contents or bibliography files from the parent job.
+% latexmk compiles each root under its own job name and auxiliary directory
+% (see .latexmkrc and \ThesisAuxDir above), and the figure subprocesses write
+% into the same one. They use a small, independent driver so they never read
+% half-written contents or bibliography files from the parent job, and they are
+% told which target they belong to so that they typeset the figure on the same
+% paper as the job that asked for it.
 \newcommand{\tikzexternalmainsource}{%
+  \string\def\string\ThesisTarget{\ThesisTarget}%
   \string\def\string\tikzexternalchild{}%
   \string\def\string\tikzexternalrealjob{\tikzexternalrealjob}%
   \string\def\string\tikzexternaldriverinclude{\tikzexternalcurrentinclude}%
@@ -373,7 +559,9 @@ extendedchars=true
   external/system call={
     lualatex \tikzexternalcheckshellescape
     -halt-on-error -interaction=batchmode
-    -output-directory=build -jobname "\image" "\tikzexternalmainsource"
+    % \space: a control word swallows the space that follows it, which would
+    % otherwise glue the directory to the next option.
+    -output-directory=\ThesisAuxDir\space-jobname "\image" "\tikzexternalmainsource"
   },
 }
 % Give automatically named figures a stable family until the first numbered
@@ -422,6 +610,40 @@ extendedchars=true
 % Font for the "CHAPTER" label with positive letter spacing
 \newfontfamily\playfairvennword{Playfair Display}[LetterSpace=4]
 
+% The Venn chapter head is otherwise \textwidth-relative, but these four
+% quantities are absolute: the two display font sizes, the lift that pulls the
+% picture up into the top margin, and (further down) the bleed of the left
+% circle into the inner margin.  On A5 the text block is ~73% as wide as on
+% A4, so scale them by that factor to keep the head in proportion.
+\ifThesisAfive
+  \newcommand{\vennWordSize}{35}\newcommand{\vennWordLead}{37}
+  \newcommand{\vennNumSize}{82}\newcommand{\vennNumLead}{85}
+  \newcommand{\vennHeadLift}{26mm}
+  \newcommand{\svennHeadDrop}{7mm}
+\else
+  \newcommand{\vennWordSize}{48}\newcommand{\vennWordLead}{50}
+  \newcommand{\vennNumSize}{112}\newcommand{\vennNumLead}{116}
+  \newcommand{\vennHeadLift}{35mm}
+  \newcommand{\svennHeadDrop}{10mm}
+\fi
+
+% Cover typography is set in absolute points against \paperwidth.  A5 is 70%
+% of A4's width, so these have to come down with it: at A4 sizes the cover
+% title hyphenates mid-word and the back-cover blurb runs off the page.
+\ifThesisAfive
+  \newcommand{\coverTitleSize}{\fontsize{25}{28}}
+  \newcommand{\coverAuthorSize}{\fontsize{11}{14}}
+  \newcommand{\backTitleSize}{\fontsize{14}{15}}
+  \newcommand{\backBodySize}{\fontsize{9}{10.2}}
+  \newcommand{\backCoverSkip}{3.5mm}
+\else
+  \newcommand{\coverTitleSize}{\fontsize{33}{40}}
+  \newcommand{\coverAuthorSize}{\fontsize{16}{20}}
+  \newcommand{\backTitleSize}{\fontsize{20}{21}}
+  \newcommand{\backBodySize}{\fontsize{11}{14.5}}
+  \newcommand{\backCoverSkip}{5mm}
+\fi
+
 % Preserve emphasis color style
 \newcommand{\colornumberchap}{\color{beige!25!cover-cream}}
 \DeclareTextFontCommand{\emph}{\colornumberchap\itshape}
@@ -447,8 +669,10 @@ extendedchars=true
 
 \AtBeginDocument{%
   \setlength{\vennR}    {\dimexpr 25\textwidth/100\relax}%
-  % Left centre: circle bleeds past paper left edge by ~8mm
-  \setlength{\vennLx}   {\dimexpr\vennR - 28mm\relax}%
+  % Left centre: the circle bleeds across the whole inner margin and stops
+  % 2.5mm short of the paper edge, whatever that margin is (chapters always
+  % open on a recto, so \oddsidemargin is the relevant one).
+  \setlength{\vennLx}   {\dimexpr\vennR - \oddsidemargin - 1in + 2.5mm\relax}%
   \setlength{\vennRx}   {\dimexpr\vennLx + \textwidth/100*37\relax}%
   % Colour-split point = left boundary of right circle
   \setlength{\vennMidX} {\dimexpr\vennRx - \vennR\relax}%
@@ -458,17 +682,18 @@ extendedchars=true
   \setlength{\vennNumY} {\dimexpr\vennCY + 6\vennR/10\relax}%
   % --- Small Venn (starred chapters), margin-aligned: no left bleed ---
   % Circles sit just ABOVE the title (which stays fully readable on the cream page).
-  \setlength{\svennR}   {4mm}%                              % small radius
+  \setlength{\svennR}   {\ifThesisAfive 3mm\else 4mm\fi}%  % small radius
   \setlength{\svennLx}  {-.25\svennR}%                          % dark circle left edge at the text margin (x=0)
   \setlength{\svennRx}  {\dimexpr\svennLx + 14\svennR/10\relax}% % centres 1.4R apart (Venn overlap)
-  \setlength{\svennCY}  {16mm}%                             % centres above the title baseline (clear of the cap line)
+  \setlength{\svennCY}  {\ifThesisAfive 12mm\else 16mm\fi}%% centres above the title baseline (clear of the cap line)
 }
 
 \makeatletter
 
 \renewcommand{\@makechapterhead}[1]{%
-  \vspace*{-35mm}%
+  \vspace*{-\vennHeadLift}%
   \noindent
+  \begingroup\thesisfitpicsfalse
   \tikzexternalexportnextfalse
   \begin{tikzpicture}%
     % Bounding box: the left circle bleeds past x=0 into the inner margin (intentional).
@@ -483,21 +708,22 @@ extendedchars=true
     \begin{scope}
       \clip (\vennLx, \vennCY) circle (\vennR);
       \node[anchor=center] at (\vennMidX, \vennCY)
-        {{\playfairvennword\bfseries\fontsize{48}{50}\selectfont
+        {{\playfairvennword\bfseries\fontsize{\vennWordSize}{\vennWordLead}\selectfont
           \textcolor{venn-textlight}{CHAPTER}}};
     \end{scope}
     % --- "CHAPTER" in dark colour, clipped to right circle ---
     \begin{scope}
       \clip (\vennRx, \vennCY) circle (\vennR);
       \node[anchor=center] at (\vennMidX, \vennCY)
-        {{\playfairvennword\bfseries\fontsize{48}{50}\selectfont
+        {{\playfairvennword\bfseries\fontsize{\vennWordSize}{\vennWordLead}\selectfont
           \textcolor{venn-textdark}{CHAPTER}}};
     \end{scope}
     % --- Chapter number: top-right of lighter circle, half-overflows into outer margin ---
     \node[anchor=base] at (\dimexpr\vennRx + 7\vennR/10\relax, \vennNumY)
-      {{\playfaircoverfamily\itshape\bfseries\fontsize{112}{116}\selectfont
+      {{\playfaircoverfamily\itshape\bfseries\fontsize{\vennNumSize}{\vennNumLead}\selectfont
         \textcolor{venn-dark}{\thechapter}}};
   \end{tikzpicture}%
+  \endgroup
   \par\nobreak\vskip 8\p@
   {\playfaircoverfamily\bfseries\Huge\raggedright\textcolor{venn-dark}{#1}\par}%
   \nobreak\vskip 10\p@
@@ -507,8 +733,9 @@ extendedchars=true
 % (dark left, light right), in the same two-tone style as numbered chapters.
 % The circles are small and the title sits on top of them, overflowing to the right.
 \renewcommand{\@makeschapterhead}[1]{%
-  \vspace*{10mm}%
+  \vspace*{\svennHeadDrop}%
   \noindent
+  \begingroup\thesisfitpicsfalse
   \tikzexternalexportnextfalse
   \begin{tikzpicture}%
     % Title baseline sits at the TikZ origin (y=0); the circles float above it.
@@ -533,6 +760,7 @@ extendedchars=true
         {{\playfaircoverfamily\bfseries\Huge\textcolor{venn-textdark}{#1}}};
     \end{scope}
   \end{tikzpicture}%
+  \endgroup
   \par\nobreak\vskip 24\p@
 }
 
@@ -547,23 +775,35 @@ extendedchars=true
 % Outer margin width: paperwidth minus the text block and its left offset.
 \newlength{\outermarginwidth}
 \newlength{\halfoutermarginwidth}
+\newlength{\pagenumboxwidth}
+\newlength{\pagenumboxsep}
+% The tab must fit three digits plus its own padding inside \pagenumboxwidth.
+% A5's 14mm outer margin cannot take the A4 tab, so shrink both there.
+\ifThesisAfive
+  \setlength{\pagenumboxsep}{5pt}
+  \newcommand{\pagenumboxfont}{\fontsize{10}{12}}
+\else
+  \setlength{\pagenumboxsep}{10pt}
+  \newcommand{\pagenumboxfont}{\fontsize{14}{16}}
+\fi
 \AtBeginDocument{%
   \setlength{\outermarginwidth}{\dimexpr\paperwidth - \textwidth - \oddsidemargin - 1in\relax}%
   \setlength{\halfoutermarginwidth}{0.5\outermarginwidth}%
+  \setlength{\pagenumboxwidth}{0.85\outermarginwidth}%
 }
 
 % Odd pages (right-hand): used in [LO] slot.
-% \rlap starts at the LEFT text margin; \hspace* skips textwidth+halfoutermarginwidth
-% to reach the midpoint of the outer margin; the colorbox ends flush at the
+% \rlap starts at the LEFT text margin; \hspace* skips ahead so the colorbox
+% (width pagenumboxwidth, a fraction of the outer margin) ends flush at the
 % right page edge.
 \newcommand{\pagenumboxR}[1]{%
   \rlap{%
-    \hspace*{\dimexpr\textwidth + \halfoutermarginwidth\relax}%
+    \hspace*{\dimexpr\textwidth + \outermarginwidth - \pagenumboxwidth\relax}%
     {%
-      \setlength{\fboxsep}{10pt}%
+      \setlength{\fboxsep}{\pagenumboxsep}%
       \colorbox{gray!10}{%
-        \makebox[\dimexpr\halfoutermarginwidth - 20pt\relax][c]{%
-          \fontsize{14}{16}\sffamily\bfseries\itshape\selectfont
+        \makebox[\dimexpr\pagenumboxwidth - 2\pagenumboxsep\relax][c]{%
+          \pagenumboxfont\sffamily\bfseries\itshape\selectfont
           \color{gray}#1%
         }%
       }%
@@ -573,20 +813,20 @@ extendedchars=true
 
 % Even pages (left-hand): used in [LE] slot.
 % \llap right-anchors at the LEFT text margin (= outermarginwidth from page edge).
-% Content = colorbox(halfoutermarginwidth) + hspace*(halfoutermarginwidth)
+% Content = colorbox(pagenumboxwidth) + hspace*(outermarginwidth - pagenumboxwidth)
 % = outermarginwidth total, so the colorbox's left edge lands at the page edge.
 \newcommand{\pagenumboxL}[1]{%
   \llap{%
     {%
-        \setlength{\fboxsep}{10pt}%
+        \setlength{\fboxsep}{\pagenumboxsep}%
         \colorbox{gray!10}{%
-          \makebox[\dimexpr\halfoutermarginwidth - 20pt\relax][c]{%
-            \fontsize{14}{16}\sffamily\bfseries\itshape\selectfont
+          \makebox[\dimexpr\pagenumboxwidth - 2\pagenumboxsep\relax][c]{%
+            \pagenumboxfont\sffamily\bfseries\itshape\selectfont
             \color{gray}#1%
           }%
         }%
       }%
-    \hspace*{\halfoutermarginwidth}%
+    \hspace*{\dimexpr\outermarginwidth - \pagenumboxwidth\relax}%
   }%
 }
 

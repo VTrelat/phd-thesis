@@ -357,7 +357,7 @@ The direct product of two relations \(Q\) and \(R\) is the set of pairs \(x \map
     POGReader/POGReader.html\#String.toBinaryOp]
   \label{def:b-syntax-dirprod}
   Let \(Q\) and \(R\) be B terms, and let \(\tau\) be a B type fixed by the parser.
-  \begin{align*}
+  \begin{fitalign}
     Q \dirprodB[\tau] R & \;\triangleq\; \bcomp{
     \var{x}, \var{w} \inB (\lift{\alpha} \prodB (\lift{\beta} \prodB \lift{\gamma}))}{
     \existsB \var{y}, \var{z} \in (\lift{\beta} \prodB \lift{\gamma}) \cdot \\
@@ -365,8 +365,8 @@ The direct product of two relations \(Q\) and \(R\) is the set of pairs \(x \map
     (\var{w} \eqB \var{y} \mapletB \var{z}) \andB
     (\var{x} \mapletB \var{y} \inB Q) \andB
     (\var{x} \mapletB \var{z} \inB R)
-    } \tag(\tau = \setB(\alpha \prodB (\beta \prodB \gamma)))
-  \end{align*}
+    } \quad (\tau = \setB(\alpha \prodB (\beta \prodB \gamma)))
+  \end{fitalign}
 \end{definition}
 
 

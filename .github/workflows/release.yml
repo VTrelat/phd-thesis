@@ -1,0 +1,106 @@
+name: "Release thesis PDFs"
+
+on:
+  push:
+    branches:
+    - "main"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: "Build ${{ matrix.target }}"
+    runs-on: "ubuntu-latest"
+    strategy:
+      # One failing target should not hide whether the others still build.
+      fail-fast: false
+      matrix:
+        target:
+          # A5, cover artwork front and back, no official title page.
+          - book
+          # A4, official Université de Lorraine title page only.
+          - academic
+          # A4, French abstract + "Résumé étendu" + their own bibliography.
+          - short-fr
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Every externalized TikZ figure is a separate lualatex run, and there
+      # are ~475 of them: a cold cache costs well over an hour. The key is
+      # unique per run so each build saves a fresh cache, and the restore-key
+      # prefix brings back the most recent one for this target -- TikZ then
+      # re-renders only the figures whose source hash actually moved.
+      # short-fr externalizes nothing, so it has no cache to carry.
+      - name: Restore the externalized figure cache
+        if: matrix.target != 'short-fr'
+        uses: actions/cache@v4
+        with:
+          path: build/${{ matrix.target }}/tikz
+          key: tikz-${{ matrix.target }}-${{ github.sha }}
+          restore-keys: |
+            tikz-${{ matrix.target }}-
+
+      - name: Build PDF
+        uses: xu-cheng/latex-action@v3
+        env:
+          # .latexmkrc also infers the target from the root file name; setting
+          # it explicitly keeps the job name and auxiliary directory right even
+          # if the action ever changes how it passes that file.
+          THESIS_TARGET: ${{ matrix.target }}
+        with:
+          root_file: ${{ matrix.target }}.tex
+          latexmk_use_lualatex: true
+          # wip-stamp.tex shells out to `git rev-parse` as a local-build
+          # fallback (it prefers the GITHUB_SHA env var here, which needs
+          # no shell-escape); enabled for robustness either way.
+          latexmk_shell_escape: true
+
+      - name: Upload PDF
+        uses: actions/upload-artifact@v4
+        with:
+          name: thesis-${{ matrix.target }}
+          path: thesis-${{ matrix.target }}.pdf
+          if-no-files-found: error
+          retention-days: 7
+
+  release:
+    name: "Release"
+    needs: build
+    runs-on: "ubuntu-latest"
+
+    steps:
+      - name: Download the built PDFs
+        uses: actions/download-artifact@v4
+        with:
+          path: pdfs
+          merge-multiple: true
+
+      - name: Replace the "pdf" release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          ls -l pdfs
+          # Kept so that links to the previous single asset keep resolving.
+          cp pdfs/thesis-academic.pdf pdfs/thesis.pdf
+          cat > notes.md <<'NOTES'
+          Prebuilt PDFs of the thesis, built from the latest commit on the main branch.
+
+          | asset | paper | contents |
+          | --- | --- | --- |
+          | `thesis-book.pdf` | A5 | Cover artwork front and back, no official title page, full manuscript. Ready for book printing. |
+          | `thesis-academic.pdf` | A4 | Official Université de Lorraine title page only, no cover artwork, full manuscript. |
+          | `thesis-short-fr.pdf` | A4 | Cover artwork front and back, French abstract and *Résumé étendu*, with a bibliography holding only the references those two cite. |
+          | `thesis.pdf` | A4 | The same file as `thesis-academic.pdf`, under the name this release used to publish. |
+          NOTES
+          # Deleting the tag too makes the recreated release point at this commit.
+          gh release delete pdf --yes --cleanup-tag || true
+          gh release create pdf pdfs/*.pdf \
+            --title thesis \
+            --target "$GITHUB_SHA" \
+            --notes-file notes.md

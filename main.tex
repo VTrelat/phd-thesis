@@ -1,4 +1,11 @@
-\documentclass[10pt]{scrbook}
+\input{thesis-target.tex}
+% 9pt on the A5 book: the measure is 116mm against A4's 159mm, and the
+% smaller size keeps the line at a normal ~66 characters.
+\ifThesisBookTarget
+  \documentclass[fontsize=9pt]{scrbook}
+\else
+  \documentclass[10pt]{scrbook}
+\fi
 \usepackage[Bjornstrup]{fncychap}
 
 
@@ -26,83 +33,114 @@
 % ============================================================
 \newcommand{\ThesisTitle}{Trustworthy Reasoning for the B Method}
 \newcommand{\ThesisAuthor}{Vincent Tr\'{e}lat}
-\newcommand{\ThesisDate}{\textbf{date}}
+\newcommand{\ThesisDate}{10 novembre 2026}
 % ============================================================
 
 \title{\ThesisTitle}
 \author{\ThesisAuthor}
 
+% Which pieces of the following are typeset is decided by \ThesisTarget; see
+% the table at the top of preamble.tex.  The wrappers book.tex, academic.tex
+% and short-fr.tex set it and \input this file.
+
 \frontmatter
 
-\input{cover.tex}
-\input{official-cover.tex}
+\ifThesisArtCover
+  \input{cover.tex}
+\fi
+\ifThesisOfficialCover
+  \input{official-cover.tex}
+\fi
 % \input{wip-stamp.tex}
 % \WIPStampPage
 \cleardoublepage
 
-\input{chapters/abstract.tex}
-\input{chapters/abstract-fr.tex}
-\input{chapters/extended-summary-fr.tex}
-\input{chapters/acknowledgements.tex}
+\ifThesisFullBody
 
-\begingroup
-\hypersetup{linkcolor=black}
-\tableofcontents
-\endgroup
+  \input{chapters/abstract.tex}
+  \input{chapters/abstract-fr.tex}
+  \input{chapters/extended-summary-fr.tex}
+  \input{chapters/acknowledgements.tex}
 
-\begingroup
-\hypersetup{linkcolor=black}
-\addcontentsline{toc}{chapter}{\listfigurename}
-\listoffigures
-\endgroup
+  \begingroup
+  \hypersetup{linkcolor=black}
+  \tableofcontents
+  \endgroup
 
-% \listofedcomments
+  \begingroup
+  \hypersetup{linkcolor=black}
+  \addcontentsline{toc}{chapter}{\listfigurename}
+  \listoffigures
+  \endgroup
 
-% Blank page after TOC before mainmatter.
-% \null\thispagestyle{empty}\cleardoublepage
+  % \listofedcomments
 
-\mainmatter
+  % Blank page after TOC before mainmatter.
+  % \null\thispagestyle{empty}\cleardoublepage
 
-\include{chapters/introduction.tex}
+  \mainmatter
 
-\include{chapters/background.tex}
+  \include{chapters/introduction.tex}
 
-\include{chapters/zflean.tex}
+  \include{chapters/background.tex}
 
-\include{chapters/b.tex}
+  \include{chapters/zflean.tex}
 
-\include{chapters/smt.tex}
+  \include{chapters/b.tex}
 
-\include{chapters/loosening.tex}
+  \include{chapters/smt.tex}
 
-\include{chapters/beer.tex}
+  \include{chapters/loosening.tex}
 
-\include{chapters/evaluation.tex}
+  \include{chapters/beer.tex}
 
-\include{chapters/barrel.tex}
+  \include{chapters/evaluation.tex}
 
-\include{chapters/conclusion.tex}
+  \include{chapters/barrel.tex}
 
-\backmatter
+  \include{chapters/conclusion.tex}
 
-\input{chapters/notations.tex}
+  \backmatter
 
-\include{chapters/appendices.tex}
+  \input{chapters/notations.tex}
 
+  \include{chapters/appendices.tex}
 
-\chapter*{Bibliography}
-\addcontentsline{toc}{chapter}{Bibliography}
-\printbibliography[heading=none]
+  \chapter*{Bibliography}
+  \addcontentsline{toc}{chapter}{Bibliography}
+  \printbibliography[heading=none]
+
+\else
+
+  % ----------------------------------------------------------------
+  % French summary booklet: the deposited French abstract, the extended
+  % summary, and a bibliography holding only what the summary cites --
+  % this is a separate biber run, so \printbibliography sees exactly the
+  % \cite keys of these two files.
+  % ----------------------------------------------------------------
+  \mainmatter
+
+  \input{chapters/abstract-fr.tex}
+  \input{chapters/extended-summary-fr.tex}
+
+  \begin{otherlanguage}{french}
+  \chapter*{Bibliographie}
+  \printbibliography[heading=none]
+  \end{otherlanguage}
+
+\fi
 
 % ------------------------------------------------------------------
 % Blank page, then the back cover (assets/back-cover.png + English
 % abstract), as the very last two pages of the manuscript.
 % ------------------------------------------------------------------
-\clearpage
-\thispagestyle{empty}
-\mbox{}
-\clearpage
+\ifThesisArtCover
+  \clearpage
+  \thispagestyle{empty}
+  \mbox{}
+  \clearpage
 
-\input{back-cover.tex}
+  \input{back-cover.tex}
+\fi
 
 \end{document}

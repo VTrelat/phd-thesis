@@ -7,12 +7,21 @@
 % is vertically centered against the whole body block.
 \newsavebox{\axiomtxtbox}
 \newsavebox{\axiomfgbox}
+\newlength{\axiomfigwd}
 \newcommand{\axiomlayout}[2]{%
   \sbox{\axiomtxtbox}{\begin{minipage}[t]{0.66\linewidth}#1\end{minipage}}%
   \sbox{\axiomfgbox}{#2}%
+  % The illustrations are drawn at a fixed 3.6cm.  On a measure narrow enough
+  % that the slot is smaller than that -- A5 -- the picture would stick out of
+  % its \makebox to the left and run back over the prose, so scale it down to
+  % the slot.  On A4 the slot is the wider of the two and nothing happens.
+  \setlength{\axiomfigwd}{0.30\linewidth}%
+  \ifdim\wd\axiomfgbox>\axiomfigwd
+    \sbox{\axiomfgbox}{\resizebox{\axiomfigwd}{!}{\usebox{\axiomfgbox}}}%
+  \fi
   \usebox{\axiomtxtbox}%
   \hfill
-  \makebox[0.30\linewidth][r]{%
+  \makebox[\axiomfigwd][r]{%
     \raisebox{\dimexpr 0.5\ht\axiomtxtbox - 0.5\dp\axiomtxtbox
                        - 0.5\ht\axiomfgbox + 0.5\dp\axiomfgbox\relax}%
              {\usebox{\axiomfgbox}}%

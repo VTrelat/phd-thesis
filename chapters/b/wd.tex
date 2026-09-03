@@ -40,13 +40,13 @@ denotation is total (\Cref{thm:b-denote-complete}).
   recursion. It is purely propagational on the total fragment, and at the only two partial
   operators---application and cardinality---it additionally imposes
   the semantic side condition under which the operator denotes:
-  \begin{align*}
+  \begin{fitalign}
     \WD(t)                          & \;\triangleq\; \top,\quad \text{ where \(t\) is an atom or a constant}, \\
     \WD\big(c(t_1, \dots, t_k)\big) & \;\triangleq\; \WD(t_1) \land \cdots \land \WD(t_k), \quad \text{ where \(c\) is a non-binder constructor}, \\
     \WD\big(\smallint_D P\big)       & \;\triangleq\; \WD(D) \land \forall \vec{\var{v}},\ \WD\big(P(\vec{\var{v}})\big), \quad \text{ where \(\smallint \in \left\{\lambdaBa, \forallBa, \bcompa{\cdot}{\cdot}\right\}\)}\\
     \WD\big(\appB' f\,x\big)        & \;\triangleq\; \WD(f) \land \WD(x) \land \IsPFunc\ F\ \interpZ{\tau}\ \interpZ{\sigma} \land X \in \Dom(F), \\
     \WD\big(\cardBa{S}\big)          & \;\triangleq\; \WD(S) \land \IsFinite\ S'.
-  \end{align*}
+  \end{fitalign}
   The first three clauses cover, respectively, an atom or type constant \(t\), a total non-binder
   constructor \(c\), and a binder \(\bcompa{D}{P}\)---the last applying identically to
   \(\lambdaB' D \cdot P\) and \(\forallB' D \cdot P\), and requiring the body \(P\) to be well-defined

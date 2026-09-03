@@ -94,24 +94,96 @@
 \cs_generate_variant:Nn \__leanptr_render_pair:nn { VV }
 \cs_generate_variant:Nn \seq_set_split:Nnn { Nne }
 
+% Two renderings of the same pointer list: all on one line, or one name per
+% line right-aligned.  \leanptrfit picks between them.
+\NewDocumentCommand \tcbenvleanptrinline { } {
+  \int_step_inline:nn { \l__leanptr_n_int } {
+    \int_compare:nNnT { ##1 } > { 1 } { \textcolor{beige!25!cover-cream}{,}~ }
+    \tl_set:Nx \l__leanptr_name_tl { \seq_item:Nn \l__leanptr_names_seq { ##1 } }
+    \tl_set:Nx \l__leanptr_url_tl  { \seq_item:Nn \l__leanptr_urls_seq  { ##1 } }
+    \tl_trim_spaces:N \l__leanptr_name_tl
+    \tl_trim_spaces:N \l__leanptr_url_tl
+    \__leanptr_render_pair:VV \l__leanptr_name_tl \l__leanptr_url_tl
+  }
+}
+\NewDocumentCommand \tcbenvleanptrstacked { } {
+  \int_step_inline:nn { \l__leanptr_n_int } {
+    \int_compare:nNnT { ##1 } > { 1 } { \\ }
+    \tl_set:Nx \l__leanptr_name_tl { \seq_item:Nn \l__leanptr_names_seq { ##1 } }
+    \tl_set:Nx \l__leanptr_url_tl  { \seq_item:Nn \l__leanptr_urls_seq  { ##1 } }
+    \tl_trim_spaces:N \l__leanptr_name_tl
+    \tl_trim_spaces:N \l__leanptr_url_tl
+    \__leanptr_render_pair:VV \l__leanptr_name_tl \l__leanptr_url_tl
+  }
+}
+
 \NewDocumentCommand \tcbenvleanptrlist { m m } {
   \tl_if_blank:nF { #1 } {
     \seq_set_split:Nnn \l__leanptr_names_seq { , } { #1 }
     \seq_set_split:Nne \l__leanptr_urls_seq  { , } { #2 }
     \int_set:Nn \l__leanptr_n_int { \seq_count:N \l__leanptr_names_seq }
     \node[anchor=south~east, inner~sep=3pt, yshift=-3pt] at (frame.north~east) {%
-      \scriptsize
-      \int_step_inline:nn { \l__leanptr_n_int } {
-        \int_compare:nNnT { ##1 } > { 1 } { \textcolor{beige!25!cover-cream}{,}~ }
-        \tl_set:Nx \l__leanptr_name_tl { \seq_item:Nn \l__leanptr_names_seq { ##1 } }
-        \tl_set:Nx \l__leanptr_url_tl  { \seq_item:Nn \l__leanptr_urls_seq  { ##1 } }
-        \tl_trim_spaces:N \l__leanptr_name_tl
-        \tl_trim_spaces:N \l__leanptr_url_tl
-        \__leanptr_render_pair:VV \l__leanptr_name_tl \l__leanptr_url_tl
-      }%
+      \scriptsize\leanptrfit
     };%
   }
 }
+\ExplSyntaxOff
+
+% The pointer shares the top edge with the boxed title and grows leftwards from
+% the right frame corner.  On a wide measure both fit side by side; on a narrow
+% one a long name -- or a list of them -- reaches back under the title.
+%
+% On A5, a list of two or more names is therefore always broken one name per
+% line.  Always, not just when the single line fails to fit, because the
+% pointer is drawn in an overlay and so occupies no space: the stack grows up
+% out of the box and would land on the preceding line of text unless that room
+% is reserved in advance, and \leanptrreserve (called before the box, where
+% \tcboxedtitlewidth is not yet known) can only reserve it exactly if the
+% decision does not depend on the measurement.  A single name stays on one line
+% whatever its length and is scaled instead, which costs no height at all.
+\newsavebox{\leanptrbox}
+\newlength{\leanptravail}
+\newlength{\leanptrline}
+\setlength{\leanptrline}{8pt}   % one \scriptsize line of the stack
+\newcommand{\leanptrfit}{%
+  \setlength{\leanptravail}{\dimexpr\linewidth-\tcboxedtitlewidth-8mm\relax}%
+  \ifdim\leanptravail<22mm \setlength{\leanptravail}{22mm}\fi
+  \ifthesisleanptrstack
+    \sbox{\leanptrbox}{\begin{tabular}{@{}r@{}}\tcbenvleanptrstacked\end{tabular}}%
+  \else
+    \sbox{\leanptrbox}{\tcbenvleanptrinline}%
+  \fi
+  \ifdim\wd\leanptrbox>\leanptravail
+    \resizebox{\leanptravail}{!}{\usebox{\leanptrbox}}%
+  \else
+    \usebox{\leanptrbox}%
+  \fi
+}
+
+% True when the pointer list will be stacked, i.e. on A5 with more than one
+% name.  Set by \leanptrreserve before the box and read by \leanptrfit inside
+% the overlay, so that the space reserved and the space used always agree.
+\newif\ifthesisleanptrstack
+% #1 = how many lines the stack adds beyond the first.
+\newcommand{\leanptrreservelines}[1]{\par\addvspace{\dimexpr\leanptrline*#1\relax}}
+\ExplSyntaxOn
+% Reserve the height of the lines beyond the first, before the box is started.
+\NewDocumentCommand \leanptrreserve { m } {
+  \bool_set_false:N \l__leanptr_stack_bool
+  \tl_if_blank:nF { #1 } {
+    \seq_set_split:Nnn \l__leanptr_names_seq { , } { #1 }
+    \int_set:Nn \l__leanptr_n_int { \seq_count:N \l__leanptr_names_seq }
+    \int_compare:nNnT { \l__leanptr_n_int } > { 1 } {
+      \legacy_if:nT { ThesisAfive } {
+        \bool_set_true:N \l__leanptr_stack_bool
+        \leanptrreservelines { \int_eval:n { \l__leanptr_n_int - 1 } }
+      }
+    }
+  }
+  \bool_if:NTF \l__leanptr_stack_bool
+    { \thesisleanptrstacktrue } { \thesisleanptrstackfalse }
+}
+\bool_new:N \l__leanptr_stack_bool
 \ExplSyntaxOff
 
 % ---------------------------------------------------------------------------
@@ -202,6 +274,7 @@
 
 \NewDocumentEnvironment{theorem}{O{} O{} O{}}{%
   \def\thesisleanurls{#3}%
+  \leanptrreserve{#2}%
   \theorembox{#1}{#2}{\thesisleanurls}%
 }{\endtheorembox}
 
@@ -224,6 +297,7 @@
 
 \NewDocumentEnvironment{corollary}{O{} O{} O{}}{%
   \def\thesisleanurls{#3}%
+  \leanptrreserve{#2}%
   \corollarybox{#1}{#2}{\thesisleanurls}%
 }{\endcorollarybox}
 
@@ -246,6 +320,7 @@
 
 \NewDocumentEnvironment{lemma}{O{} O{} O{}}{%
   \def\thesisleanurls{#3}%
+  \leanptrreserve{#2}%
   \lemmabox{#1}{#2}{\thesisleanurls}%
 }{\endlemmabox}
 
@@ -268,6 +343,7 @@
 
 \NewDocumentEnvironment{definition}{O{} O{} O{}}{%
   \def\thesisleanurls{#3}%
+  \leanptrreserve{#2}%
   \definitionbox{#1}{#2}{\thesisleanurls}%
 }{\enddefinitionbox}
 
@@ -284,6 +360,7 @@
 
 \NewDocumentEnvironment{example}{O{} O{} O{}}{%
   \def\thesisleanurls{#3}%
+  \leanptrreserve{#2}%
   \examplebox{#1}{#2}{\thesisleanurls}%
 }{\endexamplebox}
 

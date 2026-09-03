@@ -1,4 +1,5 @@
 \begin{titlepage}
+\thesisfitpicsfalse  % artwork is sized to the page, never to the text block
 \tikzexternalexportnextfalse
 \begin{tikzpicture}[remember picture, overlay]
 
@@ -19,12 +20,12 @@
   ] at ([yshift=0.04\paperheight]current page.center) {%
     {\playfaircoverfamily\color{dark-blue}%
      \begin{center}
-       {\fontsize{20}{21}\bfseries\selectfont\ThesisTitle\par}
-       \vspace{5mm}
+       {\backTitleSize\bfseries\selectfont\ThesisTitle\par}
+       \vspace{\backCoverSkip}
        {\rule{0.20\linewidth}{0.4pt}}
      \end{center}
-     \vspace{5mm}
-     {\fontsize{11}{14.5}\selectfont\noindent
+     \vspace{\backCoverSkip}
+     {\backBodySize\selectfont\noindent
       Turn this book over and watch two foundationally distinct worlds flowing into one another. On one side, the fluid world of sets, where everything is a collection and a function is just a well-behaved relation; on the other, the crystalline world of types, where every object carries its shape. Formal specification lives mostly on the first side: whether they describe systems or mathematics, formalisms from B, Z and TLA$^{+}$ to Mizar and Isabelle/ZF speak of sets, relations and functions, and state correctness as facts about them. The provers that establish these facts live on the second, among fixed types and sorted signatures. Somewhere in between, a translation decides what the prover is actually asked. That translation is part of the proof, and it is almost never proved.
       \smallskip
 

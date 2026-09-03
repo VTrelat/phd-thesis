@@ -1107,11 +1107,11 @@ The pair specification (\Cref{case:pair}) is
 \]
 As in the \texttt{opt} case, it suffices to exhibit two witnesses under which the body is denoted by $\topZ$. Take the pair $(a^!, b^!)$ and $\Delta'' \coloneq \Delta_{\lvar{x}}[\lvar{fst} \mapsto \denval{a^!}[\alpha'],\, \lvar{snd} \mapsto \denval{b^!}[\beta']]$.
 Then, since $\lvar{x}$ and $\pairS{ \lvar{fst}}{\lvar{snd}}$ are both denoted by $(a^!, b^!) = X^!$ under $\Delta''$, and $\Delta''$ agrees with $\Delta_{\lvar{fst}}$ and $\Delta_{\lvar{snd}}$ on the free variables of $\spec{\lvar{fst}}$ and $\spec{\lvar{snd}}$ respectively (neither contains $\lvar{x}$),
-\begin{align*}
+\begin{fitalign}
   \interpS{\aterm{\lvar{x} \eqS \pairS{ \lvar{fst}}{\lvar{snd}}}{\Delta''}} &\;=\; \denval{(a^!, b^!) \eqZ (a^!, b^!)}[\boolS][\irrelprf] = \denval{\topZ}[\boolS][\irrelprf],\\
   \interpS{\aterm{\spec{\lvar{fst}}}{\Delta''}} &\;=\; \denval{\topZ}[\boolS][\irrelprf],\\
   \interpS{\aterm{\spec{\lvar{snd}}}{\Delta''}} &\;=\; \denval{\topZ}[\boolS][\irrelprf],
-\end{align*}
+\end{fitalign}
 Thus, $\interpS{\aterm{\psi}{\Delta''}} = \topZ \andZ \topZ \andZ \topZ = \topZ$, and therefore $\interpS{\aterm{\spec{\lvar{x}}}{\Delta_{\lvar{x}}}} = \notZ\botZ = \topZ$.
 \end{subproof}
 

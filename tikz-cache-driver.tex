@@ -1,6 +1,13 @@
 % Standalone context used only by TikZ externalization subprocesses.
 % The owning chapter and its number are injected by preamble.tex.
-\documentclass[10pt]{scrbook}
+\input{thesis-target.tex}
+% 9pt on the A5 book: the measure is 116mm against A4's 159mm, and the
+% smaller size keeps the line at a normal ~66 characters.
+\ifThesisBookTarget
+  \documentclass[fontsize=9pt]{scrbook}
+\else
+  \documentclass[10pt]{scrbook}
+\fi
 \usepackage[Bjornstrup]{fncychap}
 
 \input{preamble.tex}
