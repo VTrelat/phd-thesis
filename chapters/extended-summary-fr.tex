@@ -22,8 +22,8 @@ généraliste peut proposer, dans les langues mêmes où les chercheurs formulen
 leurs idées.
 
 Cette extension des capacités rend la question de la fiabilité plus
-pressante. Une réponse générée peut être correcte, subtilement fausse, ou
-correcte pour de mauvaises raisons, et sa fluidité efface les indices qui
+pressante~\cite{stanfordAIIndex2026}. Une réponse générée peut être
+correcte, subtilement fausse, ou correcte pour de mauvaises raisons, et sa fluidité efface les indices qui
 trahissaient autrefois une réponse douteuse. Plus il est facile de produire
 une réponse plausible, plus les justifications vérifiables comptent. Leonardo
 de Moura l'a résumé en trois phrases~\cite{deMoura2026floc}: \og Nous n'avons
@@ -38,10 +38,11 @@ déterministe et inspectable.
 Deux familles de systèmes se partagent la preuve assistée par ordinateur. Un
 démonstrateur (ou prouveur) automatique (ATP) reçoit une conjecture et cherche
 une preuve sans guidage. Parmi eux, les solveurs de satisfiabilité modulo
-théories (SMT), tels que Z3~\cite{demoura2008z3} et
+théories (SMT)~\cite{barrett2021smt}, tels que Z3~\cite{demoura2008z3} et
 cvc5~\cite{barbosa2022cvc5}, sont particulièrement efficaces sur les
 buts engendrés par la vérification de programmes, qu'ils
-traitent par lots une fois traduits dans leur langage. Un assistant à la
+traitent par lots une fois traduits dans leur langage d'entrée commun,
+SMT-LIB~\cite{barrett2010smtlib}. Un assistant à la
 preuve interactif (ITP) fournit au contraire un environnement où définitions,
 énoncés et preuves sont développés ensemble; chaque preuve achevée est
 vérifiée par un petit noyau. Lean~4~\cite{deMouraUllrich2021Lean4}, utilisé
@@ -55,8 +56,11 @@ langages source et cible, ici B et SMT-LIB, diffèrent par leur système de
 types, leurs primitives et leur traitement des quantificateurs. Un
 démonstrateur irréprochable ne peut réparer une traduction qui change le sens
 de son entrée, et une preuve du côté cible n'établit l'énoncé source que si le
-lien entre les deux est lui-même justifié. Plus le moteur devient puissant,
-plus il importe de ne pas cacher cette frontière derrière le message de succès
+lien entre les deux est lui-même justifié. Dans TLAPS, l'assistant à la
+preuve de \tlaplus, un mode de reconstruction de types de l'encodage SMT a
+servi pendant des années avant que l'on découvre qu'il admettait ses
+conditions de typage sans les vérifier~\cite{defourne2025encoding}. Plus le
+moteur devient puissant, plus il importe de ne pas cacher cette frontière derrière le message de succès
 d'un outil. Cette thèse naît de cette tension entre automatisation et
 assurance. Elle n'apporte aucune automatisation nouvelle; elle travaille sur
 les liens qui rendent l'automatisation acceptable, afin que la validité d'un
@@ -73,9 +77,9 @@ logiques dont la démonstration établit que l'initialisation satisfait
 l'invariant, que chaque opération le préserve et que chaque raffinement est
 correct. Un développement est accepté lorsque toutes ses obligations sont
 déchargées; sa fiabilité dépend donc des outils qui les déchargent.
-L'Atelier~B, l'outil industriel de référence, engendre les obligations et les
-soumet à ses propres démonstrateurs, ainsi qu'à des solveurs SMT externes via
-son traducteur \textsc{ppTrans}~\cite{deharbe2014integrating}.
+L'Atelier~B, l'outil industriel de référence~\cite{lecomte2024proving},
+engendre les obligations et les soumet à ses propres démonstrateurs, ainsi
+qu'à des solveurs SMT externes via son traducteur \textsc{ppTrans}~\cite{deharbe2014integrating}.
 
 \begin{figure}[t]
   \centering
@@ -139,12 +143,14 @@ transporte les obligations de l'Atelier~B vers des théorèmes Lean.
 \section*{\zflean{}: des mathématiques ensemblistes dans Lean}
 
 La plupart des assistants à la preuve modernes reposent sur une théorie des
-types (Isabelle/HOL, Rocq, Agda, Lean); quelques-uns reposent sur une théorie
-des ensembles du premier ordre (Mizar, Isabelle/ZF). Raisonner au niveau des
-ensembles reste pourtant utile: égalités entre ensembles définis par des
+types (Isabelle/HOL~\cite{NipkowPaulsonWenzel2002},
+Rocq~\cite{RocqReferenceManual}, Agda~\cite{AgdaReferenceManual}, Lean);
+quelques-uns reposent sur une théorie des ensembles du premier ordre
+(Mizar~\cite{mizar-sota}, Isabelle/ZF~\cite{paulson-zf}). Raisonner au
+niveau des ensembles reste pourtant utile: égalités entre ensembles définis par des
 compréhensions différentes, fonctions partielles vues comme des relations,
-raisonnement \og à isomorphisme près\fg. Mathlib fournit un modèle de ZFC,
-mais l'utiliser tel quel expose des détails de construction (quotients,
+raisonnement \og à isomorphisme près\fg. Mathlib fournit un modèle de
+ZFC~\cite{mathlib-zfc}, mais l'utiliser tel quel expose des détails de construction (quotients,
 extensionnalité) qui rendent pénibles même de petits développements; ce
 modèle est donc plus souvent cité qu'utilisé.
 
@@ -176,16 +182,16 @@ SMT-LIB sont interprétés.
 \section*{Formalisation de B et de SMT-LIB}
 
 Les deux langages sont formalisés selon le même plan: syntaxe, typage,
-sémantique dénotationnelle.
+sémantique dénotationnelle~\cite{scottStrachey1971}.
 
 Le fragment de B retenu est le cœur logique des obligations de l'Atelier~B:
 entiers, booléens, couples, connecteurs, quantification bornée, ensembles
 (parties, produits, union, intersection, compréhension), cardinal, fonctions
 partielles, application et abstraction. Une syntaxe concrète (plongement profond) suit celle des
 fichiers d'obligations de l'Atelier~B; une syntaxe abstraite, où les variables
-liées sont représentées par des variables de Lean (plongement superficiel), sert au
-raisonnement sémantique et évite les problèmes de renommage. Le typage est un
-jugement \(\btype{\Gamma}{t}{\alpha}\) sur les types de B,
+liées sont représentées par des variables de Lean (plongement superficiel,
+PHOAS~\cite{chlipala2008phoas}), sert au raisonnement sémantique et évite
+les problèmes de renommage. Le typage est un jugement \(\btype{\Gamma}{t}{\alpha}\) sur les types de B,
 engendrés à partir des entiers et des booléens par produit cartésien et
 ensemble des parties \(\mathbb{P}(\tau)\). Les opérateurs partiels (par exemple, application hors du domaine,
 minimum de l'ensemble vide) sont encadrés par un prédicat de bonne définition qui
@@ -197,15 +203,15 @@ preuve que \(T\) appartient à l'interprétation ensembliste du type \(\alpha\) 
 Le fragment de SMT-LIB~2.7~\cite{smtlib2.7} comprend les sortes des entiers,
 des booléens et de l'unité, et trois constructeurs: fonctions, paires et
 options, ces deux derniers réalisés par les types de données polymorphes de
-la version~2.7. Le fragment est d'ordre supérieur (\(\lambda\)-termes,
-application partielle): c'est ce qui permet de représenter les fonctions de B
-par des fonctions SMT. Sa sémantique est donnée dans le même univers ZFC que
+la version~2.7. Le fragment est d'ordre supérieur~\cite{barbosa2019hosmt}
+(\(\lambda\)-termes, application partielle): c'est ce qui permet de
+représenter les fonctions de B par des fonctions SMT. Sa sémantique est donnée dans le même univers ZFC que
 celle de B, et non dans une logique d'ordre supérieur, ce qui aurait pourtant
 été naturel: la correction de l'encodage se formule comme une relation entre
 dénotations B et SMT, qui n'a de sens que si les deux langages dénotent dans
 un même modèle.
 
-\section*{Relaxation de types: réconcilier théorie des types et théorie des ensembles}
+\section*{Réconcilier théorie des types et théorie des ensembles}
 
 La traduction de B vers SMT-LIB bute sur une différence de nature entre les
 deux langages. En B, relations, fonctions partielles et fonctions totales sont
@@ -241,8 +247,8 @@ On définit donc un ordre \(\castable{\alpha}{\beta}\) sur les types SMT, qui d�
 (réflexivité, option, paire, prédicat caractéristique, fonction, graphe) la
 relaxation peut être effectuée. Tout type se situe entre une forme la moins générale
 \(\lgf{\alpha}\) et une forme la plus générale \(\mgf{\alpha}\), reliées par
-une connexion de Galois. La fonction \(\mathsf{loosen}_{\mathbb{c}}\), définie
-par récurrence sur la structure de \(\mathbb{c}\), permet de relaxer un terme \(x\)
+une connexion de Galois~\cite{davey-priestley}. La fonction
+\(\mathsf{loosen}_{\mathbb{c}}\), définie par récurrence sur la structure de \(\mathbb{c}\), permet de relaxer un terme \(x\)
 en le remplaçant par une variable fraîche \(\lvar{x}\) contrainte par une spécification \(\spec{\lvar{x}}\).
 Le théorème de correction établit que cette spécification caractérise exactement
 l'image de \(x\) par la conversion sémantique \(\zop{\mathbb{c}}\): si l'ensemble \(X\)
@@ -382,13 +388,14 @@ négation du but encodé, puis appelle \smtinl{check-sat}. Le théorème,
 complété par un argument sur papier au niveau du script, garantit qu'une
 réponse \smtinl{unsat} atteste la validité de l'obligation source. Cette
 garantie ne dit rien de la réponse du solveur elle-même, que l'on peut
-accepter telle quelle ou vérifier par un certificat de preuve.
+accepter telle quelle ou vérifier par un certificat de
+preuve~\cite{barendregt2002autarkic,schurr2021alethe,barbosa2022flexible}.
 
 \begin{figure}[t]
   \centering
-  \begin{tikzpicture}[node distance=2.5cm]
+  \begin{tikzpicture}[node distance=2.1cm]
     \node (t) {$t : \alpha$};
-    \node (tsmt) [right=of t] {$t' : \beta$};
+    \node (tsmt) [right=of t, xshift=.4cm] {$t' : \beta$};
     \node (dent) [below=of t] {$\denval{T}[\alpha]$};
     \node (dentsmt) [below=of tsmt] {$\denval{T'}[\beta]$};
 
@@ -418,9 +425,11 @@ de \beer{}: les constructions ensemblistes y sont compilées en formules du
 premier ordre sur des prédicats d'appartenance. L'encodeur évalué est
 \textsc{Zero-Proof} \beer{}, puisque la question porte sur la conception de
 l'encodage à pleine échelle. Les scripts des deux côtés sont soumis à cvc5,
-seul solveur acceptant le fragment d'ordre supérieur de SMT-LIB, avec
-instanciation des quantificateurs fondée sur les modèles (\emph{model-based quantifier instantiation})
-et le même budget de temps par but.
+seul solveur acceptant le fragment d'ordre supérieur de
+SMT-LIB~\cite{barbosa2019hosmt}, avec instanciation des quantificateurs fondée
+sur les modèles (\emph{model-based quantifier
+instantiation})~\cite{ge2009complete,kondylidou2025mbqi} et le même budget de
+temps par but.
 
 De bout en bout, \textsc{ppTrans} prouve une plus grande part du corpus, l'écart
 venant surtout de la couverture.
@@ -451,7 +460,8 @@ complémentaire remplace cette étape par un assistant à la
 preuve généraliste, en l'occurrence Lean.
 
 \barrel{} (\emph{B Automated tRanslation for Reasoning in
-Lean})~\cite{bergeron2026barrel}, développé avec Ghilain Bergeron, est une
+Lean})~\cite{bergeron2026barrel,bergeron2026barrelAFADL}, développé avec
+Ghilain Bergeron, est une
 bibliothèque Lean~4 qui consomme les fichiers que l'Atelier~B produit déjà.
 Il importe une machine, un raffinement ou un fichier d'obligations, traduit
 chaque obligation en une proposition Lean, tente de la prouver
@@ -488,7 +498,8 @@ fonctionnelle.
 
 Le reste est de l'ingénierie de preuve: les conditions de bonne définition
 identiques sont partagées à l'échelle d'un import; l'automatisation combine
-des lemmes propres à B et la tactique \leaninl{grind} de Lean; chaque
+des lemmes propres à B et la tactique \leaninl{grind} de
+Lean~\cite{LeanReferenceManual}; chaque
 obligation dispose de son propre budget de ressources, rendant l'outil utilisable
 à l'échelle industrielle. Une interface graphique permet de visualiser l'avancement.
 L'outil est conçu pour être extensible: de nouvelles constructions B peuvent
@@ -513,8 +524,8 @@ respecter partout où un terme est élaboré.
 Les limites sont énoncées avec la même précision. La sémantique formelle de B
 couvre le fragment mathématique dont \beer{} a besoin; machines,
 substitutions, raffinement et génération des obligations en sont exclus, et
-l'accord de ce fragment avec le \emph{B-Book} reste un jugement porté sur
-papier, comme pour tout développement de ce type.
+l'accord de ce fragment avec le \emph{B-Book}~\cite{abrial1996bbook} reste un
+jugement porté sur papier, comme pour tout développement de ce type.
 
 Trois directions s'ouvrent. La principale composante de la base de confiance
 est commune aux deux voies: la génération des obligations. Une sémantique des
