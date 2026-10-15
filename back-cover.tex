@@ -1,4 +1,8 @@
-\begin{titlepage}
+% Unlike titlepage (which forces a recto), keep the verso selected by main.tex.
+\clearpage
+\begingroup
+\thispagestyle{empty}
+\null
 \thesisfitpicsfalse  % artwork is sized to the page, never to the text block
 \tikzexternalexportnextfalse
 \begin{tikzpicture}[remember picture, overlay]
@@ -37,4 +41,5 @@
   };
 
 \end{tikzpicture}
-\end{titlepage}
+\clearpage
+\endgroup

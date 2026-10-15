@@ -1,6 +1,13 @@
 \chapter*{Résumé}
 \addcontentsline{toc}{chapter}{Résumé}
 
+\begingroup
+\ifThesisAfive
+  % Match the English abstract while keeping the keywords on the same page.
+  \setstretch{1.0}
+  \vspace*{-36pt}
+\fi
+
 \begin{otherlanguage}{french}
 
 % Règle de dépôt (Université de Lorraine) : 2 500 caractères maximum, espaces
@@ -51,3 +58,4 @@ servir sans que la validité d'un résultat dépende de l'outil qui l'a proposé
 SMT; encodage vérifié; théorie des ensembles; ZFC; démonstration
 interactive; raisonnement automatisé; Lean~4.
 \end{otherlanguage}
+\par\endgroup

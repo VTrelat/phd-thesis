@@ -34,6 +34,7 @@
 \renewcommand{\nompreamble}{%
   \setcounter{nomchapcount}{0}%
   \setlength{\columnsep}{3em}%
+  \ifThesisAfive\setlength{\multicolsep}{6pt}\fi
   \small%
 }
 \renewcommand{\nompostamble}{%
@@ -48,8 +49,10 @@
     \stepcounter{nomchapcount}%
     \ifnum\value{nomchapcount}>1\relax
       % Close previous chapter's 3-column block; add inter-chapter spacing.
-      \par\end{multicols}\addvspace{14pt}%
+      \par\end{multicols}%
+      \ifThesisAfive\addvspace{8pt}\else\addvspace{14pt}\fi
     \fi
+    \ifThesisAfive\Needspace{4\baselineskip}\fi
     % \item[] satisfies the list environment.  Patch \@item's side-effects
     % (wrong \@labels skips, wrong \parshape) before \everypar fires.
     \item[]\relax

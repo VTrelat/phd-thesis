@@ -210,11 +210,12 @@ Running cvc5 (\Cref{sec:ar-smt}) with the following options returns \textsf{unsa
 Indeed, the assumptions place both graphs in \(X\prodB Y\), and the loosening specification preserves the graph of \(\var{f}\), so their union cannot contain a counterexample to the inclusion.
 By the refutational criterion, \cref{eq:beer-running-po} is valid.
 
+% Keep the preceding small floats in order, then let the complete script
+% continue across a page break instead of reserving an isolated float page.
+\FloatBarrier
 \begingroup
-\makeatletter
-\@fptop=0pt
-\makeatother
-\begin{smtlisting}[title={Complete running-example refutation.}, label=lst:beer-running-po, float=t]
+\setstretch{1.0}
+\begin{smtlisting}[title={Complete running-example refutation.}, label=lst:beer-running-po]
 (set-logic HO_ALL)
 (declare-datatype Pair (par (T1 T2) ((pair (fst T1) (snd T2)))))
 (declare-datatype Option (par (T) ((some (the T)) (none))))
@@ -250,5 +251,4 @@ By the refutational criterion, \cref{eq:beer-running-po} is valid.
   (pop 1)
 (pop 1)
 \end{smtlisting}
-\FloatBarrier
 \endgroup

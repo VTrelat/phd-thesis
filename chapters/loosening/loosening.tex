@@ -1237,6 +1237,8 @@ The loosening diagram (\Cref{fig:loosening-square}) here transports a predicate 
   \draw[relarr, draw=black] (X) to node[midway, below] {$\zop{\mathbb{c}}$} (X!);
 \end{tikzpicture}
 \vspace*{-\baselineskip}
+% Keep the final diagram and the proof's QED marker on the same page.
+\makeatletter\@endparpenalty=10000\makeatother
 \end{center}
 \end{proof}
 
@@ -1436,6 +1438,8 @@ This is the one shape-changing rule: the loosening diagram (\Cref{fig:loosening-
 
 Taken together, the six cases exhaust the constructors of a cast path and therefore establish \Cref{thm:loosening-correctness} by induction on $\mathbb{c}$. In each of them the loosening diagram (\Cref{fig:loosening-square}) commutes: the denotation of the loosened term $\lvar{x}$ is the semantic cast $\appZ\zop{\mathbb{c}}(X)$ of the denotation $X$ of the source $x$, and the specification $\spec{\lvar{x}}$ singles out this cast image as its unique typed solution---completeness (item~2) placing the image among the solutions, soundness (item~3) ruling out every other typed target. As the semantic cast is injective (\Cref{lem:semantic-cast-injective}), that image in turn determines $X$, so $\spec{\lvar{x}}$ ties $\lvar{x}$ to $x$ unambiguously: loosening rewrites the \emph{representation} of a value but never the set it denotes. Only the \texttt{graph} case changes the shape of that representation---trading the functional encoding of a partial function for the relational encoding of its graph---while the other five act homomorphically, transporting the value componentwise. This discharges the slogan of \Cref{sec:loosening-rules}: a term may be replaced by its loosened view at a looser type with its denotation provably unchanged.
 
+% On A4, keep the short conclusion together instead of leaving a few final lines.
+\ifThesisAfive\else\Needspace{26\baselineskip}\fi
 \section{Conclusion}
 \label{sec:loosening-conclusion}
 

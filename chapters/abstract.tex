@@ -1,6 +1,13 @@
 \chapter*{Abstract}
 \addcontentsline{toc}{chapter}{Abstract}
 
+\begingroup
+\ifThesisAfive
+  % Keep the abstract and its keywords together at the book's body font size.
+  \setstretch{1.0}
+  \vspace*{-36pt}
+\fi
+
 % Université de Lorraine deposit rule: 2 500 characters maximum, spaces included.
 % Current length: 2 275 characters (plain text, macros expanded).
 
@@ -40,3 +47,4 @@ tool that proposed it.
 \bigskip
 \noindent\textbf{Keywords:} B method; higher-order logic; SMT solving; verified
 encoding; set theory; ZFC; interactive theorem proving; automated reasoning; Lean~4.
+\par\endgroup
