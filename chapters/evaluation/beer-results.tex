@@ -97,7 +97,7 @@ Across more than 1.6 million solver runs, no goal is \smtinl{sat} on one side an
 Under strict scoring, \beer{} is 17.9 points behind; restricted to the goals both pipelines actually answered, it is within 3.2 points (\bmBeerH\,\% against \bmPptH\,\%).
 \Cref{fig:eval-fourway} splits that shared population four ways: \bmBoth\,\% of it is proved by both encodings, \bmBeerOnly\,\% by \beer{} alone, \bmPptOnly\,\% by ppTrans alone, and \bmNeither\,\% by neither.
 Even under strict scoring, their union proves \bmSUnion\,\% of the corpus against ppTrans's \bmPptAll\,\%.
-Those 3.2 points may simply be the price of a young technique: cvc5 is still the only SMT solver to accept the higher-order fragment of SMT-LIB~\cite{smtlib2.7}, and higher-order instantiation reached SMT solving only in 2019~\cite{barbosa2019hosmt}. Most other higher-order provers are saturation-based rather than SMT-based~\cite{bentkamp2023higherorder,kovacs2013vampire}, so \beer rests on solver support far less developed than the first-order reasoning ppTrans uses.
+Those 3.2 points may simply be the price of a young technique: at the time of the experiment, cvc5 was the only solver available to us for the higher-order fragment of SMT-LIB~\cite{smtlib2.7}, and higher-order instantiation reached SMT solving only in 2019~\cite{barbosa2019hosmt}. Most other higher-order provers are saturation-based rather than SMT-based~\cite{bentkamp2023higherorder,kovacs2013vampire}, so \beer rests on solver support far less developed than the first-order reasoning ppTrans uses.
 
 \begin{figure}[t]
 \centering
@@ -197,6 +197,7 @@ Aggregate solver cost differs far more: running cvc5 over the corpus consumed ro
 \label{fig:eval-ratio}
 \end{figure}
 
+\FloatBarrier
 \subsection{Where the difference lives}
 \label{sec:beer-results-where}
 
@@ -205,7 +206,7 @@ Aggregate solver cost differs far more: running cvc5 over the corpus consumed ro
 % leading \vspace{0pt} aligns the tops of the two boxes rather than their
 % baselines, and `scale only axis` in both makes `height` the plot box itself,
 % so the rotated labels on the right no longer shrink its plot.
-\begin{figure}[t]
+\begin{figure}[!htbp]
 \begin{minipage}[t]{0.38\linewidth}
 \vspace{0pt}
 \centering
@@ -247,7 +248,7 @@ Where both sides answer, the encodings perform comparably at order 0 and from or
 Deep goals are also the ones both pipelines least often answer, so the high-order buckets are computed from few goals.
 Under strict scoring, which counts an unanswered goal as a failure, \beer{} is behind at every order; \Cref{tab:eval-order} carries both readings.
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
 \centering
 \begin{tikzpicture}
 \begin{axis}[bars, height=5.8cm, width=\linewidth, bar width=8pt,
@@ -347,13 +348,14 @@ Propositional goals again run the other way, on the smallest cell in the figure;
 \Cref{fig:eval-size-quant} plots success against raw goal size and against the number of quantifiers the \emph{source} goal binds.
 Neither reverses the ordering: \beer{} is behind in every size bucket, from the smallest goals to the largest, and in every quantifier bucket.
 
+\FloatBarrier
 \subsection{Where \beer{} wins alone}
 \label{sec:beer-results-alone}
 This section examines the structure of the \bmBOHTotal{} goals that \beer{} proves and ppTrans does not.
 Under verdict-only scoring, every such goal is one on which ppTrans answered \smtinl{unknown}: an encoding-quality win.
 Most of the strict exclusive wins are of that kind too, rather than resource wins at the wall.
 
-\begin{figure}[t]
+\begin{figure}[!htbp]
 \centering
 \begin{tikzpicture}
 \begin{groupplot}[group style={group size=2 by 1, horizontal sep=2.4cm},
@@ -392,7 +394,7 @@ Among constructs, cardinality leads by a wide margin, followed by set-typed boun
 Function application sits below the overall rate, and propositional goals well below every other class.
 Class sizes are in \Cref{tab:eval-construct,tab:eval-subject}.
 
-\bmBOFiles{} files contribute at least one exclusive win.
+A total of \bmBOFiles{} files contribute at least one exclusive win.
 Three of the heaviest contributors\footnote{\texttt{0039/00060}, \texttt{0039/00040}, and \texttt{0032/00046}.} report identical figures and are almost certainly the same machine appearing three times in the corpus, and count as one for file-level concentration.
 On \texttt{0033/00039}, most of the answered goals are \beer{}'s alone---far more than ppTrans's own rate on that file---and they are order-1 function applications, the class \beer{} loses on average.
 On \texttt{0002/00006} and \texttt{0024/00011}, ppTrans proves almost nothing under strict scoring while \beer{} clears them in seconds; almost none of their goals received a ppTrans verdict, so the verdict-only ranking cannot show them.

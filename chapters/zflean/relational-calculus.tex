@@ -3,7 +3,7 @@
 
 Throughout this section, we work within the ZFC model provided by Mathlib and extend it with a calculus for binary relations and partial/total functions.
 A \emph{binary relation} $R$ between $A$ and $B$ is a subset $R \subseteq A\times B$.
-Our calculus integrates standard operations on relations (converse, identity, composition, domain, range, image) together with predicates for partial and total functions, and provides \emph{automation tactics} designed to discharge ubiquitous well-formedness side-conditions, enabling these objects to be manipulated directly without verbose boilerplate, much as in a paper proof.
+Our calculus integrates standard operations on relations (converse, identity, composition, domain, range, image) together with predicates for partial and total functions, and provides \emph{automation tactics} designed to discharge ubiquitous well-formedness side conditions, enabling these objects to be manipulated directly without verbose boilerplate, much as in a paper proof.
 These tactics are designated \inlinelean|zrel|, \inlinelean|zpfun|, and \inlinelean|zfun|, and are described in greater detail in \Cref{subsec:zflean-automation}.
 
 \subsection{Basic definitions}
@@ -20,14 +20,11 @@ These tactics are designated \inlinelean|zrel|, \inlinelean|zpfun|, and \inlinel
           \begin{equation*}
             R^{-1} \;\triangleq\; \{z \in B\times A \mid (\pi_2(z), \pi_1(z))\in R \}
           \end{equation*}
-          This definition carries the side-condition $R\subseteq A\times B$ (declaring that $R$ is a relation between the implicit sets $A$ and $B$), an implicit argument that \inlinelean|zrel| attempts to discharge in \zflean.
     \item Given relations $R\subseteq A\times B$ and $S\subseteq B\times C$, their \emph{composition} $S\circ R \subseteq A\times C$ is defined as:
           \begin{equation*}
             S \circ R \;\triangleq\; \{ w \in A\times C \mid \exists\, y \in B,\, (\pi_1(w), y)\in R \land (y, \pi_2(w))\in S \}
           \end{equation*}
-          Unlike the converse, the composition carries \emph{no} side-condition on $R$ and $S$: it is defined for arbitrary sets and, being a separation of $A\times C$, always yields a relation between $A$ and $C$.
-          When $R$ and $S$ are genuine relations between $A,B$ and $B,C$, it computes their expected composition; any pairs of $R$ or $S$ lying outside $A\times B$ or $B\times C$ are simply ignored.  
-          For functions specifically, we define a dedicated \emph{functional composition} $\regnotation{\fcompZ}$ that requires $R$ and $S$ to be functions, and uses the \inlinelean|zfun| tactic to discharge these side-conditions automatically.
+          For functions specifically, we define a dedicated \emph{functional composition} $\regnotation{\fcompZ}$ that requires $R$ and $S$ to be functions, and uses the \inlinelean|zfun| tactic to discharge these side conditions automatically.
   \end{itemize}
 \end{definition}
 
@@ -40,7 +37,7 @@ These tactics are designated \inlinelean|zrel|, \inlinelean|zpfun|, and \inlinel
       \Image{R}{X} & \;\triangleq\;  \{ y \in B \mid \exists\, x \in X,\, (x, y) \in R \}
   \end{align*}
 
-  Operationally, all three definitions above invoke the \inlinelean|zrel| tactic to discharge the side-condition that $R$ is a relation between $A$ and $B$.
+  Operationally, all three definitions above invoke the \inlinelean|zrel| tactic to discharge the side condition that $R$ is a relation between $A$ and $B$.
 \end{definition}
 
 Finally, we define partial functions as functional relations without totality requirements.
@@ -50,7 +47,7 @@ Finally, we define partial functions as functional relations without totality re
     \regnotation{\IsPFunc}(f, A, B) \;\triangleq\; f \subseteq A \times B \,\land\, \left(\forall\, x \in A,\, \forall\, y \in B,\, \forall\, z \in B,\, (x,y) \in f \land (x,z) \in f \implies y = z\right)
   \end{equation*}
 \end{definition}
-\footnotetext{The order of arguments is voluntarily changed compared to $\IsFunc$, so that in Lean, one may write \inlinelean|f.IsPFunc A B|.}
+\footnotetext{We retain Mathlib's argument order for $\IsFunc(A,B,f)$. The predicate $\IsPFunc(f,A,B)$ is introduced by \zflean, so we place the relation first to allow the dotted notation \inlinelean|f.IsPFunc A B|. This difference in argument order is a notation convention and has no semantic significance.}
 
 We also derive predicates $\IsInjective$, $\IsSurjective$, and $\IsBijective$ in the usual sense, which all invoke the tactic \inlinelean|zfun| to discharge functional totality requirements.
 
@@ -62,7 +59,7 @@ We also derive predicates $\IsInjective$, $\IsSurjective$, and $\IsBijective$ in
 \label{subsec:zflean-func-eval-lambda}
 
 We now add two notions that make functions practical to use, namely function application and $\lambda$-abstraction.
-In a purely set-theoretic setting these are not primitive---a function \emph{is} its graph, and application is the derived operation that recovers the unique image of a point---yet they are indispensable in practice; we define them so as to keep standard mathematical notation while automating side-conditions as much as possible:
+In a purely set-theoretic setting these are not primitive---a function \emph{is} its graph, and application is the derived operation that recovers the unique image of a point---yet they are indispensable in practice; we define them so as to keep standard mathematical notation while automating side conditions as much as possible:
 \begin{itemize}
   \item \emph{function application}, written $\fapply{f}{x}$, maps $x\in\Dom(f)$ to the unique $y$ such that $(x,y)\in f$; here $\fapplysym$ is the application operator (not a function applied to a pair), and it invokes the \inlinelean|zpfun| tactic to prove that $f$ is a partial function.
   In full, $\fapplysym$ is a non-computable dependently typed operator that \emph{also} takes a proof $h_x$ that $x$ belongs to the domain (supplied explicitly---there is no automation at this point), so the complete form is $\fapply{f}{\langle x, h_x \rangle}$, of which $\fapply{f}{x}$ is the shorthand we use throughout the manuscript; the membership proofs are elided here but present in the Lean code.
@@ -169,9 +166,9 @@ theorem is_func_ext_iff {A B : ZFSet} {f g : ZFSet}
 
 \subsection{Automation of side conditions}
 \label{subsec:zflean-automation}
-These side conditions are not inherent to set-theoretic reasoning; they are the cost of the by-construction discipline mentioned in \Cref{rmk:no-junk}, which trades junk values for well-formedness witnesses in order to keep every object well-formed without threading hypotheses through definitions.
-Working with relations and partial/total functions then repeatedly produces such subtype-shaped goals.
-As already mentioned, the library provides three lightweight tactics whose purpose is to try to solve them \emph{structurally}:
+Using the typed interface to relations and functions requires proofs of relationhood, partial or total functionality, and membership in the domain of a function being applied.
+These side conditions arise from the by-construction discipline described in \Cref{rmk:no-junk}.
+The library provides three lightweight tactics to discharge the relation and function conditions \emph{structurally}; domain-membership proofs are supplied separately:
 \begin{itemize}
   \item \inlinelean|zrel|: relational goals $R\subseteq A\times B$;
   \item \inlinelean|zpfun|: partial functionality goals $\mathsf{IsPFunc}(f,A,B)$;
@@ -225,12 +222,12 @@ theorem IsFunc_of_composition_IsFunc {g f : ZFSet} {A B C : ZFSet}
     A.IsFunc C (composition g f A B C)
 \end{leanlisting}
 
-Given this infrastructure, we then leverage Lean's \emph{automatic parameters} to pass default tactics in partial definitions depending on side-conditions, so that those side-conditions are automatically discharged when possible.
+We use Lean's \emph{automatic parameters} to supply default tactics for the side conditions of partial definitions, so that those conditions are discharged automatically when possible.
 Automatic parameters are very similar to default parameters, but are specific to tactics: they try to discharge the goal using the provided default tactic if the argument is not supplied explicitly, and fail silently otherwise, leaving the user to provide a manual proof.
 Furthermore, those side conditions often depend on parameters that are kept implicit (e.g., the sets $A$ and $B$ in $R \subseteq A \times B$); they are also inferred automatically by Lean.
 This ultimately enables working with these definitions---most of the time---without worrying about side conditions or implicit parameters, which is the intended purpose of the \zflean{} framework.
 
-\Cref{lst:automation-layer-thm} illustrates this already: the converse relation $R^{-1}$ in theorem \inlinelean|subset_prod_inv| is actually a relation between $B$ and $A$, which are implicit at this level, and relies on the side-condition $R \subseteq A \times B$, automatically discharged by \inlinelean|zrel|.
+\Cref{lst:automation-layer-thm} illustrates this already: the converse relation $R^{-1}$ in theorem \inlinelean|subset_prod_inv| is actually a relation between $B$ and $A$, which are implicit at this level, and relies on the side condition $R \subseteq A \times B$, automatically discharged by \inlinelean|zrel|.
 This principle will be further exemplified in \Cref{sec:zflean-case-study}.
 \begin{leanlisting}[title={Examples of simplification rules for relations and functions.}, label=lst:simp-rules, float=t]
 @[simp] theorem range_Id {A : ZFSet} : (𝟙A).Range = A
@@ -296,6 +293,6 @@ A few examples are shown in \Cref{lst:simp-rules}, with proofs omitted.
   \end{table}
 \fi
 
-Overall, this calculus provides a compact, rewriting-friendly and easily extensible interface for extensional reasoning with relations and functions \emph{inside} ZFC, while hiding routine side-conditions behind small, domain-specific tactics.
+Overall, this calculus provides a compact, rewriting-friendly and easily extensible interface for extensional reasoning with relations and functions \emph{inside} ZFC, while hiding routine side conditions behind small, domain-specific tactics.
 % \Cref{tab:rel-api} summarizes the relational interface provided by the library, notations and the associated automatic parameters.
 % \fixme[Does the table really add value to the paper?]

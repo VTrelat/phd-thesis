@@ -18,6 +18,3 @@ Its design is the opposite pole of \beer's: set-theoretic constructs are compile
 The questions above concern the encoding \emph{design} at full scale, so the encoder under test is \textsc{Zero-Proof} \beer{} (\Cref{sec:beer-zero-proof}).
 It applies the encoding rules of \Cref{ch:beer}, extended to a larger fragment of B---cardinality, finiteness, sequences, transitive closure, generalized sum and product---and is optimized for throughput: efficient data structures like hash-maps, arrays, linear state updates, and with the artifacts specifically added for the proof of correctness removed (like dependent in-domain test guarding each context lookup, the copy of the context taken at every binder, \etc).
 It shares the design of the verified encoder, and its implementation lies outside the soundness theorem of \Cref{sec:beer-soundness}.
-
-Scripts from both translators are then processed by cvc5~\cite{barbosa2022cvc5}, the reference implementation of higher-order SMT solving~\cite{barbosa2019hosmt}.
-The choice is largely forced on one side---\beer{} emits \texttt{HO\_ALL} scripts that no other solver accepts---and neutral on the other: ppTrans's output is first-order, a fragment on which cvc5 is routinely competitive.

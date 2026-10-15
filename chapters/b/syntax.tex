@@ -442,6 +442,7 @@ To distinguish the two syntactic categories, we reuse the constructor names of
 
 \begin{definition}[Abstract syntax][B.PHOAS.Term][B/PHOAS/Basic.html\#B.PHOAS.Term]
   \label{def:b-abstract-syntax}
+  \begin{minipage}{\linewidth}
       The constructors for abstract terms are listed below, where \(v\) is a variable in
   \(\mathcal{V}\), \(n\) is an integer, and \(b\) is a Boolean value.
 
@@ -452,12 +453,18 @@ To distinguish the two syntactic categories, we reuse the constructor names of
     | $t \addB' s$ && $t \subB' s$ && $t \mulB' s$ && $t \leB' s$ // Arithmetic
     | $t \andB' s$ && $\notB' t$ && $t \eqB' s$ && $t \inB' s$ && $\forallB' t \cdot e$ // Logic
     | $\powB'(t)$ && $t \prodB' s$ && $t \cupB' s$ && $t \capB' s$ && $\bcompa{t}{e}$ // Set theory
+    | $\cardBa{t}$
     | $t \pfunB' s$ && $\appB' t\ s$ && $\lambdaB' t \cdot\,e$ // Functions
   \end{bnf}
 
   where \(e : (\mathsf{Fin}\,n \to \mathcal{V}) \to \mathsf{Term}\,\mathcal{V}\)
   is the scope of a binder of arity \(n\).
+  \end{minipage}
 \end{definition}
+
+Cardinality is part of both syntaxes, with typing, semantics, and well-definedness
+clauses given below. It has no encoding rule in the verified encoder, which rejects
+it as discussed in \Cref{sec:beer-discussion}.
 
 \begin{remark}
   The arity \(n\) of each binder is implicit, so binders need not be annotated

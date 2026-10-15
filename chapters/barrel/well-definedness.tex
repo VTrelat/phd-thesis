@@ -10,8 +10,7 @@ recomputes such evidence instead of importing the conditions Atelier~B can gener
 
 Lean has no primitive notion of partiality: a declared function is total on its domain
 type.
-A partial B operator must therefore be turned into a total Lean function, and there are
-essentially three ways to do so.
+A partial B operator must therefore be turned into a total Lean function.
 One may return an arbitrary value on arguments outside the intended domain; the resulting
 theorems are then true of the Lean definition but not of the B operator it is meant to
 denote, and nothing in the statement records the discrepancy.
@@ -19,7 +18,10 @@ One may restrict the argument type by a subtype, which changes the shape of ever
 surrounding expression.
 Or one may keep the argument types unchanged and add a proof of definedness as an extra
 argument.
-\barrel{} takes the third option.
+\barrel{} takes this proof-argument approach.
+An option-valued result, as used by \beer{}, would require callers to unwrap the value
+before using it. We rule out that design here to keep expressions close to B and require
+definedness evidence at each use of a partial operator.
 
 For each partial operator, a proposition named \leaninl{WD} states the evidence the operator
 needs, and the operator takes an inhabitant of that proposition as an explicit argument.

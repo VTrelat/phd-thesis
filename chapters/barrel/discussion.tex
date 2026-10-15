@@ -205,16 +205,15 @@ the interactive route inherit the guarantee \beer{}'s encoder already carries.
 
 \subsection{Remaining engineering}
 
-Three limits are independent of that program.
+Three limits of the implementation used in summer 2026 are independent of that program.
 The first is the long tail of the supported fragment (\Cref{subsec:barrel-coverage}): the
 constructs left out are individually easy to add, and each addition is the same short list
 of steps, but the list has to be worked through.
 The second is the cost of an import: 31~minutes for 2\,526 obligations
 (\Cref{subsec:barrel-industrial-scale}) is a batch job.
-Two properties of the present design bound how far that scales: the encoder traverses B
+Two properties of that version bound how far that scales: the encoder traverses B
 terms by direct recursion, so the depth of a single obligation is charged to the call
-stack, and nothing is released between obligations, so an import holds every proposition it
-has produced until it ends.
+stack, and the importer retains the propositions it produces until the import ends.
 The third is the reach of the default automation: 3.6\,\% of the obligations of an
 industrial file, against 39\,\% of the principal obligations of the case study
 (\Cref{subsec:barrel-industrial-scale}).

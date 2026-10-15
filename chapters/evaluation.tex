@@ -4,6 +4,9 @@
 The preceding chapters built an encoding of B proof obligations into SMT-LIB and established its correctness.
 In this chapter, we evaluate its \emph{effectiveness} by asking whether the higher-order design of \Cref{ch:loosening,ch:beer} helps an SMT solver discharge more industrial proof obligations than the first-order encodings used by current tools do, and how it behaves on different classes of goals.
 We encoded every goal in a large public corpus of Atelier~B proof obligations~\cite{deharbe2022pog} with both \beer{} and Atelier~B's ppTrans translator, solved the resulting scripts with cvc5 under identical settings, and compared the outcomes goal by goal: \bmGoals{} goals from \bmFiles{} files.
+\beer{} emits \texttt{HO\_ALL} scripts using the higher-order constructs of SMT-LIB~2.7~\cite{smtlib2.7}: function values, \(\lambda\)-abstractions, and partial application.
+We chose cvc5~\cite{barbosa2022cvc5,barbosa2019hosmt} because, when we set up the experiments, it was the only SMT solver available to us that supported both this input format and the higher-order reasoning required by \beer{}.\footnote{In May~2026, Z3 \href{https://github.com/Z3Prover/z3/pull/9636}{added parser support} for \texttt{HO\_ALL} and curried function applications. Work on its higher-order reasoning continued, with a \href{https://github.com/Z3Prover/z3/pull/10639}{new higher-order quantifier solver} merged on 26~August~2026, after the manuscript was written. Z3 was not included in this evaluation.}
+Using it for ppTrans's first-order output as well lets us compare the encodings under the same solver and settings.
 
 As an \emph{encoding}, the higher-order design stands within a few points of the industrial baseline on the goals that both pipelines answer.
 It leads on arithmetic and cardinality, gains ground on higher-order goals, and proves tens of thousands of goals the baseline cannot.

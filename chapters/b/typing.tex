@@ -189,11 +189,11 @@ We prove the standard structural properties of the concrete type system, includi
 \paragraph{Rule inversion.}
 First, we prove all expected inversion lemmas---one per typing rule---from which typing information about subterms can be extracted. Although not strictly necessary in theory---inversion can always be performed manually---they are extremely useful in practice: they allow typing derivations to be decomposed directly into their premises, which are then propagated through induction hypotheses, a recurring pattern in backward reasoning.
 
-They are available under the names {\small\leancodeptr{B.Typing.varE}{B/Typing/Rules.html\#B.Typing.varE}}, {\small\leancodeptr{B.Typing.addE}{B/Typing/Rules.html\#B.Typing.addE}}, {\small\leancodeptr{B.Typing.setE}{B/Typing/Rules.html\#B.Typing.setE}}, \etc and their proofs are straightforward, proceeding by case analysis on the typing derivation of the term, which in each case reduces to a single branch. For example, the inversion lemma for union is as follows.
+They are available under the names {\small\leancodeptr{B.Typing.varE}{B/Typing/Rules.html\#B.Typing.varE}}, {\small\leancodeptr{B.Typing.addE}{B/Typing/Rules.html\#B.Typing.addE}}, {\small\leancodeptr{B.Typing.setE}{B/Typing/Rules.html\#B.Typing.setE}}, \etc, and their proofs are straightforward, proceeding by case analysis on the typing derivation of the term, which in each case reduces to a single branch. For example, the inversion lemma for union is as follows.
 
 \begin{lemma}[Union typing inversion][B.Typing.unionE][B/Typing/Rules.html\#B.Typing.unionE]
   \label{lem:b-union-concrete-typing-inversion}
-  Let \(\Gamma\) be a typing context, \(S\) and \(T\) be concrete B terms, and \(\tau\) be a B type. If \(\btype{\Gamma}{S \cupB T}{\tau}\), then both \(S\) and \(T\) are typed as sets over a common element type under \(\Gamma\), and \(\tau\) is a set of that element type,or equivalently, presented as an elimination rule:
+  Let \(\Gamma\) be a typing context, \(S\) and \(T\) be concrete B terms, and \(\tau\) be a B type. If \(\btype{\Gamma}{S \cupB T}{\tau}\), then both \(S\) and \(T\) are typed as sets over a common element type under \(\Gamma\), and \(\tau\) is a set of that element type, or equivalently, presented as an elimination rule:
   \begin{mathpar}
     \infer*[right=\small\texttt{unionE}]%
       {\btype{\Gamma}{S \cupB T}{\tau}}
@@ -286,6 +286,9 @@ The following structural properties, namely context weakening and strengthening,
   Hence the body premise has the expected context. Finally, since \(\vec{\var{v}}\) is fresh for \(\Gamma\) and disjoint from \(\vec{\var{y}}\), the binder side condition \(\mathsf{Bind}(\Gamma[\vec{\var{y}}:\vec\beta],\vec{\var{v}},\vec\sigma,\vec D)\) also holds, and the lambda rule concludes.
 \end{proof}
 
+Context strengthening lets us discard unused declarations and work in a context
+containing only the free variables of a term.
+
 \begin{theorem}[Context strengthening][B.Typing.context\_strengthening'][B/Typing/Rules.html\#B.Typing.context_strengthening']
   Let \(\Gamma\) be a concrete typing context, \(e\) be a concrete B term, \(\vec{\var{y}}\) be a list of variables, and \(\vec\beta\) be a list of B types of the same length. If \(\btype{\Gamma[\vec{\var{y}}:\vec\beta]}{e}{\alpha}\) and no variable in \(\vec{\var{y}}\) is free in \(e\), then
   \[
@@ -371,7 +374,7 @@ and a given variable renaming.
 a variable renaming context. The abstract context
 \(\aterm{\Gamma}{\Delta} : \mathcal{V} \rightharpoonup \mathsf{BType}\) is defined for \(\var{v} : \mathcal{V}\) whenever
 \begin{enumerate}[label=(\roman*)]
-  \item there exists a concrete name \(\var{k}\) with \(\Delta(\var{k}) = \var{v} \land \var{k} \in \Gamma\), and
+  \item there exists a concrete name \(\var{k}\) in \(\Gamma\) such that \(\Delta(\var{k}) = \var{v}\), and
   \item the intrinsic B type \(\tau\) carried by \(\var{v}\) is \(\Gamma(\var{k}) = \tau\).
 \end{enumerate}
 When both conditions hold, the abstract context maps \(\var{v}\) to \(\tau\):

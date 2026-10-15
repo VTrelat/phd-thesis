@@ -181,6 +181,12 @@ right-nested pair SMT type associated with \(\vec\tau\).
   \Cref{ch:beer}. No expressiveness is lost, the two presentations being related by
   the standard currying isomorphism
   \((\tau_1 \timesS \cdots \timesS \tau_n) \toS \gamma \,\cong\, \tau_1 \toS \cdots \toS \tau_n \toS \gamma\).
+  This semantic equivalence does not ensure equal solver performance: equivalent
+  representations can expose different patterns to automation, and a solver may
+  fail to prove an encoded formula within its resource budget. The separate choice
+  between functional and relational encodings motivates loosening
+  (\Cref{sec:loosening-motivation}); \Cref{sec:beer-results} evaluates the resulting
+  encoding as a whole, without isolating the effect of currying.
 \end{remark}
 
 \subsection{Properties of the concrete type system}
@@ -305,14 +311,14 @@ enforced on the source side (\Cref{rem:b-constraint-on-V}). We call the image of
 We illustrate the binder rules with the lambda rule; the universal rule is
 analogous. Given a family of SMT types \(\vec\tau : \mathsf{Fin}\,n \to
 \mathsf{SMTType}\) with \(n > 0\), an SMT type \(\gamma\), and a scope 
-\(e : (\mathsf{Fin}\,n \to \mathcal{V}) \to \mathsf{Term}\,\mathcal{V}\):
+\(e : (\mathsf{Fin}\,n \to \mathcal{V}) \to \mathsf{Term}\,\mathcal{V}\), the lambda typing rule is as follows.
 
 \begin{mathpar}
   \typingrule{smt-abstract-typing}{lambda}
   {\forall \vec{\var{v}},\, \satype{\Gamma[\vec{\var{v}}:\vec\tau]}{e(\vec{\var{v}})}{\gamma}}
   {\satype{\Gamma}{\lamS \vec\tau \cdot e}{\tau^{\times} \toS \gamma}}
 \end{mathpar}
-where the vector \(\vec{\var{v}}\) of variables ranges over all families of variables carrying the
+Here, the vector \(\vec{\var{v}}\) ranges over all families of variables carrying the
 expected SMT types.
 
 As for the concrete system, we prove inversion lemmas for every abstract rule,

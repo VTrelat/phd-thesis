@@ -51,10 +51,11 @@ denotation is total (\Cref{thm:b-denote-complete}).
   constructor \(c\), and a binder \(\bcompa{D}{P}\)---the last applying identically to
   \(\lambdaB' D \cdot P\) and \(\forallB' D \cdot P\), and requiring the body \(P\) to be well-defined
   under every instantiation \(\vec{\var{v}}\) of its bound variables. In the two partial clauses the
-  side conditions are stated against the subterm denotations: writing
-  \(\interpB{f} = \denval{F}[\setB(\tau \prodB \sigma)]\), \(\interpB{x} = \denval{X}[\tau]\), and
-  \(\interpB{S} = \denval{S'}[\setB\alpha]\), the value \(F\) must be a partial function from
-  \(\interpZ{\tau}\) to \(\interpZ{\sigma}\) with \(X\) in its domain, and \(S'\) must be finite.
+  side conditions are stated against the subterm denotations. For application, write
+  \(\interpB{f} = \denval{F}[\setB(\tau \prodB \sigma)]\) and \(\interpB{x} = \denval{X}[\tau]\).
+  The value \(F\) must be a partial function from \(\interpZ{\tau}\) to
+  \(\interpZ{\sigma}\) with \(X\) in its domain. For cardinality, write
+  \(\interpB{S} = \denval{S'}[\setB\alpha]\); the value \(S'\) must be finite.
 \end{definition}
 
 The significance of well-definedness is fixed by the

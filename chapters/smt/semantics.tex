@@ -188,7 +188,7 @@ their definitions as derived forms (\Cref{def:smt-derived}).
 Given \(\interpS{t} = \denval{T}[\tau]\), options are interpreted by the tagged encoding
 of \Cref{def:smt-type-interp}:
 \[
-  \interpS{\someSa t} \triangleq \denval{\someZ\,T}[\optS\tau],\qquad
+  \interpS{\someSa t} \triangleq \denval{\someZ\,T}[\optS\tau]\quad\text{and}\quad
   \interpS{\aop{\noneS}_{\tau}} \triangleq \denval{\noneZ}[\optS\tau].
 \]
 Conversely, given \(\interpS{t} = \denval{T}[\optS\tau]\),
@@ -199,7 +199,7 @@ Here \(\theZ\) is the selector of the option encoding (\Cref{def:zflean-sum}): i
 \(\theZ(\someZ X) = X\), and on \(\noneZ\) it returns a designated element of the carrier
 \(\interpZ{\tau}\)---well-defined because \(\interpZ{\tau}\) is non-empty
 by \Cref{thm:smt-type-nonempty}. It is therefore \emph{total}, faithfully reflecting
-SMT-LIB's treatment of a datatype selector applied to a non-matching constructor as
+SMT-LIB's treatment of a data type selector applied to a non-matching constructor as
 underspecified rather than undefined.
 For the unit type \(\unitS\),
 \[
@@ -207,8 +207,9 @@ For the unit type \(\unitS\),
 \]
 
 \begin{proofconstruct}
-  The proofs are straightforward and follow from the definitions of \(\someZ\), \(\noneZ\),
-  \(\theZ\), and \(\interpZ{\unitS} \triangleq \{\emptyset\}\).
+  The proofs follow from the definitions of the option constructors \(\someZ\) and
+  \(\noneZ\), the selector \(\theZ\), and the unit carrier
+  \(\interpZ{\unitS} \triangleq \{\emptyset\}\).
 \end{proofconstruct}
 
 \paragraph{Distinctness.}

@@ -124,10 +124,16 @@ theorem pair_mem_prod {x y a b : ZFSet} :
   a.pair b ∈ x × y ↔ a ∈ x ∧ b ∈ y
 \end{leanlisting}
 
+Here, Lean's dotted notation \inlinelean|x.pair y| stands for \inlinelean|ZFSet.pair x y|, or \inlinelean|pair x y| when the namespace is open.
+We use this optional notation for readability; the chained form \inlinelean|z.π₁.pair z.π₂| constructs the pair of the two projections of \inlinelean|z|.
+
 ZFC set theory has no built-in notion of functions, whose definition must be approached carefully.
-In programming languages and type theories, functions are usually first-class and \emph{total} by construction, while mathematical functions can be \emph{partial} and are defined as \emph{functional relations} whose domain may be smaller than the intended source set.
-This difference is usually bridged by using options or dependent types to encode partiality, however in this work we aim to stay as close as possible to the set-theoretic definitions.
-Also, Mathlib already provides a definition for total functions and exponential objects, which we reuse in our development.
+In the logical fragment of a dependent type theory such as Lean's, an inhabitant of \(A \to B\) is a \emph{total} mathematical function.
+This does not apply to ordinary programming-language function types, which do not in general guarantee termination or the absence of runtime errors.
+Partial mathematical operations can be represented in type theory using restricted domains, options, or explicit proof arguments.
+In set theory, a function is represented by a \emph{functional relation}; it is partial relative to an intended source set when its domain is a proper subset of that set.
+In this work, we stay close to these set-theoretic definitions.
+Mathlib already provides a definition for total functions and exponential objects, which we reuse in our development.
 The definition is as follows.
 \begin{definition}[Total function][ZFSet.IsFunc][Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.IsFunc]
   A set \(f\) is said to be a total function from a set \(A\) to a set \(B\), denoted by \(\IsFunc(A, B, f)\), if it is a functional relation whose domain is exactly \(A\):

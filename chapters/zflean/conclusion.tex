@@ -3,9 +3,12 @@
 
 This chapter presented \zflean, a Lean~4 library that formalizes ZFC set theory on top of Mathlib by engineering a relational calculus, establishing universal properties via transport along isomorphisms, and providing bridges to native Lean types.
 The resulting layer makes extensional reasoning tractable while remaining fully compatible with typed developments.
-Future work on \zflean includes extending the library with more canonical set-theoretic constructions, such as building reals via Cauchy sequences or Dedekind cuts (or both), and improving automation to further reduce boilerplate in proofs.
-One might push the framework further and develop more mathematics inside it, for instance basic analysis and related results.
+The development presented here reflects the state of \zflean in summer 2026.
+Beyond the needs of the B-to-SMT development, \zflean is intended as an independent library for set-theoretic mathematics.
+Real numbers and basic analysis belong to this wider purpose; the B-to-SMT development presented in this thesis does not require those constructions.
+A \href{https://github.com/VTrelat/ZFLean/pull/11}{pull request} opened in September 2026 constructs real numbers as equivalence classes of rational Cauchy sequences and provides field and order structures. At the time of writing, this contribution remains unmerged, and completeness remains future work.
+Further work also includes improving automation to reduce boilerplate in proofs.
 
-The constructions introduced here --- ordered pairs, disjoint unions, options, and the associated isomorphism machinery --- serve as the foundational substrate for the work described in the remainder of this manuscript.
+The constructions introduced here---ordered pairs, disjoint unions, options, and the associated isomorphism machinery---serve as the foundational substrate for the work described in the remainder of this manuscript.
 In particular, the formalization of B proof obligations and their SMT encoding, developed in the following chapters, is built directly within this framework.
 This is no coincidence: B's mathematical language is itself set-theoretic---its expressions denote sets, relations, and (partial) functions---so the relational calculus, the canonical number constructions, and the partial-function layer developed here provide exactly the vocabulary in which the next chapter is expressed.

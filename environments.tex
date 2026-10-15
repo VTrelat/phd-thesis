@@ -60,10 +60,10 @@
       {%
         \scriptsize
         \if\relax\detokenize{#2}\relax
-          \ttfamily\color{beige!25!cover-cream}#1%
+          \ttfamily\color{beige!20!cover-cream}#1%
         \else
           \begingroup
-          \hypersetup{urlcolor=beige!25!cover-cream}%
+          \hypersetup{urlcolor=beige!20!cover-cream}%
           \leancodeptr{#1}{#2}%
           \endgroup
         \fi
@@ -84,9 +84,9 @@
 
 \cs_new_protected:Nn \__leanptr_render_pair:nn {
   \tl_if_blank:nTF { #2 } {
-    \ttfamily\color{beige!25!cover-cream}#1%
+    \ttfamily\color{beige!20!cover-cream}#1%
   }{
-    \begingroup\hypersetup{urlcolor=beige!25!cover-cream}%
+    \begingroup\hypersetup{urlcolor=beige!20!cover-cream}%
     \leancodeptr{#1}{#2}%
     \endgroup
   }
@@ -98,7 +98,7 @@
 % line right-aligned.  \leanptrfit picks between them.
 \NewDocumentCommand \tcbenvleanptrinline { } {
   \int_step_inline:nn { \l__leanptr_n_int } {
-    \int_compare:nNnT { ##1 } > { 1 } { \textcolor{beige!25!cover-cream}{,}~ }
+    \int_compare:nNnT { ##1 } > { 1 } { \textcolor{beige!20!cover-cream}{,}~ }
     \tl_set:Nx \l__leanptr_name_tl { \seq_item:Nn \l__leanptr_names_seq { ##1 } }
     \tl_set:Nx \l__leanptr_url_tl  { \seq_item:Nn \l__leanptr_urls_seq  { ##1 } }
     \tl_trim_spaces:N \l__leanptr_name_tl

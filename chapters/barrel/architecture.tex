@@ -127,7 +127,8 @@ The complete surface syntax consists of two commands, illustrated in
 The command \leaninl{import $k$ $n$ from $d$} imports the artifact named \(n\) from
 directory \(d\), where the kind \(k\) is one of \leaninl{machine}, \leaninl{refinement},
 \leaninl{implementation}, \leaninl{system}, or \leaninl{pog}.
-The command \leaninl{prove_obligations_of $n$} then reopens the obligations of \(n\)
+
+The command \mbox{\texttt{prove\_obligations\_of} \(n\)} then reopens the obligations of \(n\)
 that automation did not close, one per \leaninl{next} block.
 
 \begin{leanlisting}[title={Importing and proving a B refinement chain.},

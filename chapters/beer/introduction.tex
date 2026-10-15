@@ -9,8 +9,10 @@ The implementation is deliberately kept in the background: it is the topic of a 
 \subsection{What is proved}
 \label{sec:beer-goal}
 
-The correctness criterion for \beer{} is semantic equivalence: a B proof obligation and its SMT encoding must have the same truth value under corresponding valuations.
-The Lean theorem proves the central semantic-preservation result for individual terms, including when the source and the target use different representations.
+To use \beer{} as a proof backend, it suffices that validity of an encoded obligation imply validity of the source obligation under the stated assumptions.
+We prove the stronger semantic-preservation result because it gives a more useful induction hypothesis: the proofs can relate source and target values in both directions, including under binders.
+For Boolean terms, this correspondence is equality of truth values under corresponding valuations.
+The Lean theorem states this result for individual terms, including when the source and the target use different representations.
 Under the hypotheses stated in \Cref{thm:beer-encodeTerm-spec}, a successful encoding of a well-typed, well-defined B term of type \(\alpha\) produces a well-typed SMT term of some selected representation type \(\beta\); its denotation represents the source denotation after the semantic cast from \(\beta\) to the canonical type \(\toSMT{\alpha}\).
 The theorem applies directly to valuations that use the representations selected by the encoder, including option-valued functions.
 
@@ -72,13 +74,13 @@ The division between the executable encoder and this semantic argument is depict
 \label{sec:beer-running-example}
 
 The following small example accompanies the whole chapter.
-We consider two sets of integers \(X, Y\) and two constants
+We consider two sets of integers \(X\) and \(Y\), with a total function \(\var{f}\) and a relation \(\var{g}\) satisfying
 \[
-  \var{f} \inB X \tfunB Y,
-  \qquad
-  \var{g} \inB X \mathbin{\bop{\leftrightarrow}} Y,
+  \var{f} \inB X \tfunB Y
+  \qquad\text{and}\qquad
+  \var{g} \inB X \mathbin{\bop{\leftrightarrow}} Y.
 \]
-a total function and a relation, and state the invariant \(\var{f} \cupB \var{g} \subseteqB X \prodB Y\).
+The invariant states that \(\var{f} \cupB \var{g} \subseteqB X \prodB Y\).
 The B method would generate one proof obligation for it, whose goal is the invariant itself under the two hypotheses above:
 \begin{equation}
   \bigl(\var{f} \inB X \tfunB Y\bigr) \andB
