@@ -1,7 +1,7 @@
 \section{Definitions and properties}
 \label{sec:loosening-defs}
 
-We begin by pinning down \emph{which} types may be loosened into which, before turning, in \Cref{sec:loosening-rules}, to the construction that actually performs the loosening. Two notions serve this purpose: a relation $\sqsubseteq$ stating that a type \emph{can} be loosened into another, and an inductive datatype $\castpath{}{}$ whose inhabitants are explicit witnesses of \emph{how}. The former is convenient for stating properties; the latter, being a concrete piece of data, is what the recursive construction consumes. We first define both, then relate them and study the order-theoretic structure $\sqsubseteq$ induces on $\mathsf{SMTType}$---a structure rich enough to admit normal forms and a Galois connection~\cite{davey-priestley}, which together explain the geometry of loosening.
+We begin by pinning down \emph{which} types may be loosened into which, before turning, in \Cref{sec:loosening-rules}, to the construction that actually performs the loosening. Two notions serve this purpose: a relation $\sqsubseteq$ stating that a type \emph{can} be loosened into another, and an inductive data type $\castpath{}{}$ whose inhabitants are explicit witnesses of \emph{how}. The former is convenient for stating properties; the latter, being a concrete piece of data, is what the recursive construction consumes. We first define both, then relate them and study the order-theoretic structure $\sqsubseteq$ induces on $\mathsf{SMTType}$---a structure rich enough to admit normal forms and a Galois connection~\cite{davey-priestley}, which together explain the geometry of loosening.
 
 \subsection{Definitions}
 
@@ -38,6 +38,10 @@ The two definitions share their inference rules: $\regnotation{\castable{\alpha}
 \end{definition}
 
 The base case \ref{rule:castable-refl} keeps atomic types unchanged. The structural rules \ref{rule:castable-opt}, \ref{rule:castable-chpred}, \ref{rule:castable-pair} and \ref{rule:castable-fun} loosen componentwise under an option, a characteristic-predicate domain, a product, and a function space. The essential rule \ref{rule:castable-graph} turns the functional encoding $\alpha \toS \optS\,\beta$ of a partial function into the relational encoding $(\alpha' \timesS \beta') \toS \boolS$ of its graph---the move motivated in \Cref{sec:loosening-motivation}. The side condition $\beta \neq \boolS$ makes \ref{rule:castable-fun} and \ref{rule:castable-chpred} disjoint: a function into $\boolS$ is a characteristic predicate and is handled only by \ref{rule:castable-chpred}.
+
+\begin{remark}[Loosening is not ordinary subtyping]
+Although $\sqsubseteq$ is a partial order on SMT types, it should not be confused with ordinary subtyping. A judgment $\castable{\alpha}{\beta}$ does not license subsumption: it records an explicit change of SMT representation that preserves the underlying B set. Function types make the distinction clear. Ordinary function subtyping is contravariant in the domain and covariant in the codomain, whereas rule \ref{rule:castable-fun} loosens both components covariantly, extending the transported function by a default value outside the image of the domain cast. Loosening is therefore a semantics-preserving representation change, rather than a subtyping discipline internal to SMT-LIB.
+\end{remark}
 
 The cast path $\castpath{}{}$ replays the very same rules, but as a \emph{proof-relevant}, or \emph{constructive} version of them: where $\castable{\alpha}{\beta}$ is a mere proposition (it lives in \leaninl{Prop}), a cast path $\castpath{\alpha}{\beta}$ is a piece of data (it lives in \leaninl{Type}) recording \emph{how} $\alpha$ is loosened into $\beta$.
 
@@ -93,7 +97,7 @@ Let $\alpha$, $\beta$, and $\delta$ be SMT types. The relation $\castable{}{}$ e
 
 \begin{theorem}[Decidability][instDecidableCastable?][Encoder/Loosening/Castable.html\#instDecidableCastable?]
   \label{thm:castable-decidable}
-  $\castable{\alpha}{\beta}$ is decidable.
+  The proposition $\castable{\alpha}{\beta}$ is decidable.
 \end{theorem}
 \begin{proof}
 By structural recursion on $\alpha$ and $\beta$: each rule is selected by the head constructors of $\alpha$ and $\beta$, decidable equality on $\mathsf{SMTType}$ settles the atomic \ref{rule:castable-refl} case, and the structural cases reduce to deciding loosenability of the components. The argument is routine but lengthy, as it enumerates every case explicitly.
@@ -114,7 +118,7 @@ The next two corollaries record this passage between the propositional and the p
   The decision procedure of the previous theorem already builds a cast path whenever it succeeds, so a proof of $\castable{\alpha}{\beta}$ yields one by re-running it---this is precisely how the construction sidesteps the impossibility of eliminating the \leaninl{Prop} directly. Conversely, erasing the data of a cast path---keeping only \emph{that} it exists, not \emph{how}---sends each constructor to the homonymous rule of $\castable{}{}$.
 \end{proof}
 
-Together they let us conflate the two notions freely: we write $\castable{\alpha}{\beta}$ when only the fact matters, and pass to a cast path $\mathbb{c} : \castpath{\alpha}{\beta}$ whenever the construction must recurse on the shape of the derivation. Finally, loosening is a genuine ordering, so a type has a well-defined position relative to all those it can be loosened into.
+Together, \Cref{thm:castable-decidable,cor:castable-constructive} let us conflate the two notions freely: we write $\castable{\alpha}{\beta}$ when only the fact matters, and pass to a cast path $\mathbb{c} : \castpath{\alpha}{\beta}$ whenever the construction must recurse on the shape of the derivation. Finally, loosening is a genuine ordering, so a type has a well-defined position relative to all those it can be loosened into.
 
 \begin{theorem}[Partial ordering][castable?.reflexive, castable?.trans, castable?.antisymm][Encoder/Loosening/Castable.html\#castable?.reflexive, Encoder/Loosening/Castable.html\#castable?.trans, Encoder/Loosening/Castable.html\#castable?.antisymm]
   \label{thm:loosening-partial-order}
@@ -235,7 +239,7 @@ Plain arrows {\tikz[baseline=-.6ex]{\draw[funarr, shorten <=0pt, shorten >=0pt] 
 
 The properties below build up, step by step, to the adjunction $\mathsf{lgf} \dashv \mathsf{mgf}$. First, the two normal forms bracket the type they are computed from.
 \begin{theorem}[][lgf\_le, le\_mgf][Encoder/Loosening/Castable.html\#SMT.SMTType.lgf_le, Encoder/Loosening/Castable.html\#SMT.SMTType.le_mgf]
-  \(\alpha\) belongs to the interval \([\lgf{\alpha}, \mgf{\alpha}]\), \ie
+  The type \(\alpha\) belongs to the interval \([\lgf{\alpha}, \mgf{\alpha}]\), \ie
   \(\mathsf{lgf}(\alpha) \sqsubseteq \alpha \sqsubseteq \mathsf{mgf}(\alpha).\)
   \begin{center}
     \begin{tikzpicture}
@@ -256,7 +260,7 @@ By induction on $\alpha$. At atomic types $\lgf{\alpha} = \alpha = \mgf{\alpha}$
 
 Each form is normalizing, or \emph{idempotent}: applying it twice does not change the result.
 \begin{theorem}[Idempotence][lgf\_idempotent, mgf\_idempotent][Encoder/Loosening/Castable.html\#SMT.SMTType.lgf_idempotent, Encoder/Loosening/Castable.html\#SMT.SMTType.mgf_idempotent]
-  $\mathsf{lgf}$ and $\mathsf{mgf}$ are idempotent, \ie
+  The functions $\mathsf{lgf}$ and $\mathsf{mgf}$ are idempotent, \ie
   \[
     \mathsf{lgf} \circ \mathsf{lgf} = \mathsf{lgf} \quad\text{and}\quad \mathsf{mgf} \circ \mathsf{mgf} = \mathsf{mgf}.
   \]
@@ -279,7 +283,7 @@ By induction on $\alpha$. The type $\mgf{\alpha}$ has no functional layer left f
 
 Both forms are also monotone for the loosening order \(\castable{}{}\).
 \begin{theorem}[Monotonicity][lgf\_mono, mgf\_mono][Encoder/Loosening/Castable.html\#SMT.SMTType.lgf_mono, Encoder/Loosening/Castable.html\#SMT.SMTType.mgf_mono]
-  $\mathsf{lgf}$ and $\mathsf{mgf}$ are monotone, \ie if $\alpha \sqsubseteq \beta$, then
+  The functions $\mathsf{lgf}$ and $\mathsf{mgf}$ are monotone, \ie if $\alpha \sqsubseteq \beta$, then
   \[
     \mathsf{lgf}(\alpha) \sqsubseteq \mathsf{lgf}(\beta) \quad\text{and}\quad \mathsf{mgf}(\alpha) \sqsubseteq \mathsf{mgf}(\beta)
   \]
@@ -309,7 +313,7 @@ By induction on the derivation of $\castable{\alpha}{\beta}$: the structural rul
 Monotonicity and idempotence together fix how the two forms compose: each absorbs the other,
 a property known as the triangular identities---although we present them both in one diagram here.
 \begin{theorem}[Triangular identities][mgf\_of\_lgf, lgf\_of\_mgf][Encoder/Loosening/Castable.html\#SMT.SMTType.mgf_of_lgf, Encoder/Loosening/Castable.html\#SMT.SMTType.lgf_of_mgf]
-  $\mathsf{lgf}$ and $\mathsf{mgf}$ satisfy the triangular identities, \ie
+  The functions $\mathsf{lgf}$ and $\mathsf{mgf}$ satisfy the triangular identities, \ie
   \[
     \mathsf{lgf} \circ \mathsf{mgf} = \mathsf{lgf} \quad\text{and}\quad \mathsf{mgf} \circ \mathsf{lgf} = \mathsf{mgf}
   \]
@@ -332,7 +336,7 @@ By induction on $\alpha$; equivalently, $\lgf{\alpha}$ and $\alpha$ lie in the s
 
 These facts assemble into the central property of the pair: $\mathsf{lgf}$ and $\mathsf{mgf}$ are adjoint.
 \begin{theorem}[Adjunction][castable?.galois][Encoder/Loosening/Castable.html\#SMT.SMTType.castable?.galois]
-  $\mathsf{lgf}$ is left adjoint to $\mathsf{mgf}$ on $(\mathsf{SMTType}, \castable{}{})$, denoted $\mathsf{lgf} \dashv \mathsf{mgf}$, i.e., for any $\alpha, \beta : \mathsf{SMTType}$,
+  The function $\mathsf{lgf}$ is left adjoint to $\mathsf{mgf}$ on $(\mathsf{SMTType}, \castable{}{})$, denoted $\mathsf{lgf} \dashv \mathsf{mgf}$, i.e., for any $\alpha, \beta : \mathsf{SMTType}$,
   \[
     \mathsf{lgf}(\alpha) \sqsubseteq \beta \iff \alpha \sqsubseteq \mathsf{mgf}(\beta)
   \]
@@ -627,10 +631,6 @@ Since $\theta \sqcap \tau \sqsubseteq \theta$, the join $\theta \sqcup (\theta \
 The interval is finite: each of the finitely many functional positions of $\alpha$ makes an independent choice between its functional and relational forms. Because the interval is finite and closed under binary joins and meets, every finite subset has a join and a meet by iteration, using the bottom and top elements for the empty subset. Every subset of a finite interval is finite; hence arbitrary joins and meets exist, so the lattice is complete.
 \end{proof}
 
-\begin{remark}[Loosening is not ordinary subtyping]
-Although $\sqsubseteq$ is a partial order on SMT types, it should not be confused with ordinary subtyping. A judgment $\castable{\alpha}{\beta}$ does not license subsumption: it records an explicit change of SMT representation that preserves the underlying B set. Function types make the distinction clear. Ordinary function subtyping is contravariant in the domain and covariant in the codomain, whereas rule \ref{rule:castable-fun} loosens both components covariantly, extending the transported function by a default value outside the image of the domain cast. Loosening is therefore a semantics-preserving representation change, rather than a subtyping discipline internal to SMT-LIB.
-\end{remark}
-
 \section{Loosening equations}
 \label{sec:loosening-rules}
 
@@ -638,7 +638,7 @@ Having settled when and how a \emph{type} may be loosened, we now define how \em
 \[
   \langle \regnotation{\lvar{x}}, \regnotation{\spec{\lvar{x}}} \rangle := \mathsf{loosen}_{\mathbb{c}}(x)
 \]
-made of a \emph{fresh} variable $\lvar{x}$ of the target type $\beta$ and a boolean term $\spec{\lvar{x}}$, its \emph{specification}, which ties $\lvar{x}$ to $x$. Informally, $\spec{\lvar{x}}$ asserts that ``$\lvar{x}$ denotes the image of $x$ under the cast encoded by $\mathbb{c}$''; \Cref{sec:loosening-correctness} turns this slogan into a theorem.
+made of a \emph{fresh} variable $\lvar{x}$ of the target type $\beta$ and a Boolean term $\spec{\lvar{x}}$, its \emph{specification}, which ties $\lvar{x}$ to $x$. Informally, $\spec{\lvar{x}}$ asserts that ``$\lvar{x}$ denotes the image of $x$ under the cast encoded by $\mathbb{c}$''; \Cref{sec:loosening-correctness} turns this slogan into a theorem.
 
 The definition proceeds by structural recursion on $\mathbb{c}$, with one equation per cast-path constructor, each represented in the following \Cref{case:refl,case:opt,case:pair,case:chpred,case:fun,case:graph}.
 We write source variables in gray, as $\var{z}$, and their loosened counterparts with a bang, as $\lvar{z}$; we abbreviate a recursive call $\langle \lvar{z}, \spec{\lvar{z}} \rangle := \mathsf{loosen}_{\mathbb{c}'}(\var{z})$ by saying that $\lvar{z}$ is \emph{obtained by loosening} $\var{z}$, thereby also obtaining its specification $\spec{\lvar{z}}$.
@@ -663,13 +663,13 @@ Let $\mathbb{c} = \mathtt{opt}\;\mathbb{c}_\alpha : \castpath{\optS\,\alpha}{\op
 \begin{array}{r@{\qquad}rl}
 x = \noneS_{\alpha}: & \spec{\lvar{x}} &\triangleq \lvar{x} \eqS \noneS_{\alpha'}\\
 x = \someS\ y : & \spec{\lvar{x}} &\triangleq \existsS \lvar{y} : \alpha'\cdot\, (\lvar{x} \eqS \someS\ \lvar{y}) \andS \spec{\lvar{y}} \\[1ex]
-& & \text{where } \langle \lvar{y}, \spec{\lvar{y}} \rangle \text{ is obtained by loosening } y\\[1ex]
+& & \text{where } \langle \lvar{y}, \spec{\lvar{y}} \rangle := \mathsf{loosen}_{\mathbb{c}_\alpha}(y)\\[1ex]
 \text{otherwise}: & \spec{\lvar{x}} &\triangleq
 \begin{aligned}[t]
 &\iteS (x \eqS \noneS_{\alpha})\, (\lvar{x} \eqS \noneS_{\alpha'})\\
 &\quad \left(\existsS \lvar{y} : \alpha'\cdot\, (\lvar{x} \eqS \someS\ \lvar{y}) \andS \spec{\lvar{y}}\right)
 \end{aligned} \\
-& & \text{where } \langle \lvar{y}, \spec{\lvar{y}} \rangle \text{ is obtained by loosening } \theS x
+& & \text{where } \langle \lvar{y}, \spec{\lvar{y}} \rangle := \mathsf{loosen}_{\mathbb{c}_\alpha}(\theS x)
 \end{array}
 \]
 \end{definition}
@@ -683,7 +683,13 @@ Let $\mathbb{c} = \mathtt{pair}\;\mathbb{c}_\alpha\;\mathbb{c}_\beta : \castpath
 \[
 \spec{\lvar{x}} \;\;\triangleq\;\; \existsS \lvar{fst} : \alpha',\, \lvar{snd} : \beta'\cdot\, (\lvar{x} \eqS \pairS{\lvar{fst}}{\lvar{snd}}) \andS \spec{\lvar{fst}} \andS \spec{\lvar{snd}}
 \]
-where $\langle \lvar{fst}, \spec{\lvar{fst}} \rangle$ and $\langle \lvar{snd}, \spec{\lvar{snd}} \rangle$ are obtained by loosening $\fstS{x}$ and $\sndS{x}$ respectively.
+where the recursive calls are
+\[
+  \begin{aligned}
+    \langle \lvar{fst}, \spec{\lvar{fst}} \rangle &:= \mathsf{loosen}_{\mathbb{c}_\alpha}(\fstS{x})\quad\text{and}\\
+    \langle \lvar{snd}, \spec{\lvar{snd}} \rangle &:= \mathsf{loosen}_{\mathbb{c}_\beta}(\sndS{x}).
+  \end{aligned}
+\]
 \end{definition}
 
 \subsection{Case \texttt{chpred}}\label{case:chpred}
@@ -722,6 +728,7 @@ t \eqS \noneS_{\gamma_1} & \text{if } \gamma = \optS\ \gamma_1\\
 \]
 
 \begin{example}
+  \begin{samepage}
   Let $\gamma \coloneq (\intS \timesS \intS) \toS \intS$. The default specification, at type $\gamma$, of the term \(\lamS \var{x} : \intS \timesS \intS \cdot \fstS \var{x} +  \sndS \var{x}\) is given by the following SMT term:
   \[
   \begin{aligned}
@@ -732,6 +739,7 @@ t \eqS \noneS_{\gamma_1} & \text{if } \gamma = \optS\ \gamma_1\\
   \]
 
   Note that this term could be $\beta$-reduced to \(\forallS \var{u} : \intS \timesS \intS\cdot\, \fstS \var{u} +  \sndS \var{u} \eqS 0\), but we do not simplify terms at this stage.
+  \end{samepage}
 \end{example}
 
 \begin{definition}[fun][loosen][Encoder/Loosening/Rules.html\#loosenAux_prf]
@@ -748,7 +756,13 @@ Let $\mathbb{c} = \mathtt{fun}\;\mathbb{c}_\alpha\;\mathbb{c}_\beta : \castpath{
   \right) \\
   &\qquad\quad \left(\mathsf{defaultSpec}_{\beta'}(\appS{\lvar{x}}{(\lvar{a})})\right)
 \end{align*}
-where $\langle \lvar{a}, \spec{\lvar{a}} \rangle$ and $\langle \lvar{b}, \spec{\lvar{b}} \rangle$ are obtained by loosening fresh source variables $\var{a} : \alpha$ and $\var{b} : \beta$ respectively.
+where, for fresh source variables $\var{a} : \alpha$ and $\var{b} : \beta$, the recursive calls are
+\[
+  \begin{aligned}
+    \langle \lvar{a}, \spec{\lvar{a}} \rangle &:= \mathsf{loosen}_{\mathbb{c}_\alpha}(\var{a})\quad\text{and}\\
+    \langle \lvar{b}, \spec{\lvar{b}} \rangle &:= \mathsf{loosen}_{\mathbb{c}_\beta}(\var{b}).
+  \end{aligned}
+\]
 Thus, at an argument in the image of the domain cast, the specification fixes the result to the cast of the source-function result; off that image, it fixes the result to the canonical default of $\beta'$.
 \end{definition}
 
@@ -830,7 +844,7 @@ The first five clauses are \emph{structural}: they loosen componentwise and leav
   \begin{cases}
     \appZ {\zop{\mathbb{c}}}_\beta\bigl(\appZ X(\appZ {\zop{\mathbb{c}}}_\alpha^{-1}(a'))\bigr) & \text{if } a' \in \Ran(\zop{\mathbb{c}}_\alpha),\\
     d_{\beta'} & \text{otherwise}
-  \end{cases}\right).
+  \end{cases}\right),
   \tag{$\zop{\mathtt{fun}}$}
 \end{equation}
 where $d_{\beta'}$ is defined by
@@ -859,7 +873,25 @@ For every cast path $\mathbb{c} : \castpath{\alpha}{\beta}$, the semantic cast $
 \end{lemma}
 
 \begin{proof}
+\widowpenalty=10000
 By induction on $\mathbb{c}$. The \texttt{refl} case is the identity function, which is injective. The structural cases preserve injectivity componentwise; in the \texttt{chpred}, \texttt{fun}, and \texttt{graph} cases the pre-image reconstructions used above are well-defined precisely because the component casts are injective by the inductive hypothesis.
+
+For example, consider $\mathbb{c} = \mathtt{chpred}\;\mathbb{c}_\alpha$ and predicates
+$X,Y \in \interpZ{\alpha \toS \boolS}$ such that
+$\appZ\zop{\mathbb{c}}(X) = \appZ\zop{\mathbb{c}}(Y)$.
+For any $a \in \interpZ{\alpha}$, let $a' = \appZ\zop{\mathbb{c}}_\alpha(a)$.
+Injectivity of $\zop{\mathbb{c}}_\alpha$ makes $a$ the unique preimage of $a'$, so
+\eqref{eq:castZF-chpred} gives
+\[
+  \appZ X(a)
+  = \appZ\bigl(\appZ\zop{\mathbb{c}}(X)\bigr)(a')
+  = \appZ\bigl(\appZ\zop{\mathbb{c}}(Y)\bigr)(a')
+  = \appZ Y(a).
+\]
+Extensionality yields $X = Y$. Outside the image of the domain cast, both
+transported predicates are false, as required by their definition.
+The Lean proof is more involved because it requires membership and function-typing
+witnesses, evaluation of set-theoretic lambdas, and recovery of the chosen preimage.
 \end{proof}
 
 \subsection{Correctness statement}
@@ -1115,7 +1147,7 @@ Then, since $\lvar{x}$ and $\pairS{ \lvar{fst}}{\lvar{snd}}$ are both denoted by
 Thus, $\interpS{\aterm{\psi}{\Delta''}} = \topZ \andZ \topZ \andZ \topZ = \topZ$, and therefore $\interpS{\aterm{\spec{\lvar{x}}}{\Delta_{\lvar{x}}}} = \notZ\botZ = \topZ$.
 \end{subproof}
 
-Together with \eqref{eq:pair_castimg} this is item~2. For item~3, a typed target $\denval{Y}[\alpha' \timesS \beta']$ decomposes as $Y = (u, v)$; the pair equality is boolean and the recursive specifications $\spec{\lvar{fst}}, \spec{\lvar{snd}}$ are defined on typed data, so $\spec{\lvar{x}}$ is defined. If it holds at $Y$, recursive soundness identifies the witnesses with the components, $u = \appZ\zop{\mathbb{c}_\alpha}(a)$ and $v = \appZ\zop{\mathbb{c}_\beta}(b)$, whence $Y = (u, v) = (a^!, b^!) = X^! = \appZ\zop{\mathbb{c}}(X)$ by \eqref{eq:pair_castimg}.
+Together with \eqref{eq:pair_castimg} this is item~2. For item~3, a typed target $\denval{Y}[\alpha' \timesS \beta']$ decomposes as $Y = (u, v)$; the pair equality is Boolean and the recursive specifications $\spec{\lvar{fst}}, \spec{\lvar{snd}}$ are defined on typed data, so $\spec{\lvar{x}}$ is defined. If it holds at $Y$, recursive soundness identifies the witnesses with the components, $u = \appZ\zop{\mathbb{c}_\alpha}(a)$ and $v = \appZ\zop{\mathbb{c}_\beta}(b)$, whence $Y = (u, v) = (a^!, b^!) = X^! = \appZ\zop{\mathbb{c}}(X)$ by \eqref{eq:pair_castimg}.
 
 Here the loosening diagram (\Cref{fig:loosening-square}) specializes to the product, its semantic cast $\zop{\mathbb{c}} = (\zop{\mathbb{c}_\alpha}, \zop{\mathbb{c}_\beta})$ acting componentwise:
 
@@ -1205,6 +1237,8 @@ The loosening diagram (\Cref{fig:loosening-square}) here transports a predicate 
   \draw[relarr, draw=black] (X) to node[midway, below] {$\zop{\mathbb{c}}$} (X!);
 \end{tikzpicture}
 \vspace*{-\baselineskip}
+% Keep the final diagram and the proof's QED marker on the same page.
+\makeatletter\@endparpenalty=10000\makeatother
 \end{center}
 \end{proof}
 
@@ -1404,6 +1438,8 @@ This is the one shape-changing rule: the loosening diagram (\Cref{fig:loosening-
 
 Taken together, the six cases exhaust the constructors of a cast path and therefore establish \Cref{thm:loosening-correctness} by induction on $\mathbb{c}$. In each of them the loosening diagram (\Cref{fig:loosening-square}) commutes: the denotation of the loosened term $\lvar{x}$ is the semantic cast $\appZ\zop{\mathbb{c}}(X)$ of the denotation $X$ of the source $x$, and the specification $\spec{\lvar{x}}$ singles out this cast image as its unique typed solution---completeness (item~2) placing the image among the solutions, soundness (item~3) ruling out every other typed target. As the semantic cast is injective (\Cref{lem:semantic-cast-injective}), that image in turn determines $X$, so $\spec{\lvar{x}}$ ties $\lvar{x}$ to $x$ unambiguously: loosening rewrites the \emph{representation} of a value but never the set it denotes. Only the \texttt{graph} case changes the shape of that representation---trading the functional encoding of a partial function for the relational encoding of its graph---while the other five act homomorphically, transporting the value componentwise. This discharges the slogan of \Cref{sec:loosening-rules}: a term may be replaced by its loosened view at a looser type with its denotation provably unchanged.
 
+% On A4, keep the short conclusion together instead of leaving a few final lines.
+\ifThesisAfive\else\Needspace{26\baselineskip}\fi
 \section{Conclusion}
 \label{sec:loosening-conclusion}
 

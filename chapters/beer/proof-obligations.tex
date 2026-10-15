@@ -112,15 +112,22 @@ Interpreting solver answers also assumes solver soundness for the ZF semantics o
 \subsection{The running example}
 \label{sec:beer-po-running-example}
 
-We follow the encoding of \cref{eq:beer-running-po} to the final solver call using fragments of the complete input in \Cref{lst:beer-running-po}.
-They omit unused machinery and administrative scopes and simplify fresh names and definitions using the datatype equations.
+Recall the obligation of \eqref{eq:beer-running-po}, where \(\var{f}\) is a total function and \(\var{g}\) a relation between the integer sets \(X\) and \(Y\):
+\[
+  \bigl(\var{f} \inB X \tfunB Y\bigr) \andB
+  \bigl(\var{g} \inB X \mathbin{\bop{\leftrightarrow}} Y\bigr)
+  \impB
+  \var{f} \cupB \var{g} \subseteqB X \prodB Y.
+\]
+We follow its encoding to the final solver call using fragments of the complete input in \Cref{lst:beer-running-po}.
+They omit unused machinery and administrative scopes and simplify fresh names and definitions using the data type equations.
 The negated universal is retained before final propositional simplification to expose the refutational structure; these changes preserve the active SMT formula.
 
 \Needspace{9\baselineskip}
 \paragraph{Global prelude.}
-Before encoding individual proof obligations, the encoder emits the shared datatype declarations as a global prelude, shown in \Cref{lst:beer-running-prelude}, outside every proof-obligation scope.
+Before encoding individual proof obligations, the encoder emits the shared data type declarations as a global prelude, shown in \Cref{lst:beer-running-prelude}, outside every proof-obligation scope.
 
-\begin{smtlisting}[title={Global datatype prelude.}, label=lst:beer-running-prelude, float=h]
+\begin{smtlisting}[title={Global data type prelude.}, label=lst:beer-running-prelude, float=h]
 (declare-datatype Pair (par (T1 T2) ((pair (fst T1) (snd T2)))))
 (declare-datatype Option (par (T) ((some (the T)) (none))))
 \end{smtlisting}
@@ -171,6 +178,8 @@ Following \Cref{sec:beer-rules-cast}, the \encruleref{rule:beer-union} rule keep
 \end{smtlisting}
 
 The specification says that \smtinl{(pair u v)} belongs to \smtinl{f!} exactly when \smtinl{f} returns \smtinl{(some v)} at \smtinl{u}.
+The \smtinl{define-fun} command gives this Boolean formula a reusable name; the following \smtinl{assert} adds it to the solver context.
+Keeping the two commands separate makes the generated script easier to read and lets other assertions refer to the same specification.
 After this reconciliation, union membership reduces to \smtinl{(or (f! z) (g z))}.
 Because \smtinl{f!_spec} mentions only the free variable \smtinl{f} and not the quantified pair \smtinl{z}, the helper \smtinl{f!} needs no listing of its own: it is declared once, outside the goal, exactly as shown in \Cref{lst:beer-running-loosening}, and its specification is asserted in the outer scope.
 The re-scoping part of the \encruleref{rule:beer-bounded-universal} rule applies only to helpers whose specifications depend on a bound variable, which is not the case here.
@@ -201,11 +210,12 @@ Running cvc5 (\Cref{sec:ar-smt}) with the following options returns \textsf{unsa
 Indeed, the assumptions place both graphs in \(X\prodB Y\), and the loosening specification preserves the graph of \(\var{f}\), so their union cannot contain a counterexample to the inclusion.
 By the refutational criterion, \cref{eq:beer-running-po} is valid.
 
+% Keep the preceding small floats in order, then let the complete script
+% continue across a page break instead of reserving an isolated float page.
+\FloatBarrier
 \begingroup
-\makeatletter
-\@fptop=0pt
-\makeatother
-\begin{smtlisting}[title={Complete running-example refutation.}, label=lst:beer-running-po, float=t]
+\setstretch{1.0}
+\begin{smtlisting}[title={Complete running-example refutation.}, label=lst:beer-running-po]
 (set-logic HO_ALL)
 (declare-datatype Pair (par (T1 T2) ((pair (fst T1) (snd T2)))))
 (declare-datatype Option (par (T) ((some (the T)) (none))))
@@ -241,5 +251,4 @@ By the refutational criterion, \cref{eq:beer-running-po} is valid.
   (pop 1)
 (pop 1)
 \end{smtlisting}
-\FloatBarrier
 \endgroup

@@ -9,12 +9,54 @@ the third year of the PhD, when their capabilities became sufficient for
 sustained technical assistance. I use them for brainstorming, program
 exploration, debugging and refactoring, Lean proof search, and the revision of
 technical prose. I also use them as critics, asking them to identify unclear
-explanations, propose alternative proof strategies, and point to cases that
+explanations, propose alternative Lean proof scripts, and point to cases that
 merit further investigation.
+
+Although some design decisions were discussed with AI, mostly
+GPT-5.4~\cite{openaiGPT54} and GPT-5.5~\cite{openaiGPT55}, I conceived and developed all
+mathematical ideas, definitions, and proof arguments underlying my
+contributions. For example, for the type-loosening approach of
+\Cref{ch:loosening}, I asked the models to search the literature for related
+ideas in other formalisms. I used these searches to check the novelty of my
+contributions, verifying the references and comparing their definitions and
+results with my own. The discussions also helped me find appropriate
+terminology for the constructions I had developed.
+
+For \beer{}, I designed the formalism, encoding, and correctness argument.
+The proof proceeds by induction on the B syntax. I first proved as many
+different kinds of case as possible myself, including basic values, variables,
+pairs, addition, and set comprehension, whose proof had to account for bound
+variables. I then asked LLM agents, mainly Claude Opus
+4.6~\cite{anthropicClaudeOpus46}, 4.7~\cite{anthropicClaudeOpus47} and
+4.8~\cite{anthropicClaudeOpus48}, to complete the remaining cases using these
+proofs as models. A substantial part of the Lean correctness proofs was
+generated in this way. The agents' role in the Lean development was limited
+to proof engineering: adapting the established arguments, supplying auxiliary
+lemmas, and carrying out the rewrites and other formal steps required by Lean.
+This allowed me to complete proofs that I would otherwise have had to leave
+unfinished within the time available. The
+\href{https://github.com/VTrelat/BEer}{\beer{} repository} records Claude's
+assistance through explicit co-author attribution in commit messages, allowing
+the corresponding changes to be inspected.
+
+For this manuscript and my papers, I write the text myself before asking AI
+to check the grammar, suggest clearer or more concise formulations, and
+identify passages that need further explanation. I then work through the
+suggestions and revise the text, often over several iterations, checking
+throughout that the wording preserves the intended mathematical meaning.
+This workflow is now part of my daily routine.
 
 I remain responsible for validating every output before incorporating it into
 the thesis or its software artifacts. This includes checking formal developments
 with Lean, exercising software changes through the relevant builds and tests,
 verifying factual and bibliographic claims against primary sources, and
-reviewing suggested statements and models against the intended B semantics. The
-final selection, interpretation, and presentation of all material are mine.
+reviewing suggested statements and models against the intended B semantics.
+Lean checks that a proof establishes the stated proposition relative to its
+definitions and logical assumptions. Whether those definitions and statements
+express the intended mathematics requires a separate review. The final
+selection, interpretation, and presentation of all material are mine.
+
+As part of an early generation of researchers using LLMs throughout their
+work, I believe we have a responsibility to be honest and transparent about
+that use and to develop practices that allow others to assess the resulting
+research.

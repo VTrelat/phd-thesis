@@ -131,14 +131,17 @@
 \fi
 
 % ------------------------------------------------------------------
-% Blank page, then the back cover (assets/back-cover.png + English
-% abstract), as the very last two pages of the manuscript.
+% Leave the inside back cover blank and place the artwork on a verso.
+% Count physical pages: front/main matter reset the printed page counter.
 % ------------------------------------------------------------------
 \ifThesisArtCover
   \clearpage
   \thispagestyle{empty}
   \mbox{}
   \clearpage
+  \ifodd\ReadonlyShipoutCounter\else
+    \thispagestyle{empty}\null\clearpage
+  \fi
 
   \input{back-cover.tex}
 \fi

@@ -43,7 +43,7 @@ than from axioms alone.
 
 A small, recurring collection of theories covers most practical needs:
 equality with uninterpreted functions, linear arithmetic over the integers or
-the reals, bit-vectors, arrays, algebraic datatypes, and strings, among others.
+the reals, bit-vectors, arrays, algebraic data types, and strings, among others.
 Each comes with a decision procedure for its quantifier-free fragment---and, for
 several of them, for decidable quantified fragments as well; quantifiers outside
 such a fragment are handled by the heuristic instantiation discussed below.
@@ -79,7 +79,7 @@ foundational one being the \emph{Nelson--Oppen} procedure~\cite{nelson1979simpli
 Quantifiers, which lie beyond the decidable core, are handled by heuristic
 instantiation and are a frequent source of incompleteness.
 Mature implementations of this architecture include cvc5~\cite{barbosa2022cvc5},
-Z3~\cite{demoura2008z3}, and veriT~\cite{bouton2009verit}; the
+Z3~\cite{demoura2008z3}, veriT~\cite{bouton2009verit}, and Alt-Ergo~\cite{conchon2018altergo}; the
 SMT-LIB scripts produced in \Cref{ch:beer} are discharged by cvc5, whose support
 for higher-order reasoning is exploited in the encodings of this thesis.
 

@@ -30,6 +30,8 @@ A B Boolean expression becomes an inhabitant of \leaninl{Prop} rather than of
 Proof obligations are statements, not computations, so the classical, non-computational
 reading is the useful one, and it lets a B predicate be used directly where Lean expects a
 proposition (instead of being routed through a decidability instance).
+In the integer row, \leaninl{@Set.univ Int} denotes the set of all integers and has type
+\leaninl{Set Int}; the type column gives its ambient carrier \leaninl{Int}.
 
 \begin{table}[t]
   \centering
@@ -38,7 +40,7 @@ proposition (instead of being routed through a decidability instance).
     \toprule
     B expression & Lean type & Lean value \\
     \midrule
-    \texttt{INTEGER}                       & \leaninl{Int}   & \leaninl{Set.univ} \\
+    \texttt{INTEGER}                       & \leaninl{Int}   & \leaninl{@Set.univ Int} \\
     \texttt{NATURAL}, \texttt{NATURAL1}    & \leaninl{Int}   & \(\{n \mid 0 \le n\}\), resp.\ \(\{n \mid 1 \le n\}\) \\
     \texttt{NAT}, \texttt{NAT1}             & \leaninl{Int}   & \(\{n \mid 0 \le n \le \mathtt{MAXINT}\}\), resp.\ \(\{n \mid 1 \le n \le \mathtt{MAXINT}\}\) \\
     \texttt{INT}                           & \leaninl{Int}   & \(\{n \mid \mathtt{MININT} \le n \le \mathtt{MAXINT}\}\) \\
@@ -131,13 +133,14 @@ generated statements recognizable: an imported obligation about \(f \inB A \pfun
 statement about a set of pairs, just as it is in the B source.
 
 \begin{remark}
-  The price of this choice is that no automatic procedure exploits functionality the way a
-  solver exploits a function symbol.
-  Functionality has to be used through lemmas---that a total function's domain is its
+  Functionality of a set of pairs is used through lemmas---that a total function's domain is its
   declared source, that application of a functional relation yields a pair of that
-  relation, that the image of a singleton is the singleton of the image---which is why the
-  supporting library, rather than the operator definitions, is where most of \barrel{}'s
-  proof effort has gone.
+  relation, that the image of a singleton is the singleton of the image.
+  Lean's congruence reasoning, including that of \leaninl{grind}, still applies to the
+  encoded terms.
+  For routine well-definedness goals, \barrel{} first uses small searches over selected
+  lemmas; more involved goals may require interactive proofs
+  (\Cref{subsec:barrel-automation}).
 \end{remark}
 
 \subsection{The supported fragment}

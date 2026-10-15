@@ -1,16 +1,22 @@
-\newcommand{\mkchapter}[1]{%
-  \chapter{#1}%
+% Book chapters always get a separate contents page.  On A4, the optional
+% argument can move an unusually long map; every map retains all subsections.
+\newcommand{\mkchapter}[2][]{%
+  \chapter{#2}%
   % Keep automatic TikZ cache names stable across full and partial builds.
   \tikzsetfigurename{chapter-\thechapter-figure-}%
   % Save chapter number for the List of Notations (\nomgroup in notations.tex).
   % \chapter increments the counter first, so \Alph{chapter} is already correct.
   \expandafter\xdef\csname nomchapterno@\Alph{chapter}\endcsname{\arabic{chapter}}%
-  \expandafter\gdef\csname nomchaptertitle@\Alph{chapter}\endcsname{#1}%
+  \expandafter\gdef\csname nomchaptertitle@\Alph{chapter}\endcsname{#2}%
   \noindent\textcolor{venn-light}{\rule{\textwidth}{0.8pt}}%
   \vskip 4pt
+  \ifThesisAfive\clearpage\else#1\fi%
   \begingroup
     \hypersetup{hidelinks}%
+    \setstretch{1.0}%
     \etocsettocdepth{subsection}%
+    % Keep every subsection; the book uses the same placement in every chapter.
+    \etocsettocstyle{\par\medskip\noindent\textbf{Contents}\par\smallskip}{}%
     % Local TOC style: no dot leaders, flush page numbers with \hfill
     \etocsetstyle{section}%
       {}{\vspace{0pt}}%
@@ -97,7 +103,7 @@
 
 \newcommand\eg{\textit{e.g.\@},\xspace}
 \newcommand\ie{\textit{i.e.\@},\xspace}
-\newcommand\etc{\textit{etc.},\xspace}
+\newcommand\etc{\textit{etc.}\xspace}
 \newcommand\wrt{\textit{w.r.t.\@},\xspace}
 
 

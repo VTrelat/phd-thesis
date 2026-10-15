@@ -4,8 +4,12 @@
 \Cref{ch:beer} developed the automated route of \Cref{fig:intro-reasoning-routes}: a
 verified encoder that turns a B proof obligation into an SMT-LIB script and hands it to a
 solver.
-That route is one-shot: either the solver answers \texttt{unsat}, or it does not, and the
-failure says nothing about the cause.
+That route is one-shot.
+An \texttt{unsat} answer discharges the encoded obligation; a \texttt{sat} answer may
+provide a model of its negation, although recovering a B-level counterexample requires
+interpreting that model through the encoding.
+An \texttt{unknown} answer gives neither a proof nor a counterexample; timeouts and
+translation failures likewise give little guidance for completing the proof.
 The obligations it leaves behind are typically the ones carrying the mathematical content
 of a refinement, and they have to be taken up by hand.
 Atelier~B answers that need with its own interactive prover.

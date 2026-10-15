@@ -14,7 +14,7 @@ attempt to capture the full generality of SMT-LIB's sort system, which includes 
 sorts and polymorphic type constructors.
 
 In order to simplify the type system even further, we make use of SMT-LIB's recent support
-(version 2.7) for polymorphic data-types to encode pairs and options.
+(version 2.7) for polymorphic data types to encode pairs and options.
 In the formalization, they are treated as primitive type constructors, and SMT encodings always
 import a prelude containing those definitions. In practice, they are implemented as follows:
 
@@ -61,8 +61,11 @@ Functions in SMT-LIB are first-class and total, so the function sort \(\tau \toS
 This is a crucial point of divergence from the source language, and options will be used to
 model partiality.
 The unit sort \(\unitS\) is a singleton sort, whose sole inhabitant is written \(\aop{\unitvalS}\).
-It appears only in the abstract syntax, since the encoder never emits a bare unit literal in the
-concrete syntax.
+The prime marks the abstract SMT syntax (PHOAS): the unit \emph{literal} belongs only
+to that syntax, where it supplies the unit case of the recursive default inhabitant
+of \Cref{def:smt-default}. The concrete grammar describes the terms emitted by the
+encoder, which never emits a bare unit literal. Internally, the unit type also
+marks the empty parameter list of a nullary \smtinl{define-fun} declaration.
 
 \subsection{Concrete terms}
 \label{subsec:smt-concrete-terms}
@@ -93,6 +96,12 @@ Concrete variables are names of type \leaninl{String}.
   \end{bnf}
 \end{definition}
 
+The predicate \(\distinctS\,(t_1,\ldots,t_n)\) asserts that its arguments, all of a
+common type, are pairwise unequal. For example, \smtinl{(distinct red green blue)}
+asserts that \smtinl{red}, \smtinl{green}, and \smtinl{blue} are all different.
+The encoder uses this predicate for the named elements of B enumerated sets,
+through the environment constraints described in \Cref{sec:beer-proof-obligations}.
+
 \subsection{Abstract syntax}
 \label{subsec:smt-abstract-syntax}
 
@@ -102,7 +111,8 @@ parameterized by a type \(\mathcal{V}\) of abstract variables.
 In the grammar below, \(\tau\) ranges over SMT types, \(\vec\tau\) over finite
 families of SMT types, and \(e\) over scopes of the displayed type; the arity of a
 binder is inferred from \(\vec\tau\).
-The non-binding constructors are structurally the same as in \Cref{def:smt-basic-syntax}.
+Apart from the additional unit literal and the derived forms described below,
+the non-binding constructors are structurally the same as in \Cref{def:smt-basic-syntax}.
 As in the source language, binding constructors represent the scope of bound
 variables by meta-level Lean functions; we reuse the polyadic encoding of
 \Cref{subsec:b-abstract-syntax}, in which a binder of arity \(n\) takes a type
@@ -113,6 +123,7 @@ vector and a scope
 
 \begin{definition}[Abstract syntax][SMT.PHOAS.Term][SMT/PHOAS/Def.html\#SMT.PHOAS.Term]
   \label{def:smt-abstract-syntax}
+  \begin{minipage}{\linewidth}
       The constructors for abstract terms parametrized by a type \(\mathcal{V}\) of abstract variables
   are listed below, keeping notations from \Cref{def:smt-basic-syntax}.
 
@@ -127,6 +138,7 @@ vector and a scope
     | $\distinctSa \vec t$ // Distinctness
     | $t \abin{\leS} s$ && $t \abin{\addS} s$ && $t \abin{\subS} s$ && $t \abin{\mulS} s$ // Arithmetic
   \end{bnf}
+  \end{minipage}
 \end{definition}
 
 \begin{remark}

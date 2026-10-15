@@ -27,7 +27,14 @@
     % ── Header: UL logo + doctoral school + rule ────────────────────────────
     \noindent
     \begin{minipage}[c]{0.45\textwidth}
-      \includegraphics[height=18mm]{assets/tulul}%
+      % The logo already supplies its own PDF transparency group.  Avoid
+      % adding a second /Group entry when the LuaTeX driver imports it.
+      \makeatletter
+      \begingroup
+      \let\Gread@transgrouptrue\Gread@transgroupfalse
+      \includegraphics[height=18mm]{assets/tulul.pdf}%
+      \endgroup
+      \makeatother
     \end{minipage}%
     \hfill
     \begin{minipage}[c]{0.50\textwidth}

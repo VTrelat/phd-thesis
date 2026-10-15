@@ -20,8 +20,8 @@ constructing and verifying machines directly in Lean.
 \beer{} emits scripts in the higher-order fragment of
 SMT-LIB~\cite{smtlib2.7}: it represents B functions as SMT functions and relies
 on \(\lambda\)-terms and partial application rather than on first-order graph
-encodings. cvc5 remains the only SMT solver that accepts this input, so the
-automated route has a single usable backend. Wider adoption of the higher-order
+encodings. For the experiments of \Cref{ch:evaluation}, cvc5 was chosen for its support
+for this input. Wider adoption of the higher-order
 fragment, and its consolidation in the proposed
 SMT-LIB~3.0~\cite{smtlib3proposal}, would open the same encoding to other solvers
 and make portfolio use possible. A standardized higher-order core with an

@@ -143,8 +143,8 @@ its denotation coincides with the one assigned by any typing derivation; totalit
 the expected type. Together they prove that set-level well-formedness and typing
 derivations describe the very same terms---the bridge on which the certified encoding of
 \Cref{ch:beer} ultimately rests. The carried type is thus never in conflict with the
-derivable one, and in return the semantics becomes a structural, side-condition-free
-function whose every output is certified well-typed. This realizes, at the level of the
+derivable one, and in return the semantics becomes a structural function free of
+type-correctness side conditions, whose every output is certified well-typed. This realizes, at the level of the
 denotation, the \emph{correct-by-construction} discipline announced in
 \Cref{subsec:b-sem-domain}: well-typedness is maintained as an invariant of the semantic
 values rather than reconstructed after the fact.
@@ -201,12 +201,12 @@ where $\zop{n}$ and $\zop{b}$ are the respective ZFC encodings of integers and B
 
 For built-in sets, the denotation is given by the interpretation of their ZFC counterparts:
 \[
-  \interpB{\ZintB}          \triangleq \denval{\Zint}[\setB\intB],\quad
+  \interpB{\ZintB}          \triangleq \denval{\Zint}[\setB\intB]\quad\text{and}\quad
   \interpB{\ZboolB}         \triangleq \denval{\Zbool}[\setB\boolB]
 \]
 
 \begin{proofconstruct}
-  \(\pf{\setB\intB}{\Zint} : \Zint \in \powZ(\Zint)\) and \(\pf{\setB\boolB}{\Zbool} : \Zbool \in \powZ(\Zbool)\) are trivially given by the fact that any set belongs to its own powerset.
+  The proofs \(\pf{\setB\intB}{\Zint} : \Zint \in \powZ(\Zint)\) and \(\pf{\setB\boolB}{\Zbool} : \Zbool \in \powZ(\Zbool)\) are trivially given by the fact that any set belongs to its own powerset.
 \end{proofconstruct}
 
 \paragraph{Pairs.}
@@ -277,7 +277,7 @@ When \(\tau = \sigma\),
   \interpB{S \capB T}  & \triangleq \denval{S' \regnotation{\capZ} T'}[\setB\tau]
 \end{align*}
 \begin{proofconstruct}
-  \(\pf{\setB\tau}{S' \cupZ T'} : S' \cupZ T' \in \powZ(\interpZ{\tau})\) and \(\pf{\setB\tau}{S' \capZ T'} : S' \capZ T' \in \powZ(\interpZ{\tau})\) are easily constructed using monotonicity of union and intersection: {\small\leancodeptr{union\_mono}{Extra/ZFC_Extra.html\#union_mono}}, {\small\leancodeptr{inter\_mono}{Extra/ZFC_Extra.html\#inter_mono}}.
+  The proofs \(\pf{\setB\tau}{S' \cupZ T'} : S' \cupZ T' \in \powZ(\interpZ{\tau})\) and \(\pf{\setB\tau}{S' \capZ T'} : S' \capZ T' \in \powZ(\interpZ{\tau})\) are easily constructed using monotonicity of union and intersection: {\small\leancodeptr{union\_mono}{Extra/ZFC_Extra.html\#union_mono}} and {\small\leancodeptr{inter\_mono}{Extra/ZFC_Extra.html\#inter_mono}}.
 \end{proofconstruct}
 
 \paragraph{Partial functions.}
@@ -293,7 +293,7 @@ Then, the denotation is given by
   \denval{\mathcal{F}}[\setB\bigl(\setB(\tau \prodB \sigma)\bigr)]
 \]
 \begin{proofconstruct}
-  Using that \emph{partial} functions are covariant in both their domain and codomain---see lemma {\small\leancodeptr{prod\_sep\_is\_pfunc\_mem}{ZFLean/Functions.html\#ZFSet.prod_sep_is_pfunc_mem}}, we show that
+  Using that \emph{partial} functions are covariant in both their domain and codomain, see lemma {\small\leancodeptr{prod\_sep\_is\_pfunc\_mem}{ZFLean/Functions.html\#ZFSet.prod_sep_is_pfunc_mem}}, we show that
   \begin{align*}
     F & \subseteq \bigl\{ f \in \powZ(\interpZ{\tau} \timesZ \interpZ{\sigma}) \bigm| \leancodeptr{IsPFunc}{ZFLean/Functions.html\#ZFSet.IsPFunc}\ f\ \interpZ{\tau}\ \interpZ{\sigma}  \bigr\} & \text{(using \(\pf{\setB\tau}{A'}\) and \(\pf{\setB\sigma}{B'}\))}                           \\
       & \subseteq \powZ(\interpZ{\tau} \timesZ \interpZ{\sigma})                                                                                                                                & \text{(using \leancodeptr{sep\_subset}{Mathlib/SetTheory/ZFC/Basic.html\#ZFSet.sep_subset})}
@@ -331,11 +331,11 @@ quantification domain---in the two-element Boolean algebra.
 We start with the most straightforward case of set comprehension \(\bcompa{D}{P}\), where \(D\) is a term and \(P\) is a scoped term.
 Definedness assumptions are the following:
 \begin{itemize}
-  \item \(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^{\times}]\), where \(\tau^{\times}\) is a product type \(\tau_1 \prodB \cdots \prodB \tau_n\) of the binder's arity;
-  \item For any family of variables \(\vec{\var{x}} = (\var{x_1}, \cdots, \var{x_n})\) of the binder's arity such that, for all \(i\), \(\var{x_i}\) carries the B type \(\tau_i\), and such that \(\pairZ{\var{x_1}}{\cdots, \var{x_n}} \in \mathcal{D}\), \(P(\vec{\var{x}})\) has a denotation.
+  \item The domain term has denotation \(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^{\times}]\), where \(\tau^{\times}\) is a product type \(\tau_1 \prodB \cdots \prodB \tau_n\) of the binder's arity;
+  \item For any family of variables \(\vec{\var{x}} = (\var{x_1}, \cdots, \var{x_n})\) of the binder's arity such that each variable \(\var{x_i}\) carries the corresponding B type \(\tau_i\), and such that \(\pairZ{\var{x_1}}{\cdots, \var{x_n}} \in \mathcal{D}\), the body \(P(\vec{\var{x}})\) has a denotation.
 \end{itemize}
 We can therefore define the following scoped denotation \(\mathfrak{P} : \mathsf{ZFSet} \to \BDom\) of the body \(P\).
-For any set argument \(z\), \(\mathfrak{P}(z)\) is defined by the following case distinction:
+For any set argument \(z\), the value \(\mathfrak{P}(z)\) is defined by the following case distinction:
 
 \begin{description}
   \item[if \(z \in \mathcal{D}\):] \(z\) can be written as an \(n\)-ary set-level tuple \(\pairZ{z_1}{\cdots, z_n}\).
@@ -373,8 +373,8 @@ The denotation of the whole comprehension is then given by separating \(\mathcal
 For lambda abstraction \(\lambdaB' D \cdot E\), the result is the graph of the function described by
 the body. The definition is quite similar to set comprehension, with the technicality that the return type of the body is not known at this point without typing information, so we need to compute it on the fly as we define the denotation of the body. The assumptions are also similar:
 \begin{itemize}
-  \item \(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^{\times}]\) as before;
-  \item For any family of variables \(\vec{\var{x}} = (\var{x_1}, \cdots, \var{x_n})\) of the binder's arity such that, for all \(i\), \(\var{x_i}\) carries the B type \(\tau_i\), and such that \(\pairZ{\var{x_1}}{\cdots, \var{x_n}} \in \mathcal{D}\), \(E(\vec{\var{x}})\) has a denotation.
+  \item The domain term has denotation \(\interpB{D} = \denval{\mathcal{D}}[\setB\tau^{\times}]\) as before;
+  \item For any family of variables \(\vec{\var{x}} = (\var{x_1}, \cdots, \var{x_n})\) of the binder's arity such that each variable \(\var{x_i}\) carries the corresponding B type \(\tau_i\), and such that \(\pairZ{\var{x_1}}{\cdots, \var{x_n}} \in \mathcal{D}\), the body \(E(\vec{\var{x}})\) has a denotation.
 \end{itemize}
 We define the following scoped denotation\footnotemark \(\mathcal{E} : \mathsf{ZFSet} \to \mathsf{Prop}\) of the body \(E\), for any set argument \(z\), by distinguishing whether \(\mathcal{D}\) is empty or not:
 \footnotetext{

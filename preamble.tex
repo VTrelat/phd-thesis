@@ -237,6 +237,9 @@
 \newfontfamily\playfaircoverfamily{Playfair Display}[LetterSpace=-2.5]
 
 \setstretch{1.2}
+% Keep natural spacing between text, displays and boxes.  Stretching these
+% gaps to force identical page bottoms creates conspicuous holes on A5.
+\raggedbottom
 
 % Tighten \paragraph spacing (KOMA-Script)
 \RedeclareSectionCommand[beforeskip=0.5ex,afterskip=-0.5em]{paragraph}
@@ -645,7 +648,7 @@ extendedchars=true
 \fi
 
 % Preserve emphasis color style
-\newcommand{\colornumberchap}{\color{beige!25!cover-cream}}
+\newcommand{\colornumberchap}{\color{beige!20!cover-cream}}
 \DeclareTextFontCommand{\emph}{\colornumberchap\itshape}
 
 % Remove KOMA-Script's default vertical space before/after chapter headings

@@ -4,7 +4,7 @@
 In \emph{Reflections on Trusting Trust}, his Turing Award lecture published in 1984, Ken Thompson showed how a compromised compiler could insert a Trojan horse into generated programs and perpetuate the attack through recompilation even after the malicious code had been removed from the compiler's source~\cite{thompson1984reflections}.
 He drew the following conclusion:
 \begin{quotation}[Ken Thompson][1984][Reflections on Trusting Trust]
-  No amount of source-level verification or scrutiny will protect you from using untrusted code.
+  No amount of source-level verification or scrutiny will protect you \\from using untrusted code.
 \end{quotation}
 Applied to formal verification, Thompson's warning translates into a simple principle: a verification result is only as strong as what it assumes.
 We therefore close the chapter by listing exactly what a user of \beer{} trusts beyond the proofs of \Cref{sec:beer-soundness}.
@@ -12,10 +12,11 @@ We therefore close the chapter by listing exactly what a user of \beer{} trusts 
 \subsection{Trusted computing base}
 \label{sec:beer-tcb}
 
-First, the generic infrastructure: the Lean~4 kernel and the consistency of Mathlib, and the ZFC model of \Cref{ch:zflean} on which every denotation of this thesis is built.
-Second, the \emph{decoder}: the parser translating Atelier~B proof obligation files into the B terms of \Cref{ch:b} is unverified, and so are the elaborations it performs---rewriting \(\subseteqB\) into a bounded universal and the function spaces into comprehensions over \(\pfunB\).
+First, users trust the Lean~4 kernel and the logical assumptions of the ZFC model of \Cref{ch:zflean}.
+The Mathlib theorems used here are kernel-checked, and their axioms are included in the audit below.
+Second, users trust the \emph{decoder}: the parser translating Atelier~B proof obligation files into the B terms of \Cref{ch:b} is unverified, and so are the elaborations it performs---rewriting \(\subseteqB\) into a bounded universal and the function spaces into comprehensions over \(\pfunB\).
 An error there changes \emph{which} statement is proved, not whether the proof is correct.
-Third, the \emph{back-end}: the printer from the abstract script to concrete SMT-LIB syntax, and the SMT solver itself, trusted to answer \texttt{unsat} only for scripts unsatisfiable in the semantics of \Cref{ch:smt}; assembly of the script-level theorem from the mechanized term contracts is likewise a paper argument (\Cref{sec:beer-po-soundness}).
+Third, users trust the \emph{back-end}: the printer from the abstract script to concrete SMT-LIB syntax, and the SMT solver itself, which must answer \texttt{unsat} only for scripts unsatisfiable in the semantics of \Cref{ch:smt}; assembly of the script-level theorem from the mechanized term contracts is likewise a paper argument (\Cref{sec:beer-po-soundness}).
 
 Finally, the formal development has an explicit axiom audit.
 Lean has a command \leaninl{#print axioms}, which reports that both {\small\leancodeptr{encodeTerm\_rep\_spec}{SMT/Reasoning/EncodeTermRepresented.html\#encodeTerm_rep_spec}} and its Boolean corollary rely only on the usual logical principles admitted by Lean: propositional extensionality, classical choice, and quotient soundness.
@@ -47,6 +48,8 @@ Inside the encoder, efficient data structures like hash-maps are used, and state
 \textsc{Zero-Proof} \beer{} therefore offers no mechanized semantic link between a source obligation and the SMT script it emits, and the verified encoder remains the reference for the guarantees established here.
 The two share a design and differ in what they are built for.
 
+% On A4, keep the short conclusion together instead of leaving a few final lines.
+\ifThesisAfive\else\Needspace{17\baselineskip}\fi
 \subsection{Conclusion}
 \label{sec:beer-conclusion}
 
